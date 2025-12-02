@@ -24,11 +24,30 @@ class $AssetsImagesGen {
 class $AssetsSvgGen {
   const $AssetsSvgGen();
 
+  /// File path: assets/svg/arrow_bottom.svg
+  String get arrowBottom => 'assets/svg/arrow_bottom.svg';
+
   /// File path: assets/svg/asr.svg
   String get asr => 'assets/svg/asr.svg';
 
+  /// File path: assets/svg/logosvg.svg
+  String get logosvg => 'assets/svg/logosvg.svg';
+
   /// List of all assets
-  List<String> get values => [asr];
+  List<String> get values => [arrowBottom, asr, logosvg];
+}
+
+class $AssetsTranslationsGen {
+  const $AssetsTranslationsGen();
+
+  /// File path: assets/translations/ar.json
+  String get ar => 'assets/translations/ar.json';
+
+  /// File path: assets/translations/en.json
+  String get en => 'assets/translations/en.json';
+
+  /// List of all assets
+  List<String> get values => [ar, en];
 }
 
 class Assets {
@@ -36,6 +55,7 @@ class Assets {
 
   static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $AssetsSvgGen svg = $AssetsSvgGen();
+  static const $AssetsTranslationsGen translations = $AssetsTranslationsGen();
 }
 
 class AssetGenImage {

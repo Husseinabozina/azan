@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/latlng.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,6 +21,12 @@ class CacheHelper {
   static const _quranPagesLines = "quranPagesLines";
   static const _azkarNotficationEnabled = "azkarNotficationEnabled";
   static const _isAppConfigured = "isAppConfigured";
+  static const _country = "country";
+  static const _city = "city";
+  static const _mosqueName = "mosqueName";
+  static const _sliderOpened = "sliderOpened";
+  static const _firstAppOpen = "firstAppOpen";
+  static const _fixedDhikr = "fixedDhikr";
 
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -172,5 +179,88 @@ class CacheHelper {
 
   static bool getIsAppConfigured() {
     return sharedPreferences.getBool(_isAppConfigured) ?? false;
+  }
+
+  static setCountry(String country) async {
+    await sharedPreferences.setString(_country, country);
+  }
+
+  static String? getCountry() {
+    return sharedPreferences.getString(_country);
+  }
+
+  // remove
+  static removeCountry() async {
+    await sharedPreferences.remove(_country);
+  }
+
+  static setCity(CityOption city) async {
+    final jsonString = jsonEncode(city.toJson());
+    await sharedPreferences.setString(_city, jsonString);
+  }
+
+  static CityOption? getCity() {
+    final jsonString = sharedPreferences.getString(_city);
+    if (jsonString == null) return null;
+
+    try {
+      final map = jsonDecode(jsonString) as Map<String, dynamic>;
+      final result = CityOption.fromJson(map);
+      return result;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static removeCity() async {
+    await sharedPreferences.remove(_city);
+  }
+
+  static setMosqueName(String mosqueName) async {
+    await sharedPreferences.setString(_mosqueName, mosqueName);
+  }
+
+  static String? getMosqueName() {
+    return sharedPreferences.getString(_mosqueName);
+  }
+
+  static removeMosqueName() async {
+    await sharedPreferences.remove(_mosqueName);
+  }
+
+  static setSliderOpened(bool value) async {
+    await sharedPreferences.setBool(_sliderOpened, value);
+  }
+
+  static bool getSliderOpened() {
+    return sharedPreferences.getBool(_sliderOpened) ?? true;
+  }
+
+  static removeSliderOpened() async {
+    await sharedPreferences.remove(_sliderOpened);
+  }
+
+  static setFirstAppOpen(bool value) async {
+    await sharedPreferences.setBool(_firstAppOpen, value);
+  }
+
+  static bool getFirstAppOpen() {
+    return sharedPreferences.getBool(_firstAppOpen) ?? false;
+  }
+
+  static removeFirstAppOpen() async {
+    await sharedPreferences.remove(_firstAppOpen);
+  }
+
+  static setFixedDhikr(String value) async {
+    await sharedPreferences.setString(_fixedDhikr, value);
+  }
+
+  static String getFixedDhikr() {
+    return sharedPreferences.getString(_fixedDhikr) ?? '';
+  }
+
+  static removeFixedDhikr() async {
+    await sharedPreferences.remove(_fixedDhikr);
   }
 }

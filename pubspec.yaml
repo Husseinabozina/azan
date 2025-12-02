@@ -29,20 +29,25 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   adhan: ^2.0.0+1
+  auto_size_text: ^3.0.0
   bloc: ^9.1.0
   cupertino_icons: ^1.0.8
   dio: ^5.9.0
   easy_localization: ^3.0.8
+  flash: ^3.1.1
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  flutter_local_notifications: ^19.5.0
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.2.3
   flutter_timezone: ^5.0.1
   geocoding: ^4.0.0
   geolocator: ^14.0.2
   hijri: ^3.0.0
+  hive: 
+  hive_flutter: 
+  freezed_annotation:
+  intl: ^0.20.2
   shared_preferences: ^2.5.3
   timezone: ^0.10.1
   url_launcher: ^6.3.2
@@ -53,7 +58,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
-  freezed: ^3.2.3
+  freezed: 
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -70,7 +76,12 @@ flutter:
     - assets/svg/
     - assets/translations/
   fonts:
-  
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see

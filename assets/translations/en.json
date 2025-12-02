@@ -1,5 +1,50 @@
 {
     "arabic": "arabic",
-    "english": "english"
+    "english": "english",
+
+    "thursday":"thursday"
+    ,"second":"second", 
+      "time_left_for_fajr": "Time left for Fajr",
+  "am_label": "AM",
+  "fajr": "Fajr",
+  "sunrise": "Sunrise",
+  "dhuhr": "Dhuhr",
+  "asr": "Asr",
+  "maghrib": "Maghrib",
+  "isha": "Isha",
+  "prayer": "Prayer",
+  "adhan": "Adhan",
+  "iqama_time": "Iqama time"
+  ,
+    "select_mosque_location": "Select mosque location",
+  "options": "Options",
+  "edit_mosque_name": "Edit mosque name",
+  "edit_mosque_announcements": "Edit mosque announcements",
+  "change_screen_background": "Change screen background",
+  "set_adhan_iqama_time": "Set Adhan & Iqama time",
+  "set_screen_hide_time": "Set screen hide time",
+  "view_adhkar": "View Adhkar",
+  "morning_evening_adhkar": "Morning & evening Adhkar",
+  "view_slides": "View slides",
+  "screen_shortcuts": "Screen shortcuts",
+  "weather_status": "Weather status",
+  "about_app": "About the app",
+
+  "reset": "Reset",
+  "reload": "Reload",
+  "contact_us": "Contact us",
+  "mosque_azkar": "Mosque Azkar"
+  ,"change_fixed_zekr": "Change fixed zekr",
+  "set_iqama_time": "Set iqama time",
+  "edit_mosque_azkar": "Edit mosque azkar"
+  ,"left_for": "Left for",
+  "pm_label": "PM",
+  "mosque_azkar_are_displayed_at_the_bottom_of_the_screen": "Mosque Azkar are displayed at the bottom of the screen",
   
+  "something_went_wrong_please_try_again": "Something went wrong, please try again"
+  ,"azkar_note": "Here you can add azkar or any useful information that will be displayed at the bottom of the screen on a scrollable sheet"
+  ,"enable_slider":"enable_slider",
+  "add_message": "Add message",
+  "daily": "Daily"
+
 }

@@ -1,0 +1,114 @@
+import 'dart:convert';
+
+import 'package:azan/core/helpers/location_helper.dart';
+import 'package:azan/core/models/daily_weather.dart';
+import 'package:azan/core/models/geo_location.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
+class OpenMeteoWeatherService {
+  OpenMeteoWeatherService({Dio? dio}) : _dio = dio ?? Dio();
+
+  final Dio _dio;
+
+  /// ترجع درجة الحرارة العظمى لليوم الحالي (°C)
+  /// بناءً على اسم المدينة والدولة.
+  ///
+  /// لو مفيش نتيجة أو حصل Error بترجع null.
+  Future<double?> fetchTodayMaxTemperature({
+    required String city,
+    required String country,
+  }) async {
+    try {
+      // 1️⃣ نجيب إحداثيات المدينة من Geocoding API
+      final location = await fetchCoordinates(city: city, country: country);
+      if (location == null) {
+        return null;
+      }
+
+      // 2️⃣ نجيب forecast اليومي من Open-Meteo
+      final response = await _dio.get(
+        'https://api.open-meteo.com/v1/forecast',
+        queryParameters: {
+          'latitude': location.latitude,
+          'longitude': location.longitude,
+          'daily': 'temperature_2m_max', // العظمى بس
+          'forecast_days': 1, // يوم واحد (النهاردة)
+          'timezone': 'auto', // يخلي اليوم حسب توقيت المكان
+        },
+      );
+
+      if (response.statusCode != 200) {
+        return null;
+      }
+
+      final data = response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : jsonDecode(response.data as String) as Map<String, dynamic>;
+
+      if (data['daily'] == null) return null;
+
+      final daily = DailyWeather.fromJson(
+        data['daily'] as Map<String, dynamic>,
+      );
+
+      if (daily.temperatureMax.isEmpty) return null;
+
+      // بما إن forecast_days = 1 → أول عنصر = النهاردة
+      final double todayMax = daily.temperatureMax.first;
+      return todayMax;
+    } on DioException catch (e) {
+      // تقدر تحط هنا logging لو عندك logger
+      debugPrint('OpenMeteo error: ${e.message}');
+      return null;
+    } catch (e) {
+      debugPrint('OpenMeteo unknown error: $e');
+      return null;
+    }
+  }
+
+  /// دالة داخلية: تجيب إحداثيات المدينة من Geocoding API
+  Future<GeoLocation?> fetchCoordinates({
+    required String city,
+    String? country,
+  }) async {
+    try {
+      final response = await _dio.get(
+        'https://geocoding-api.open-meteo.com/v1/search',
+        queryParameters: {
+          'name': LocationHelper.findSaudiCityByName(city)?.nameEn,
+          'count': 1, // أول نتيجة بس
+          'language': 'ar', // يرجع أسماء بالعربي لو متاحة
+          'format': 'json',
+        },
+      );
+      // debugPrint(
+      //   'cityyyyyyyy: ${LocationHelper.findSaudiCityByName(city)?.nameEn}',
+      // );
+
+      if (response.statusCode != 200) {
+        debugPrint('Geocoding error: ${response.data}');
+        return null;
+      }
+
+      final data = response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : jsonDecode(response.data as String) as Map<String, dynamic>;
+
+      final results = data['results'] as List<dynamic>?;
+
+      if (results == null || results.isEmpty) {
+        return null;
+      }
+
+      final first = results.first as Map<String, dynamic>;
+      return GeoLocation.fromJson(first);
+    } on DioException catch (e) {
+      debugPrint('Geocoding error: ${e.message}');
+      return null;
+    } catch (e) {
+      debugPrint('Geocoding unknown error: $e');
+      return null;
+    }
+  }
+}

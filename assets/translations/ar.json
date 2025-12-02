@@ -1,5 +1,51 @@
 {
     "arabic": "العربية",
-    "english": "الإنجليزية"
-  
+    "english": "الإنجليزية",
+    "thursday":"الخميس"
+    ,"second":"ثانية", 
+     "time_left_for_fajr": "المتبقي للفجر",
+  "am_label": "صباحا",
+  "pm_label": "مساءا",
+  "fajr": "الفجر",
+  "sunrise": "الشروق",
+  "dhuhr": "الظهر",
+  "asr": "العصر",
+  "maghrib": "المغرب",
+  "isha": "العشاء",
+  "prayer": "الصلاة",
+  "adhan": "الأذان",
+  "iqama_time": "الوقت للإقامة",
+    "select_mosque_location": "اختيار موقع المسجد",
+  "options": "خيارات",
+  "edit_mosque_name": "تحرير اسم المسجد",
+  "edit_mosque_announcements": "تحرير إعلانات المسجد",
+  "change_screen_background": "تغيير خلفية الشاشة",
+  "set_adhan_iqama_time": "ضبط وقت الأذان والإقامة",
+  "set_screen_hide_time": "ضبط إخفاء الشاشة",
+  "view_adhkar": "استعراض الأذكار",
+  "morning_evening_adhkar": "أذكار الصباح والمساء",
+  "view_slides": "استعراض الشرائح",
+  "screen_shortcuts": "اختصارات على الشاشة",
+  "weather_status": "حالة الطقس",
+  "about_app": "معلومات عن البرنامج",
+
+  "reset": "إعادة ضبط",
+  "reload": "إعادة تحميل",
+  "contact_us": "تواصل",
+  "edit_mosque_azkar": "تحرير اذكار المسجد", 
+  "change_fixed_zekr":"تغيير الذكر الثابت" ,
+  "set_iqama_time":"ضبط وقت الإقامة"
+ , 
+ "left_for":"المتبقي ل",
+  "mosque_azkar": "اذكار المسجد",
+  "mosque_azkar_are_displayed_at_the_bottom_of_the_screen": "أذكار المسجد تعرض أسفل الشاشة",
+
+
+ "something_went_wrong_please_try_again":"حدث خطأ ما يرجى المحاولة مرة أخرى",
+ "azkar_note":"هنا يمكنك اضافة الرسائل او اي معلومات مفيدة ليتم عرضها أسفل الشاشة على شريط متحرك"
+ ,"enable_slider":"تفعيل شريط النص المتحرك"
+ ,"add_message":"اضافة رسالة",
+ "daily":"يوميا"
+ 
+ 
 }
