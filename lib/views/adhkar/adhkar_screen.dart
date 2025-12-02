@@ -74,7 +74,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                               icon: Icon(
                                 Icons.close,
                                 color: AppTheme.accentColor,
-                                size: 25.r,
+                                size: 35.r,
                               ),
                             ),
 
@@ -85,7 +85,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                               icon: Icon(
                                 Icons.menu,
                                 color: AppTheme.primaryTextColor,
-                                size: 25.r,
+                                size: 35.r,
                               ),
                             ),
                           ],
@@ -94,7 +94,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                         Text(
                           LocaleKeys.mosque_azkar.tr(),
                           style: TextStyle(
-                            fontSize: 14.sp,
+                            fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryTextColor,
                           ),
@@ -103,8 +103,8 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                         Text(
                           LocaleKeys.azkar_note.tr(),
                           style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 15.sp,
+                            // fontWeight: FontWeight.bold,
                             color: AppTheme.secondaryTextColor,
                           ),
                         ),
@@ -121,7 +121,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                             Text(
                               LocaleKeys.enable_slider.tr(),
                               style: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: 15.sp,
                                 color: AppTheme.primaryTextColor,
                               ),
                             ),
@@ -153,6 +153,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                             ),
                           ),
                         ),
+                        VerticalSpace(height: 10),
 
                         if (cubit.adhkarList != null)
                           ...cubit.adhkarList!.map((dhikr) {

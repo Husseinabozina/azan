@@ -321,7 +321,7 @@ class AppCubit extends Cubit<AppState> {
   List<Dhikr>? get todaysAdkar {
     if (adhkarList == null) return null;
     return adhkarList!
-        .where((element) => element.isForDay(DateTime.now()))
+        .where((element) => element.active && element.isForDay(DateTime.now()))
         .toList();
   }
 }

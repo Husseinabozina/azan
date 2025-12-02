@@ -37,7 +37,7 @@ class _HomeScreenMobileState extends State<HomeScreenMobile> {
   late AppCubit cubit;
 
   String? hijriDate;
-
+  late DateTime _lastDate;
   assingHijriDate() async {
     hijriDate = await cubit.getTodayHijriDate();
   }
@@ -46,32 +46,57 @@ class _HomeScreenMobileState extends State<HomeScreenMobile> {
 
   @override
   void initState() {
+    super.initState();
+
     cubit = AppCubit.get(context);
+    _lastDate = DateTime.now();
+
+    _initDayData(); // أول لود لبيانات اليوم
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
-      setState(() {});
-    });
 
+      final now = DateTime.now();
+
+      // لو عندك تايمر عدّ تنازلي أو ساعة... خليه يتحدّث عادي
+      setState(() {});
+
+      // هنا بنشوف هل اليوم اتغيّر ولا لأ
+      if (!_isSameDay(now, _lastDate)) {
+        _lastDate = now;
+        _onNewDay();
+      }
+    });
+  }
+
+  void _initDayData() {
     assingHijriDate();
-    cubit.initializePrayerTimes(cubit.getCity()?.nameEn ?? '');
-    // السعودية الدمام
-    cubit.loadTodayMaxTemp(
-      country: 'Saudi Arabia',
-      city: cubit.getCity()?.nameEn ?? '',
-    );
+
+    final city = cubit.getCity()?.nameEn ?? '';
+
+    cubit.initializePrayerTimes(city);
+
+    cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city);
 
     cubit.getIqamaTime();
     cubit.assignAdhkar();
+  }
 
-    super.initState();
+  void _onNewDay() {
+    // لما اليوم يتغيّر وإنت لسه على نفس الشاشة
+    _initDayData();
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   @override
   void dispose() {
-    _timer?.cancel(); // مهم جدا
+    _timer?.cancel();
     super.dispose();
   }
 
