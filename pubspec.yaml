@@ -41,13 +41,14 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.2.3
   flutter_timezone: ^5.0.1
+  freezed_annotation: null
   geocoding: ^4.0.0
   geolocator: ^14.0.2
   hijri: ^3.0.0
-  hive: 
-  hive_flutter: 
-  freezed_annotation:
+  hive: null
+  hive_flutter: null
   intl: ^0.20.2
+  just_audio: ^0.10.5
   shared_preferences: ^2.5.3
   timezone: ^0.10.1
   url_launcher: ^6.3.2
@@ -58,8 +59,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
-  freezed: 
-  
+  freezed: null
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -75,6 +75,7 @@ flutter:
     - assets/images/
     - assets/svg/
     - assets/translations/
+    - assets/sounds/
   fonts:
     - family: Tajawal
       fonts:

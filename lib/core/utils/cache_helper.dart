@@ -27,6 +27,8 @@ class CacheHelper {
   static const _sliderOpened = "sliderOpened";
   static const _firstAppOpen = "firstAppOpen";
   static const _fixedDhikr = "fixedDhikr";
+  static const _isIqamaAppTheme = "_isIqamaAppTheme";
+  static const _isAzanAppTheme = "_isAzanAppTheme";
 
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -262,5 +264,29 @@ class CacheHelper {
 
   static removeFixedDhikr() async {
     await sharedPreferences.remove(_fixedDhikr);
+  }
+
+  static setIsIqamaAppTheme(bool value) async {
+    await sharedPreferences.setBool(_isIqamaAppTheme, value);
+  }
+
+  static bool getIsIqamaAppTheme() {
+    return sharedPreferences.getBool(_isIqamaAppTheme) ?? true;
+  }
+
+  static removeIsIqamaAppTheme() async {
+    await sharedPreferences.remove(_isIqamaAppTheme);
+  }
+
+  static setIsAzanAppTheme(bool value) async {
+    await sharedPreferences.setBool(_isAzanAppTheme, value);
+  }
+
+  static bool getIsAzanAppTheme() {
+    return sharedPreferences.getBool(_isAzanAppTheme) ?? false;
+  }
+
+  static removeIsAzanAppTheme() async {
+    await sharedPreferences.remove(_isAzanAppTheme);
   }
 }

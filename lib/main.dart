@@ -9,6 +9,7 @@ import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
+import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
 import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -89,7 +90,7 @@ class MyApp extends StatelessWidget {
               return child!;
             },
 
-            home: nextScreen,
+            home: SetIqamaAzanSoundScreen(),
           ),
         );
       },

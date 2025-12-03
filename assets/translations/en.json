@@ -46,5 +46,15 @@
   ,"enable_slider":"enable_slider",
   "add_message": "Add message",
   "daily": "Daily"
+,
+ "set_iqama_azan_sound": "Set iqama and azan sound",
+ "set_iqama_sound": "Set iqama sound",
+ "set_adhan_sound": "Set adhan sound",
+ "app_theme": "App theme",
 
+"short_azan_sound":
+"short azan sound"
+ , 
+ "short_iqama_sound":
+"short iqama sound"
 }

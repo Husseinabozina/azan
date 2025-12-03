@@ -21,6 +21,22 @@ class $AssetsImagesGen {
   List<AssetGenImage> get values => [home];
 }
 
+class $AssetsSoundsGen {
+  const $AssetsSoundsGen();
+
+  /// File path: assets/sounds/alarm_sound.mp3
+  String get alarmSound => 'assets/sounds/alarm_sound.mp3';
+
+  /// File path: assets/sounds/azan.mp3
+  String get azan => 'assets/sounds/azan.mp3';
+
+  /// File path: assets/sounds/iqama.mp3
+  String get iqama => 'assets/sounds/iqama.mp3';
+
+  /// List of all assets
+  List<String> get values => [alarmSound, azan, iqama];
+}
+
 class $AssetsSvgGen {
   const $AssetsSvgGen();
 
@@ -54,6 +70,7 @@ class Assets {
   const Assets._();
 
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const $AssetsSoundsGen sounds = $AssetsSoundsGen();
   static const $AssetsSvgGen svg = $AssetsSvgGen();
   static const $AssetsTranslationsGen translations = $AssetsTranslationsGen();
 }

@@ -57,7 +57,13 @@ class CodegenLoader extends AssetLoader{
   "azkar_note": "Here you can add azkar or any useful information that will be displayed at the bottom of the screen on a scrollable sheet",
   "enable_slider": "enable_slider",
   "add_message": "Add message",
-  "daily": "Daily"
+  "daily": "Daily",
+  "set_iqama_azan_sound": "Set iqama and azan sound",
+  "set_iqama_sound": "Set iqama sound",
+  "set_adhan_sound": "Set adhan sound",
+  "app_theme": "App theme",
+  "short_azan_sound": "short azan sound",
+  "short_iqama_sound": "short iqama sound"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -102,7 +108,13 @@ static const Map<String,dynamic> _ar = {
   "azkar_note": "هنا يمكنك اضافة الرسائل او اي معلومات مفيدة ليتم عرضها أسفل الشاشة على شريط متحرك",
   "enable_slider": "تفعيل شريط النص المتحرك",
   "add_message": "اضافة رسالة",
-  "daily": "يوميا"
+  "daily": "يوميا",
+  "set_iqama_azan_sound": "ضبط صوت الأذان والاقامة",
+  "set_iqama_sound": "ضبط صوت الاقامة",
+  "set_adhan_sound": "ضبط صوت الاذان",
+  "app_theme": "نغمة التطبيق",
+  "short_azan_sound": "صوت أذان قصير",
+  "short_iqama_sound": "صوت اقامة قصير"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en": _en, "ar": _ar};
 }

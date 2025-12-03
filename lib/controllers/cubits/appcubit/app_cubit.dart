@@ -12,6 +12,7 @@ import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/services/open_weather_service.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
+import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -148,6 +149,7 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> initializePrayerTimes(String city) async {
+    emit(FetchPrayerTimesLoading());
     if (CacheHelper.getCoordinates() == null) {
       await fetchCityCoordinate(city);
     }
@@ -169,6 +171,8 @@ class AppCubit extends Cubit<AppState> {
     if (success != null) {
       allPrayers.addAll(_mapToPrayers(success));
       final lastPrayerTime = success.isha;
+
+      emit(FetchPrayerTimesSuccess());
 
       // لو اليوم هو السادس (i==5) أو السابع (i==6) جدّول تذكير التحديث
 
@@ -323,5 +327,17 @@ class AppCubit extends Cubit<AppState> {
     return adhkarList!
         .where((element) => element.active && element.isForDay(DateTime.now()))
         .toList();
+  }
+
+  String get getAzanSoundSource {
+    return CacheHelper.getIsAzanAppTheme()
+        ? Assets.sounds.alarmSound
+        : Assets.sounds.azan;
+  }
+
+  String get getIqamaSoundSource {
+    return CacheHelper.getIsIqamaAppTheme()
+        ? Assets.sounds.alarmSound
+        : Assets.sounds.iqama;
   }
 }

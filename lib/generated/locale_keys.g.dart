@@ -46,5 +46,11 @@ abstract class  LocaleKeys {
   static const enable_slider = 'enable_slider';
   static const add_message = 'add_message';
   static const daily = 'daily';
+  static const set_iqama_azan_sound = 'set_iqama_azan_sound';
+  static const set_iqama_sound = 'set_iqama_sound';
+  static const set_adhan_sound = 'set_adhan_sound';
+  static const app_theme = 'app_theme';
+  static const short_azan_sound = 'short_azan_sound';
+  static const short_iqama_sound = 'short_iqama_sound';
 
 }

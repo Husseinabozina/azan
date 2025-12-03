@@ -1,6 +1,8 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
+import 'package:azan/core/components/alert_dialoge.dart';
 import 'package:azan/core/components/appbutton.dart';
+import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/models/city_option.dart';
@@ -37,7 +39,16 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<AppCubit, AppState>(
+      body: BlocConsumer<AppCubit, AppState>(
+        listener: (context, state) {
+          if (state is FetchPrayerTimesFailure) {
+            showFlashMessage(
+              message: state.message,
+              type: FlashMessageType.error,
+              context: context,
+            );
+          }
+        },
         builder: (context, state) {
           return LayoutBuilder(
             builder: (context, constraints) {
@@ -122,6 +133,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                     );
                                     if (!CacheHelper.getFirstAppOpen()) {
                                       CacheHelper.setFirstAppOpen(true);
+                                      AppNavigator.pop(context);
                                       AppNavigator.pushAndRemoveUntil(
                                         context,
                                         HomeScreenMobile(),
@@ -158,6 +170,18 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                       ),
                     ),
                   ),
+
+                  if (state is FetchPrayerTimesLoading)
+                    Container(
+                      height: h,
+                      width: w,
+                      color: Colors.black45,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryTextColor,
+                        ),
+                      ),
+                    ),
                 ],
               );
             },

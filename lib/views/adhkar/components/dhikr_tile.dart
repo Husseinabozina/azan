@@ -6,6 +6,7 @@ import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/extenstions.dart';
+import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -56,33 +57,25 @@ class _DhikrTileState extends State<DhikrTile> {
             ),
             HorizontalSpace(width: 8),
 
-            GestureDetector(
-              onTap: () {},
-              child: Text(
-                widget.dhikr.schedule?.toArabicText() ?? '',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.secondaryTextColor,
-                ),
+            Text(
+              widget.dhikr.schedule?.toArabicText() ?? '',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.secondaryTextColor,
               ),
             ),
-            // HorizontalSpace(width: 5),
-            SizedBox(
-              width: 32.w,
-              height: 32.h,
-              child: Transform.scale(
-                scale: 2.5,
-                child: Checkbox(
-                  value: widget.dhikr.active,
-                  onChanged: (value) {
-                    setState(() {
-                      widget.dhikr.active = value!;
-                      DhikrHiveHelper.updateDhikr(widget.dhikr);
-                    });
-                  },
-                ),
-              ),
+            HorizontalSpace(width: 5),
+            CustomCheckbox(
+              size: 22.r,
+              activeColor: AppTheme.accentColor,
+              value: widget.dhikr.active,
+              onChanged: (value) {
+                setState(() {
+                  widget.dhikr.active = value!;
+                  DhikrHiveHelper.updateDhikr(widget.dhikr);
+                });
+              },
             ),
           ],
         ),

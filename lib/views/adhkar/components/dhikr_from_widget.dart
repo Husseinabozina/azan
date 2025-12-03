@@ -54,6 +54,18 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
+    final size = MediaQuery.of(context).size;
+
+    // حساب الـ scale factor بناءً على عرض الشاشة
+    final scaleFactor = (size.width / 390).clamp(0.9, 1.8);
+
+    // دالة مساعدة لحساب الحجم responsive
+    double responsiveFontSize(double baseSize) {
+      return (baseSize * scaleFactor).clamp(baseSize * 0.8, baseSize * 1.5);
+    }
+
+    const darkBlue = Color(0xFF0C355C);
+    const gold = Color(0xFFF4C66A);
 
     final picked = await showDatePicker(
       context: context,
@@ -61,17 +73,8 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
       lastDate: DateTime(now.year + 5),
       initialDate: _selectedDate ?? now,
       locale: const Locale('ar'),
-
       builder: (context, child) {
         final baseTheme = Theme.of(context);
-        final size = MediaQuery.of(context).size;
-
-        // سكِيل بسيط يكبّر كل حاجة على الشاشات الكبيرة
-        // (موبايل عادي ~ 390 عرض)
-        final scale = (size.width / 390).clamp(1.0, 1.4);
-
-        const darkBlue = Color(0xFF0C355C);
-        const gold = Color(0xFFF4C66A);
 
         final datePickerTheme = DatePickerThemeData(
           backgroundColor: darkBlue,
@@ -82,51 +85,51 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
             borderRadius: BorderRadius.circular(20.r),
           ),
 
-          // الهيدر (الشهر / السنة)
           headerHeadlineStyle: TextStyle(
-            fontSize: 18.sp * scale,
+            fontSize: responsiveFontSize(20),
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            height: 1.2,
           ),
 
-          // الهيلب الصغير تحت الهيدر
           headerHelpStyle: TextStyle(
-            fontSize: 12.sp * scale,
+            fontSize: responsiveFontSize(12),
             fontWeight: FontWeight.w600,
             color: Colors.white70,
+            height: 1.2,
           ),
 
-          // أسماء الأيام (س، م، ث..)
           weekdayStyle: TextStyle(
-            fontSize: 12.sp * scale,
+            fontSize: responsiveFontSize(12),
             fontWeight: FontWeight.w600,
             color: Colors.white70,
+            height: 1.2,
           ),
 
-          // الأرقام جوه الجدول
           dayStyle: TextStyle(
-            fontSize: 14.sp * scale,
+            fontSize: responsiveFontSize(14),
             fontWeight: FontWeight.w500,
             color: Colors.white,
+            height: 1.2,
           ),
 
-          // السنوات في الـyear picker
           yearStyle: TextStyle(
-            fontSize: 14.sp * scale,
+            fontSize: responsiveFontSize(16),
             fontWeight: FontWeight.w600,
             color: Colors.white,
+            height: 1.2,
           ),
 
-          // اليوم العادي / المختار / اليوم الحالي
           dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.selected)) {
-              return Colors.white; // رقم اليوم لما يكون متعلم
+              return Colors.white;
             }
-            return Colors.white; // باقي الأيام
+            return Colors.white;
           }),
+
           dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.selected)) {
-              return gold; // دايرة دهبي لليوم المختار
+              return gold;
             }
             return Colors.transparent;
           }),
@@ -135,12 +138,28 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
           todayBorder: const BorderSide(color: gold, width: 1),
 
           dividerColor: Colors.white24,
-          subHeaderForegroundColor: Colors.white70,
+
+          cancelButtonStyle: ButtonStyle(
+            textStyle: WidgetStateProperty.all(
+              TextStyle(
+                fontSize: responsiveFontSize(14),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          confirmButtonStyle: ButtonStyle(
+            textStyle: WidgetStateProperty.all(
+              TextStyle(
+                fontSize: responsiveFontSize(14),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         );
 
         return Theme(
           data: baseTheme.copyWith(
-            // ألوان عامة للديالوج
             colorScheme: baseTheme.colorScheme.copyWith(
               primary: gold,
               onPrimary: Colors.white,
@@ -150,30 +169,34 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
             dialogBackgroundColor: darkBlue,
             datePickerTheme: datePickerTheme,
 
-            // أزرار "تم" و "إلغاء"
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
                 foregroundColor: gold,
                 textStyle: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14.sp * scale,
+                  fontSize: responsiveFontSize(14),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16 * scaleFactor,
+                  vertical: 8 * scaleFactor,
                 ),
               ),
             ),
           ),
-
-          child: MediaQuery(
-            // نكبّر كل النصوص جوه الـDatePicker بنفس الـscale
-            data: MediaQuery.of(context).copyWith(textScaleFactor: scale),
-            child: Center(
-              child: ConstrainedBox(
+          // ✅ الحل: استخدم Column عشان الـ constraints تشتغل صح
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: 0.9.sw, // 90% من عرض الشاشة
-                  maxHeight: 0.8.sh, // 80% من الارتفاع
+                  maxWidth: (size.width * 0.9).clamp(280.w, 600.w),
+                  maxHeight: (size.height * 0.75).clamp(400.h, 700.h),
+                  minWidth: 280.w,
+                  minHeight: 400.h,
                 ),
                 child: child!,
               ),
-            ),
+            ],
           ),
         );
       },

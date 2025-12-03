@@ -14,6 +14,7 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:azan/views/adhkar/components/dhikr_from_widget.dart';
 import 'package:azan/views/adhkar/components/dhikr_tile.dart';
 import 'package:azan/views/home/home_screen.dart';
@@ -111,21 +112,16 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
 
                         Row(
                           children: [
-                            SizedBox(
-                              width: 32.w,
-                              height: 32.h,
-                              child: Transform.scale(
-                                scale: 2.5,
-                                child: Checkbox(
-                                  value: CacheHelper.getSliderOpened(),
-                                  onChanged: (value) {
-                                    cubit.toggleSlider();
-                                  },
-                                ),
-                              ),
+                            CustomCheckbox(
+                              size: 25.r,
+                              activeColor: AppTheme.accentColor,
+                              value: CacheHelper.getSliderOpened(),
+                              onChanged: (value) {
+                                cubit.toggleSlider();
+                              },
                             ),
 
-                            // HorizontalSpace(width: 3),
+                            HorizontalSpace(width: 5),
                             Text(
                               LocaleKeys.enable_slider.tr(),
                               style: TextStyle(
