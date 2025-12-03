@@ -7,6 +7,7 @@ import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
+import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
 import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -130,6 +131,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     AppNavigator.push(
                                       context,
                                       SetIqamaScreen(),
+                                    );
+                                  },
+                                ),
+                                DrawerListTile(
+                                  r: r,
+                                  title: LocaleKeys.set_iqama_azan_sound.tr(),
+                                  onTap: () {
+                                    AppNavigator.push(
+                                      context,
+                                      SetIqamaAzanSoundScreen(),
                                     );
                                   },
                                 ),

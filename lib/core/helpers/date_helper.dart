@@ -1,21 +1,67 @@
 import 'package:flutter/material.dart';
 
 class DateHelper {
-  static String toArabicDigits(String input) {
-    const western = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    const eastern = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  static const List<String> _western = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+  ];
+  static const List<String> _eastern = [
+    '٠',
+    '١',
+    '٢',
+    '٣',
+    '٤',
+    '٥',
+    '٦',
+    '٧',
+    '٨',
+    '٩',
+  ];
 
+  /// من إنجليزي -> أرقام عربية
+  static String toArabicDigits(String input) {
     var result = input;
-    for (var i = 0; i < western.length; i++) {
-      result = result.replaceAll(western[i], eastern[i]);
+    for (var i = 0; i < _western.length; i++) {
+      result = result.replaceAll(_western[i], _eastern[i]);
+    }
+    return result;
+  }
+
+  /// من أرقام عربية -> إنجليزي
+  static String toWesternDigits(String input) {
+    var result = input;
+    for (var i = 0; i < _eastern.length; i++) {
+      result = result.replaceAll(_eastern[i], _western[i]);
     }
     return result;
   }
 
   static TimeOfDay parseTime12h(String timeStr) {
-    // مثال: "04:34 pm"
-    final parts = timeStr.toLowerCase().trim().split(' '); // ["04:34", "pm"]
-    if (parts.length != 2) {
+    // مثال: "٠٤:٣٤ م" أو "04:34 pm"
+
+    // 1) حوّل الأرقام العربي لإنجليزي
+    var clean = toWesternDigits(timeStr).trim();
+
+    // 2) لو فيه ص/م عربيتين حوّلهم am/pm
+    clean = clean
+        .replaceAll('ص', 'am')
+        .replaceAll('م', 'pm')
+        .replaceAll('ص.', 'am')
+        .replaceAll('م.', 'pm');
+
+    final parts = clean.toLowerCase().split(
+      RegExp(r'\s+'),
+    ); // ["04:34", "pm"] مثلاً
+
+    if (parts.isEmpty || parts.length > 2) {
       throw FormatException('Invalid time format: $timeStr');
     }
 
@@ -26,13 +72,15 @@ class DateHelper {
 
     int hour = int.parse(hm[0]);
     final int minute = int.parse(hm[1]);
-    final String period = parts[1]; // "am" or "pm"
 
-    // تحويل 12h -> 24h
-    if (period == 'pm' && hour != 12) {
-      hour += 12;
-    } else if (period == 'am' && hour == 12) {
-      hour = 0;
+    // لو فيه فترة (am/pm) عالجها، لو مفيش اعتبره 24h وخلاص
+    if (parts.length == 2) {
+      final String period = parts[1]; // "am" أو "pm"
+      if (period == 'pm' && hour != 12) {
+        hour += 12;
+      } else if (period == 'am' && hour == 12) {
+        hour = 0;
+      }
     }
 
     return TimeOfDay(hour: hour, minute: minute);
@@ -57,7 +105,7 @@ class DateHelper {
     final dateTime = DateTime(
       2000,
       1,
-      1, // أي يوم عشوائي
+      1,
       time.hour,
       time.minute,
     ).add(Duration(minutes: minutesToAdd));

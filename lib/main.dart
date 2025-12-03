@@ -89,8 +89,8 @@ class MyApp extends StatelessWidget {
             builder: (_, child) {
               return child!;
             },
-
-            home: SetIqamaAzanSoundScreen(),
+            home: nextScreen,
+            // home: SetIqamaAzanSoundScreen(),
           ),
         );
       },

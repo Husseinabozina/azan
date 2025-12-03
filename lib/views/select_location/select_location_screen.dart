@@ -73,38 +73,51 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  AppNavigator.pushAndRemoveUntil(
-                                    context,
-                                    HomeScreenMobile(),
-                                  );
-                                },
-                                icon: Icon(
-                                  Icons.close,
-                                  color: AppTheme.accentColor,
-                                  size: 35.r,
-                                ),
-                              ),
+                          (CacheHelper.getCity() != null)
+                              ? Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        AppNavigator.pushAndRemoveUntil(
+                                          context,
+                                          HomeScreenMobile(),
+                                        );
+                                      },
+                                      icon: Icon(
+                                        Icons.close,
+                                        color: AppTheme.accentColor,
+                                        size: 35.r,
+                                      ),
+                                    ),
 
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                icon: Icon(
-                                  Icons.menu,
-                                  color: AppTheme.primaryTextColor,
-                                  size: 35.r,
+                                    IconButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      icon: Icon(
+                                        Icons.menu,
+                                        color: AppTheme.primaryTextColor,
+                                        size: 35.r,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SvgPicture.asset(
+                                      Assets.svg.logosvg,
+                                      height: 50.h,
+                                      width: 42.w,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
                           VerticalSpace(height: 30),
 
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               AppButton(
                                 onPressed: null,
@@ -120,7 +133,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                   ),
                                 ),
                               ),
-                              HorizontalSpace(width: 10),
+                              // HorizontalSpace(width: 10),
                               AppButton(
                                 onPressed: () {
                                   showSaudiCityPickerDialog(context, (

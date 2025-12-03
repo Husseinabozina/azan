@@ -23,7 +23,10 @@ class DhikrHiveHelper {
 
   /// اكتب ليست الأذكار في الـ box
   static Future<void> _writeAllToBox(Box box, List<Dhikr> dhikrList) async {
-    await box.put(_itemsKey, dhikrList.map((d) => d.toMap()).toList());
+    var dhikrListEnhanced = dhikrList
+        .map((d) => d.copyWith(id: dhikrList.indexOf(d)))
+        .toList();
+    await box.put(_itemsKey, dhikrListEnhanced.map((d) => d.toMap()).toList());
   }
 
   /// id جديد: أكبر id + 1

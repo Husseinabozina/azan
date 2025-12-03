@@ -283,7 +283,7 @@ class CacheHelper {
   }
 
   static bool getIsAzanAppTheme() {
-    return sharedPreferences.getBool(_isAzanAppTheme) ?? false;
+    return sharedPreferences.getBool(_isAzanAppTheme) ?? true;
   }
 
   static removeIsAzanAppTheme() async {

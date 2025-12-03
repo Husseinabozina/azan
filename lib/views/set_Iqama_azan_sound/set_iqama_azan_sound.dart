@@ -230,42 +230,70 @@ class _SetIqamaAzanSoundScreenState extends State<SetIqamaAzanSoundScreen> {
 }
 
 class CustomRadioTile extends StatelessWidget {
-  CustomRadioTile({
+  const CustomRadioTile({
     super.key,
     required this.value,
     required this.groupValue,
     required this.title,
     required this.onChanged,
+    this.radioSize = 20, // 👈 هنا تتحكم في حجم الدايرة
   });
 
   final bool value;
   final bool groupValue;
   final String title;
   final Function(bool?)? onChanged;
+  final double radioSize;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Radio<bool>(
-          activeColor: AppTheme.accentColor,
-          value: value,
-          groupValue: groupValue,
-          onChanged: onChanged,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-        ),
-        SizedBox(width: 4.w),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    final bool isSelected = value == groupValue;
+
+    return InkWell(
+      onTap: () {
+        onChanged?.call(value);
+      },
+      borderRadius: BorderRadius.circular(50),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 🔵 الدايرة نفسها (الراديو)
+          Container(
+            width: radioSize.w,
+            height: radioSize.h,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? AppTheme.accentColor : Colors.white70,
+                width: 2,
+              ),
+            ),
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 150),
+              opacity: isSelected ? 1 : 0,
+              child: Center(
+                child: Container(
+                  width: radioSize.w * 0.5,
+                  height: radioSize.h * 0.5,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.accentColor,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ],
+          SizedBox(width: 6.w),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
