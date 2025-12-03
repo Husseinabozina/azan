@@ -329,9 +329,11 @@ class _HomeScreenMobileState extends State<HomeScreenMobile> {
 
                               Spacer(flex: 1),
 
-                              LiveClockRow(
-                                timeFontSize: 64.sp,
-                                periodFontSize: 24.sp,
+                              FittedBox(
+                                child: LiveClockRow(
+                                  timeFontSize: 64.sp,
+                                  periodFontSize: 24.sp,
+                                ),
                               ),
 
                               Padding(
@@ -448,7 +450,7 @@ class _HomeScreenMobileState extends State<HomeScreenMobile> {
                                             .map((e) => e.text)
                                             .toList()
                                       : [],
-                                  height: 120.h,
+                                  height: 100.h,
                                   maxFontSize: 20.sp,
                                   minFontSize: 10.sp,
                                 ),

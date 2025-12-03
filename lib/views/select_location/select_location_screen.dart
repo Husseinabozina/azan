@@ -105,6 +105,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                   style: TextStyle(
                                     color: AppTheme.darkBlue,
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 12.sp,
                                   ),
                                 ),
                               ),
@@ -139,10 +140,15 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                       style: TextStyle(
                                         color: AppTheme.darkBlue,
                                         fontWeight: FontWeight.bold,
+                                        fontSize: 12.sp,
                                       ),
                                     ),
                                     HorizontalSpace(width: 10),
-                                    SvgPicture.asset(Assets.svg.arrowBottom),
+                                    SvgPicture.asset(
+                                      Assets.svg.arrowBottom,
+                                      height: 8.h,
+                                      width: 8.w,
+                                    ),
                                   ],
                                 ),
                               ),

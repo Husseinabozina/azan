@@ -111,12 +111,20 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
 
                         Row(
                           children: [
-                            Checkbox(
-                              value: CacheHelper.getSliderOpened(),
-                              onChanged: (value) {
-                                cubit.toggleSlider();
-                              },
+                            SizedBox(
+                              width: 32.w,
+                              height: 32.h,
+                              child: Transform.scale(
+                                scale: 2.5,
+                                child: Checkbox(
+                                  value: CacheHelper.getSliderOpened(),
+                                  onChanged: (value) {
+                                    cubit.toggleSlider();
+                                  },
+                                ),
+                              ),
                             ),
+
                             // HorizontalSpace(width: 3),
                             Text(
                               LocaleKeys.enable_slider.tr(),
@@ -157,7 +165,10 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
 
                         if (cubit.adhkarList != null)
                           ...cubit.adhkarList!.map((dhikr) {
-                            return DhikrTile(dhikr: dhikr);
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 10.h),
+                              child: DhikrTile(dhikr: dhikr),
+                            );
                           }),
 
                         // Text(

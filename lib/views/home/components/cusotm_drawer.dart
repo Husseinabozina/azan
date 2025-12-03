@@ -52,19 +52,25 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     ),
                     child: Column(
                       children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: Icon(
-                                Icons.close,
-                                color: AppTheme.accentColor,
-                                size: 24.r,
+                        Padding(
+                          padding: EdgeInsetsDirectional.only(
+                            start: 20.w,
+                            top: 20.h,
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                icon: Icon(
+                                  Icons.close,
+                                  color: AppTheme.accentColor,
+                                  size: 30.r,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         // SizedBox(height: h * 0.0009),
                         Expanded(
@@ -88,7 +94,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                   onTap: () {
                                     showEditMosqueNameDialog(
                                       context,
-                                      initialName: '',
+                                      initialName: CacheHelper.getMosqueName(),
                                       onConfirm: (name) {
                                         CacheHelper.removeMosqueName();
                                         CacheHelper.setMosqueName(name);

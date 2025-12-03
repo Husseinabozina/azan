@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:azan/core/components/horizontal_space.dart';
+import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
@@ -50,13 +54,131 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
+
     final picked = await showDatePicker(
       context: context,
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 5),
       initialDate: _selectedDate ?? now,
       locale: const Locale('ar'),
+
+      builder: (context, child) {
+        final baseTheme = Theme.of(context);
+        final size = MediaQuery.of(context).size;
+
+        // سكِيل بسيط يكبّر كل حاجة على الشاشات الكبيرة
+        // (موبايل عادي ~ 390 عرض)
+        final scale = (size.width / 390).clamp(1.0, 1.4);
+
+        const darkBlue = Color(0xFF0C355C);
+        const gold = Color(0xFFF4C66A);
+
+        final datePickerTheme = DatePickerThemeData(
+          backgroundColor: darkBlue,
+          headerBackgroundColor: darkBlue,
+          headerForegroundColor: Colors.white,
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+
+          // الهيدر (الشهر / السنة)
+          headerHeadlineStyle: TextStyle(
+            fontSize: 18.sp * scale,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+
+          // الهيلب الصغير تحت الهيدر
+          headerHelpStyle: TextStyle(
+            fontSize: 12.sp * scale,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+          ),
+
+          // أسماء الأيام (س، م، ث..)
+          weekdayStyle: TextStyle(
+            fontSize: 12.sp * scale,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+          ),
+
+          // الأرقام جوه الجدول
+          dayStyle: TextStyle(
+            fontSize: 14.sp * scale,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+
+          // السنوات في الـyear picker
+          yearStyle: TextStyle(
+            fontSize: 14.sp * scale,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+
+          // اليوم العادي / المختار / اليوم الحالي
+          dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.selected)) {
+              return Colors.white; // رقم اليوم لما يكون متعلم
+            }
+            return Colors.white; // باقي الأيام
+          }),
+          dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.selected)) {
+              return gold; // دايرة دهبي لليوم المختار
+            }
+            return Colors.transparent;
+          }),
+
+          todayBackgroundColor: WidgetStateProperty.all(gold.withOpacity(0.2)),
+          todayBorder: const BorderSide(color: gold, width: 1),
+
+          dividerColor: Colors.white24,
+          subHeaderForegroundColor: Colors.white70,
+        );
+
+        return Theme(
+          data: baseTheme.copyWith(
+            // ألوان عامة للديالوج
+            colorScheme: baseTheme.colorScheme.copyWith(
+              primary: gold,
+              onPrimary: Colors.white,
+              surface: darkBlue,
+              onSurface: Colors.white,
+            ),
+            dialogBackgroundColor: darkBlue,
+            datePickerTheme: datePickerTheme,
+
+            // أزرار "تم" و "إلغاء"
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: gold,
+                textStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp * scale,
+                ),
+              ),
+            ),
+          ),
+
+          child: MediaQuery(
+            // نكبّر كل النصوص جوه الـDatePicker بنفس الـscale
+            data: MediaQuery.of(context).copyWith(textScaleFactor: scale),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 0.9.sw, // 90% من عرض الشاشة
+                  maxHeight: 0.8.sh, // 80% من الارتفاع
+                ),
+                child: child!,
+              ),
+            ),
+          ),
+        );
+      },
     );
+
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
@@ -83,19 +205,23 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'إضافة ذكر جديد',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.secondaryTextColor,
                   ),
                 ),
-                const SizedBox(height: 16),
+                VerticalSpace(height: 16),
                 TextFormField(
                   controller: _textController,
                   maxLines: 3,
                   textDirection: TextDirection.rtl,
+                  style: TextStyle(color: Colors.black87, fontSize: 12.sp),
+                  selectionWidthStyle: BoxWidthStyle.max,
+                  selectionHeightStyle: BoxHeightStyle.max,
+
                   decoration: InputDecoration(
                     // labelText: 'نص الذكر',
                     // نخلي الليبل دايمًا فوق
@@ -119,19 +245,19 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
                     // البوردر العادي
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.r),
                       borderSide: BorderSide(
                         color: Colors.grey.shade400,
-                        width: 1.5,
+                        width: 1.5.w,
                       ),
                     ),
 
                     // البوردر وقت الـ focus
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
+                      borderRadius: BorderRadius.circular(16.r),
+                      borderSide: BorderSide(
                         color: Color(0xFFF4C66A), // نفس الذهبي بتاع الحوار
-                        width: 2,
+                        width: 2.w,
                       ),
                     ),
 
@@ -148,9 +274,9 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                       borderSide: const BorderSide(color: Colors.red, width: 2),
                     ),
 
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 14.h,
                     ),
                   ),
                   validator: (v) {
@@ -160,56 +286,89 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                VerticalSpace(height: 16),
+
+                Text(
                   'نوع الجدولة',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.secondaryTextColor,
+                    fontSize: 14.sp,
                   ),
                 ),
-                const SizedBox(height: 8),
-                DropdownButton<DhikrScheduleType>(
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                  value: _selectedType,
-                  isExpanded: true,
-                  dropdownColor: AppTheme.primaryTextColor,
-                  style: const TextStyle(color: AppTheme.secondaryTextColor),
-                  items: [
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.none,
-                      child: Text(
-                        'بدون جدولة (يظهر دائمًا)',
-                        style: TextStyle(fontSize: 16.sp),
+
+                // VerticalSpace(height: 8),
+                SizedBox(
+                  // height: 52, // عشا
+                  //ن يبقى نفس ارتفاع التكست فيلد تقريبًا
+                  child: DropdownButtonFormField<DhikrScheduleType>(
+                    iconSize: 25.r,
+                    value: _selectedType,
+                    isExpanded: true,
+                    icon: const Icon(
+                      Icons.arrow_drop_down_rounded,
+                      color: Colors.black87,
+                    ),
+
+                    // دي أهم حاجة عشان الشكل يبقى زي التكست فيلد
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 8.h,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none, // مفيش خط زيادة
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(
+                          color: Color(0xFFF4C66A), // نفس الدهبى بتاعك
+                          width: 2.w,
+                        ),
                       ),
                     ),
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.daily,
-                      child: Text('يوميًا', style: TextStyle(fontSize: 16.sp)),
+
+                    borderRadius: BorderRadius.circular(16),
+                    dropdownColor: Colors.white,
+
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16.sp,
+                      height: 1.3, // يفتح الكلام شوية بدل ما يبقى لازق في بعضه
                     ),
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.weekly,
-                      child: Text(
-                        'أيام محددة من الأسبوع',
-                        style: TextStyle(fontSize: 16.sp),
+
+                    items: const [
+                      DropdownMenuItem(
+                        value: DhikrScheduleType.none,
+                        child: Text('بدون جدولة (يظهر دائمًا)'),
                       ),
-                    ),
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.specificDate,
-                      child: Text(
-                        'تاريخ محدد مرة واحدة',
-                        style: TextStyle(fontSize: 16.sp),
+                      DropdownMenuItem(
+                        value: DhikrScheduleType.daily,
+                        child: Text('يوميًا'),
                       ),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    if (val == null) return;
-                    setState(() {
-                      _selectedType = val;
-                    });
-                  },
+                      DropdownMenuItem(
+                        value: DhikrScheduleType.weekly,
+                        child: Text('أيام محددة من الأسبوع'),
+                      ),
+                      DropdownMenuItem(
+                        value: DhikrScheduleType.specificDate,
+                        child: Text('تاريخ محدد مرة واحدة'),
+                      ),
+                    ],
+
+                    onChanged: (val) {
+                      if (val == null) return;
+                      setState(() {
+                        _selectedType = val;
+                      });
+                    },
+                  ),
                 ),
-                const SizedBox(height: 12),
+
+                const VerticalSpace(height: 12),
 
                 /// لو Weekly -> نعرض اختيارات الأيام
                 if (_selectedType == DhikrScheduleType.weekly) ...[
@@ -220,16 +379,19 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                       color: AppTheme.secondaryTextColor,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  VerticalSpace(height: 8),
                   Wrap(
-                    spacing: 8,
+                    spacing: 8.w,
+                    runSpacing: 5.h,
                     children: _weekdayLabels.entries.map((entry) {
                       final day = entry.key;
                       final label = entry.value;
                       final isSelected = _selectedWeekdays.contains(day);
                       return FilterChip(
+                        labelStyle: TextStyle(fontSize: 10.sp),
                         label: Text(label),
                         selected: isSelected,
+
                         onSelected: (selected) {
                           setState(() {
                             if (selected) {
@@ -246,14 +408,23 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
                 /// لو تاريخ محدد -> زر يختار التاريخ
                 if (_selectedType == DhikrScheduleType.specificDate) ...[
-                  const SizedBox(height: 12),
+                  const VerticalSpace(height: 12),
                   Row(
                     children: [
                       ElevatedButton(
                         onPressed: _pickDate,
-                        child: const Text('اختيار التاريخ'),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 8.h,
+                          ),
+                        ),
+                        child: Text(
+                          'اختيار التاريخ',
+                          style: TextStyle(fontSize: 12.sp),
+                        ),
                       ),
-                      const SizedBox(width: 8),
+                      const HorizontalSpace(width: 8),
                       if (_selectedDate != null)
                         Text(
                           '${_selectedDate!.year}/${_selectedDate!.month}/${_selectedDate!.day}',
@@ -267,7 +438,7 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                   ),
                 ],
 
-                const SizedBox(height: 24),
+                const VerticalSpace(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -286,9 +457,10 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: const Text(
+                          child: Text(
                             'إلغاء',
                             style: TextStyle(
+                              fontSize: 14.sp,
                               color: Colors.black87,
                               fontWeight: FontWeight.w600,
                             ),
@@ -313,9 +485,11 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
                         widget.onSubmit(text, schedule);
                       },
-                      child: const Text(
+                      child: Text(
                         'حفظ الذكر',
                         style: TextStyle(
+                          fontSize: 14.sp,
+
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),

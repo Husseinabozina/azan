@@ -24,6 +24,7 @@ class _DhikrTileState extends State<DhikrTile> {
     return Column(
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             IconButton(
               onPressed: () {
@@ -39,7 +40,7 @@ class _DhikrTileState extends State<DhikrTile> {
                 );
                 // DhikrHiveHelper.deleteDhikr(widget.dhikr.id);
               },
-              icon: Icon(Icons.close),
+              icon: Icon(Icons.close, size: 25.r),
               color: AppTheme.accentColor,
             ),
 
@@ -53,7 +54,7 @@ class _DhikrTileState extends State<DhikrTile> {
                 ),
               ),
             ),
-            HorizontalSpace(width: 5),
+            HorizontalSpace(width: 8),
 
             GestureDetector(
               onTap: () {},
@@ -66,14 +67,22 @@ class _DhikrTileState extends State<DhikrTile> {
                 ),
               ),
             ),
-            Checkbox(
-              value: widget.dhikr.active,
-              onChanged: (value) {
-                setState(() {
-                  widget.dhikr.active = value!;
-                  DhikrHiveHelper.updateDhikr(widget.dhikr);
-                });
-              },
+            // HorizontalSpace(width: 5),
+            SizedBox(
+              width: 32.w,
+              height: 32.h,
+              child: Transform.scale(
+                scale: 2.5,
+                child: Checkbox(
+                  value: widget.dhikr.active,
+                  onChanged: (value) {
+                    setState(() {
+                      widget.dhikr.active = value!;
+                      DhikrHiveHelper.updateDhikr(widget.dhikr);
+                    });
+                  },
+                ),
+              ),
             ),
           ],
         ),

@@ -61,7 +61,7 @@ Future<void> showEditMosqueNameDialog(
                     controller: controller,
                     textDirection: TextDirection.rtl,
                     textAlign: TextAlign.right,
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Colors.black, fontSize: 12.sp),
                     decoration: InputDecoration(
                       hintText: 'اسم المسجد',
                       filled: true,
@@ -70,6 +70,7 @@ Future<void> showEditMosqueNameDialog(
                         horizontal: 15.w,
                         vertical: 15.h,
                       ),
+
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
@@ -102,11 +103,12 @@ Future<void> showEditMosqueNameDialog(
                               Navigator.of(context).pop();
                             }
                           },
-                          child: const Text(
+                          child: Text(
                             'موافق',
                             style: TextStyle(
                               color: Colors.black87,
                               fontWeight: FontWeight.w600,
+                              fontSize: 12.sp,
                             ),
                           ),
                         ),
@@ -127,11 +129,12 @@ Future<void> showEditMosqueNameDialog(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: const Text(
+                          child: Text(
                             'إلغاء',
                             style: TextStyle(
                               color: Colors.black87,
                               fontWeight: FontWeight.w600,
+                              fontSize: 12.sp,
                             ),
                           ),
                         ),
@@ -200,7 +203,7 @@ Future<void> showAddDhikrDialog(
                         color: const Color(0xFFF4C66A),
                       ),
                     ),
-                    SizedBox(height: 16.h),
+                    SizedBox(height: 8.h),
 
                     /// الفورم نفسها
                     Flexible(

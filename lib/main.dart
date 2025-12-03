@@ -26,7 +26,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   await CacheHelper.init();
-  if (CacheHelper.getFirstAppOpen()) {
+  if (!CacheHelper.getFirstAppOpen()) {
     await CacheHelper.setFixedDhikr(fixedDhikr);
   }
   await EasyLocalization.ensureInitialized();
