@@ -63,7 +63,8 @@ class CodegenLoader extends AssetLoader{
   "set_adhan_sound": "Set adhan sound",
   "app_theme": "App theme",
   "short_azan_sound": "short azan sound",
-  "short_iqama_sound": "short iqama sound"
+  "short_iqama_sound": "short iqama sound",
+  "no_prayer_times": "No prayer times found"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -114,7 +115,8 @@ static const Map<String,dynamic> _ar = {
   "set_adhan_sound": "ضبط صوت الاذان",
   "app_theme": "نغمة التطبيق",
   "short_azan_sound": "صوت أذان قصير",
-  "short_iqama_sound": "صوت اقامة قصير"
+  "short_iqama_sound": "صوت اقامة قصير",
+  "no_prayer_times": "لم يتم تحميل مواقيت الصلاة"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en": _en, "ar": _ar};
 }

@@ -30,8 +30,8 @@ class OpenMeteoWeatherService {
       final response = await _dio.get(
         'https://api.open-meteo.com/v1/forecast',
         queryParameters: {
-          'latitude': location.latitude,
-          'longitude': location.longitude,
+          'latitude': "24.7136",
+          'longitude': "46.6753",
           'daily': 'temperature_2m_max', // العظمى بس
           'forecast_days': 1, // يوم واحد (النهاردة)
           'timezone': 'auto', // يخلي اليوم حسب توقيت المكان
@@ -59,7 +59,9 @@ class OpenMeteoWeatherService {
       return todayMax;
     } on DioException catch (e) {
       // تقدر تحط هنا logging لو عندك logger
-      debugPrint('OpenMeteo error: ${e.message}');
+      debugPrint(
+        'OpenMeteo error: ${e.message}  statusCode: ${e.response?.statusCode}',
+      );
       return null;
     } catch (e) {
       debugPrint('OpenMeteo unknown error: $e');
@@ -76,18 +78,18 @@ class OpenMeteoWeatherService {
       final response = await _dio.get(
         'https://geocoding-api.open-meteo.com/v1/search',
         queryParameters: {
-          'name': LocationHelper.findSaudiCityByName(city)?.nameEn,
+          'name': "Riyadh",
           'count': 1, // أول نتيجة بس
           'language': 'ar', // يرجع أسماء بالعربي لو متاحة
           'format': 'json',
         },
       );
-      // debugPrint(
-      //   'cityyyyyyyy: ${LocationHelper.findSaudiCityByName(city)?.nameEn}',
-      // );
+      debugPrint('cityyyyyyyy: Riyadh, countryyyyyyyy: Saudi Arabia');
 
       if (response.statusCode != 200) {
-        debugPrint('Geocoding error: ${response.data}');
+        debugPrint(
+          'Geocoding error: ${response.data}. statusCode: ${response.statusCode}',
+        );
         return null;
       }
 
@@ -104,7 +106,9 @@ class OpenMeteoWeatherService {
       final first = results.first as Map<String, dynamic>;
       return GeoLocation.fromJson(first);
     } on DioException catch (e) {
-      debugPrint('Geocoding error: ${e.message}');
+      debugPrint(
+        'Geocoding error: ${e.message},statusCode: ${e.response?.statusCode}',
+      );
       return null;
     } catch (e) {
       debugPrint('Geocoding unknown error: $e');

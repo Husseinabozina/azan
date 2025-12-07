@@ -52,5 +52,6 @@ abstract class  LocaleKeys {
   static const app_theme = 'app_theme';
   static const short_azan_sound = 'short_azan_sound';
   static const short_iqama_sound = 'short_iqama_sound';
+  static const no_prayer_times = 'no_prayer_times';
 
 }

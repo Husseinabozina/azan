@@ -56,5 +56,6 @@
 "short azan sound"
  , 
  "short_iqama_sound":
-"short iqama sound"
+"short iqama sound",
+"no_prayer_times":"No prayer times found"
 }

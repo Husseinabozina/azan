@@ -12,6 +12,7 @@ import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/azan_time_tile.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
+import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -228,156 +229,239 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                 height: double.infinity,
                 fit: BoxFit.fill,
               ),
-              SafeArea(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 20.r, left: 15.w, right: 15.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
 
+              if (appCubit.prayers[0].time == null)
+                PositionedDirectional(
+                  top: 40.h,
+                  start: 32.w,
+                  end: 32.w,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              AppNavigator.pushAndRemoveUntil(
-                                context,
-                                HomeScreenMobile(),
-                              );
-                            },
-                            icon: Icon(
-                              Icons.close,
-                              color: AppTheme.accentColor,
-                              size: 35.r,
-                            ),
-                          ),
-
-                          IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: Icon(
-                              Icons.menu,
-                              color: AppTheme.primaryTextColor,
-                              size: 35.r,
-                            ),
-                          ),
-                        ],
-                      ),
-                      VerticalSpace(height: 30),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            children: [
-                              AzanTitleTile(
-                                width: 30.w,
-                                title: LocaleKeys.prayer.tr(),
-                                fontSize: 14.sp,
-                              ),
-                              VerticalSpace(height: 10),
-
-                              ...prayers.map(
-                                (e) => Padding(
-                                  padding: EdgeInsets.only(bottom: 19.h),
-                                  child: PrayerText(title: e),
-                                ),
-                              ),
-                            ],
-                          ),
-                          // HorizontalSpace(width: 10),
-                          Column(
-                            children: [
-                              AzanTitleTile(
-                                width: 30.w,
-                                title: "وقت الأذان",
-                                fontSize: 14.sp,
-                              ),
-                              VerticalSpace(height: 10),
-
-                              ...appCubit.prayers.map(
-                                (e) => Padding(
-                                  padding: EdgeInsets.only(bottom: 19.h),
-                                  child: PrayerText(title: e.time!),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          Column(
-                            children: [
-                              AzanTitleTile(
-                                width: 120.w,
-                                title: 'وقت الإقامة (دقيقة)',
-                                fontSize: 12.sp,
-                              ),
-                              VerticalSpace(height: 10),
-                              ...List.generate(prayers.length, (index) {
-                                return Padding(
-                                  padding: EdgeInsets.only(bottom: 10.h),
-                                  child: InkWell(
-                                    onTap: () => _editIqamaMinutes(index),
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12.w,
-                                        vertical: 6.h,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(
-                                          16.r,
-                                        ),
-                                        border: Border.all(
-                                          color: AppTheme.primaryTextColor,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        '${iqamaMinutes[index]} د', // د = دقيقة
-                                        style: TextStyle(
-                                          fontSize: 18.sp,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppTheme.primaryTextColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
-                        ],
+                      IconButton(
+                        onPressed: () {
+                          AppNavigator.pushAndRemoveUntil(
+                            context,
+                            HomeScreenMobile(),
+                          );
+                        },
+                        icon: Icon(
+                          Icons.close,
+                          color: AppTheme.accentColor,
+                          size: 35.r,
+                        ),
                       ),
 
-                      VerticalSpace(height: 20.h),
-                      Padding(
-                        padding: EdgeInsets.only(left: 8.w, right: 8.w),
-                        child: AppButton(
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(
+                          Icons.menu,
                           color: AppTheme.primaryTextColor,
-                          onPressed: () {
-                            appCubit.saveIqamaTimes();
-                          },
-                          child: state is saveIqamaTimesLoading
-                              ? Center(
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Text(
-                                  'حفظ',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16.sp,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                          size: 35.r,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
+
+              if (appCubit.prayers[0].time == null)
+                Positioned(
+                  top: .4.sh,
+                  // bottom: 50.h,
+                  right: .10.sw,
+                  left: .10.sw,
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          LocaleKeys.no_prayer_times.tr(),
+                          textAlign: TextAlign.center,
+
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                        VerticalSpace(height: 20),
+                        AppButton(
+                          color: AppTheme.primaryTextColor,
+                          child: Text(
+                            "الذهاب لفتح مواقيت الصلاة",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () => AppNavigator.push(
+                            context,
+                            SelectLocationScreen(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              if (appCubit.prayers[0].time != null)
+                SafeArea(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 20.r,
+                      left: 15.w,
+                      right: 15.w,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                AppNavigator.pushAndRemoveUntil(
+                                  context,
+                                  HomeScreenMobile(),
+                                );
+                              },
+                              icon: Icon(
+                                Icons.close,
+                                color: AppTheme.accentColor,
+                                size: 35.r,
+                              ),
+                            ),
+
+                            IconButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              icon: Icon(
+                                Icons.menu,
+                                color: AppTheme.primaryTextColor,
+                                size: 35.r,
+                              ),
+                            ),
+                          ],
+                        ),
+                        VerticalSpace(height: 30),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              children: [
+                                AzanTitleTile(
+                                  width: 30.w,
+                                  title: LocaleKeys.prayer.tr(),
+                                  fontSize: 14.sp,
+                                ),
+                                VerticalSpace(height: 10),
+
+                                ...prayers.map(
+                                  (e) => Padding(
+                                    padding: EdgeInsets.only(bottom: 19.h),
+                                    child: PrayerText(title: e),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // HorizontalSpace(width: 10),
+                            Column(
+                              children: [
+                                AzanTitleTile(
+                                  width: 30.w,
+                                  title: "وقت الأذان",
+                                  fontSize: 14.sp,
+                                ),
+                                VerticalSpace(height: 10),
+
+                                ...appCubit.prayers.map(
+                                  (e) => Padding(
+                                    padding: EdgeInsets.only(bottom: 19.h),
+                                    child: PrayerText(title: e.time ?? '--:--'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (appCubit.prayers[0].time != null)
+                              Column(
+                                children: [
+                                  AzanTitleTile(
+                                    width: 120.w,
+                                    title: 'وقت الإقامة (دقيقة)',
+                                    fontSize: 12.sp,
+                                  ),
+                                  VerticalSpace(height: 10),
+                                  ...List.generate(prayers.length, (index) {
+                                    return Padding(
+                                      padding: EdgeInsets.only(bottom: 10.h),
+                                      child: InkWell(
+                                        onTap: () => _editIqamaMinutes(index),
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 12.w,
+                                            vertical: 6.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(
+                                              0.15,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              16.r,
+                                            ),
+                                            border: Border.all(
+                                              color: AppTheme.primaryTextColor,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${iqamaMinutes[index]} د', // د = دقيقة
+                                            style: TextStyle(
+                                              fontSize: 18.sp,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.primaryTextColor,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                          ],
+                        ),
+
+                        VerticalSpace(height: 20.h),
+                        Padding(
+                          padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                          child: AppButton(
+                            color: AppTheme.primaryTextColor,
+                            onPressed: () {
+                              appCubit.saveIqamaTimes();
+                            },
+                            child: state is saveIqamaTimesLoading
+                                ? Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    'حفظ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.sp,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           );
         },

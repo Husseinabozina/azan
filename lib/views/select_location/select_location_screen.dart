@@ -188,7 +188,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                     Container(
                       height: h,
                       width: w,
-                      color: Colors.black45,
+                      color: Colors.black54,
                       child: Center(
                         child: CircularProgressIndicator(
                           color: AppTheme.primaryTextColor,

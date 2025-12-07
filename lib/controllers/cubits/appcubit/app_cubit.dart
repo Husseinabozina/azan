@@ -14,6 +14,7 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -88,6 +89,13 @@ class AppCubit extends Cubit<AppState> {
 
   adhan.PrayerTimes? prayerTimes;
 
+  final Connectivity _connectivity = Connectivity();
+
+  Future<bool> get _hasConnection async {
+    final result = await _connectivity.checkConnectivity();
+    return !result.contains(ConnectivityResult.none);
+  }
+
   Future<LatLng?> fetchCityCoordinate(String city) async {
     if (CacheHelper.getCoordinates() == null) {
       OpenMeteoWeatherService service = OpenMeteoWeatherService(dio: _dio);
@@ -149,6 +157,11 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> initializePrayerTimes(String city) async {
+    if (!await _hasConnection) {
+      emit(FetchPrayerTimesFailure("لا يوجد انترنت"));
+      return;
+    }
+
     emit(FetchPrayerTimesLoading());
     if (CacheHelper.getCoordinates() == null) {
       await fetchCityCoordinate(city);
