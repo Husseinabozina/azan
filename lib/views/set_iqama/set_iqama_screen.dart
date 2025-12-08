@@ -169,7 +169,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                'إلغاء',
+                LocaleKeys.common_cancel.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16.sp,
@@ -182,7 +182,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                 Navigator.of(context).pop(localValue);
               },
               child: Text(
-                'حفظ',
+                LocaleKeys.common_save.tr(),
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
               ),
             ),
@@ -208,7 +208,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
         listener: (context, state) {
           if (state is saveIqamaTimesSuccess) {
             showFlashMessage(
-              message: 'تم الحفظ',
+              message: LocaleKeys.saved_successfully.tr(),
               type: FlashMessageType.success,
               context: context,
             );
@@ -289,7 +289,8 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                         AppButton(
                           color: AppTheme.primaryTextColor,
                           child: Text(
-                            "الذهاب لفتح مواقيت الصلاة",
+                            LocaleKeys.open_prayer_times_button.tr(),
+
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -373,7 +374,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                               children: [
                                 AzanTitleTile(
                                   width: 30.w,
-                                  title: "وقت الأذان",
+                                  title: LocaleKeys.adhan_time_label.tr(),
                                   fontSize: 14.sp,
                                 ),
                                 VerticalSpace(height: 10),
@@ -391,7 +392,8 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                 children: [
                                   AzanTitleTile(
                                     width: 120.w,
-                                    title: 'وقت الإقامة (دقيقة)',
+                                    title: LocaleKeys.iqama_time_minutes_label
+                                        .tr(),
                                     fontSize: 12.sp,
                                   ),
                                   VerticalSpace(height: 10),
@@ -449,7 +451,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                     ),
                                   )
                                 : Text(
-                                    'حفظ',
+                                    LocaleKeys.common_save.tr(),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16.sp,

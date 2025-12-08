@@ -56,6 +56,56 @@
 "صوت أذان قصير"
 ,"short_iqama_sound": 
 "صوت اقامة قصير",
-"no_prayer_times":"لم يتم تحميل مواقيت الصلاة"
+"no_prayer_times":"لم يتم تحميل مواقيت الصلاة",
+"saturday":"السبت",
+"day_saturday": "السبت",
+  "day_sunday": "الأحد",
+  "day_monday": "الاثنين",
+  "day_tuesday": "الثلاثاء",
+  "day_wednesday": "الأربعاء",
+  "day_thursday": "الخميس",
+  "day_friday": "الجمعة"
+,
+  "dhikr_edit_title": "تعديل الذكر",
+  "dhikr_text_label": "نص الذكر",
+  "common_ok": "موافق",
+  "common_cancel": "إلغاء",
+   "mosque_edit_name_title": "تحرير اسم المسجد",
+  "mosque_name_label": "اسم المسجد",
 
+  "dhikr_delete_title": "حذف الذكر",
+  "dhikr_add_to_mosque": "إضافة ذكر للمسجد",
+
+  "common_save": "حفظ",
+
+  "mosque_country_select_title": "اختر بلد المسجد",
+  "country_search_hint": "ابحث عن الدولة",
+  "mosque_city_select_title": "اختر مدينة المسجد",
+  "city_search_hint": "ابحث عن المدينة",
+  "country_saudi_arabia": "السعودية",
+  "city_select_placeholder": "اختر المدينة",
+
+  "dhikr_delete_confirm_message": "هل أنت متأكد من حذف هذا الذكر؟",
+
+  "iqama_time_minutes_label": "وقت الإقامة (دقيقة)",
+  "adhan_time_label": "وقت الأذان",
+  "open_prayer_times_button": "الذهاب لفتح مواقيت الصلاة",
+  "select_minutes_after_adhan": "اختر عدد الدقائق بعد الأذان",
+  "iqama_setup_title": "ضبط إقامة",
+
+  "dhikr_add_new_title": "إضافة ذكر جديد",
+  "dhikr_text_hint": "اكتب نص الذكر هنا",
+  "dhikr_text_required_error": "من فضلك أدخل نص الذكر",
+
+  "schedule_type_label": "نوع الجدولة",
+  "schedule_type_none": "بدون جدولة (يظهر دائمًا)",
+  "schedule_type_daily": "يوميًا",
+  "schedule_type_weekly_days": "أيام محددة من الأسبوع",
+  "schedule_type_specific_date": "تاريخ محدد مرة واحدة",
+  "schedule_select_days_label": "اختر اليوم / الأيام:",
+  "schedule_select_date_label": "اختيار التاريخ",
+
+  "dhikr_save_button": "حفظ الذكر",
+  "saved_successfully": "تم الحفظ بنجاح",
+  "min":"د"
 }

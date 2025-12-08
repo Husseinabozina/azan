@@ -5,6 +5,7 @@ import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
+import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
@@ -15,6 +16,7 @@ import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -125,7 +127,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                 width: 160.w,
                                 height: 40.h,
                                 child: Text(
-                                  'السعودية',
+                                  LocaleKeys.country_saudi_arabia.tr(),
                                   style: TextStyle(
                                     color: AppTheme.darkBlue,
                                     fontWeight: FontWeight.bold,
@@ -160,8 +162,11 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                 child: Row(
                                   children: [
                                     Text(
-                                      appCubit.getCity()?.nameAr ??
-                                          'اختر المدينة',
+                                      (LocalizationHelper.isArabic(context)
+                                              ? appCubit.getCity()?.nameAr
+                                              : appCubit.getCity()?.nameEn) ??
+                                          LocaleKeys.mosque_city_select_title
+                                              .tr(),
                                       style: TextStyle(
                                         color: AppTheme.darkBlue,
                                         fontWeight: FontWeight.bold,

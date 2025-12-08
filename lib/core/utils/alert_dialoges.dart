@@ -1,8 +1,12 @@
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/utils/extenstions.dart';
+import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/dhikr_from_widget.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+// widgets
+import 'package:flutter/widgets.dart' as widgets;
 
 Future<void> showEditMosqueNameDialog(
   BuildContext context, {
@@ -20,7 +24,7 @@ Future<void> showEditMosqueNameDialog(
       return Center(
         child: Directionality(
           // عشان RTL
-          textDirection: TextDirection.rtl,
+          textDirection: widgets.TextDirection.rtl,
           child: Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -59,7 +63,7 @@ Future<void> showEditMosqueNameDialog(
                   // حقل اسم المسجد
                   TextField(
                     controller: controller,
-                    textDirection: TextDirection.rtl,
+                    textDirection: widgets.TextDirection.rtl,
                     textAlign: TextAlign.right,
                     style: TextStyle(color: Colors.black, fontSize: 12.sp),
                     decoration: InputDecoration(
@@ -163,7 +167,7 @@ Future<void> showAddDhikrDialog(
 
       return Center(
         child: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: widgets.TextDirection.rtl,
           child: Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -243,7 +247,7 @@ Future<bool?> showDeleteDhikrDialog(
     builder: (context) {
       return Center(
         child: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: widgets.TextDirection.rtl,
           child: Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -370,7 +374,7 @@ Future<void> showEditDhikrDialog(
     builder: (context) {
       return Center(
         child: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: widgets.TextDirection.rtl,
           child: Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -409,7 +413,7 @@ Future<void> showEditDhikrDialog(
                   // حقل نص الذكر
                   TextField(
                     controller: controller,
-                    textDirection: TextDirection.rtl,
+                    textDirection: widgets.TextDirection.rtl,
                     textAlign: TextAlign.right,
                     maxLines: 4,
                     style: const TextStyle(color: Colors.black),
@@ -489,8 +493,8 @@ Future<void> showEditDhikrDialog(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: const Text(
-                            'إلغاء',
+                          child: Text(
+                            LocaleKeys.common_cancel.tr(),
                             style: TextStyle(
                               color: Colors.black87,
                               fontWeight: FontWeight.w600,

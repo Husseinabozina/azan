@@ -5,8 +5,11 @@ import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
+import 'package:azan/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/widgets.dart' as widgets;
 
 class DhikrFormWidget extends StatefulWidget {
   final void Function(String text, DhikrSchedule? schedule) onSubmit;
@@ -218,7 +221,7 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl, // عشان العربي
+      textDirection: widgets.TextDirection.rtl, // عشان العربي
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -240,7 +243,7 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                 TextFormField(
                   controller: _textController,
                   maxLines: 3,
-                  textDirection: TextDirection.rtl,
+                  textDirection: widgets.TextDirection.rtl,
                   style: TextStyle(color: Colors.black87, fontSize: 12.sp),
                   selectionWidthStyle: BoxWidthStyle.max,
                   selectionHeightStyle: BoxHeightStyle.max,
@@ -259,7 +262,7 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                     ),
 
                     // لو حابب تضيف هينت جوا
-                    hintText: 'اكتب نص الذكر هنا',
+                    hintText: LocaleKeys.dhikr_add_new_title.tr(),
                     hintStyle: TextStyle(color: Colors.grey.shade500),
 
                     // نخليها بوكس أبيض جوه الديالوج الأزرق
@@ -304,7 +307,7 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'من فضلك أدخل نص الذكر';
+                      return LocaleKeys.dhikr_text_required_error.tr();
                     }
                     return null;
                   },
@@ -312,7 +315,7 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                 VerticalSpace(height: 16),
 
                 Text(
-                  'نوع الجدولة',
+                  LocaleKeys.schedule_type_label.tr(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.secondaryTextColor,
@@ -363,22 +366,24 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                       height: 1.3, // يفتح الكلام شوية بدل ما يبقى لازق في بعضه
                     ),
 
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: DhikrScheduleType.none,
-                        child: Text('بدون جدولة (يظهر دائمًا)'),
+                        child: Text(LocaleKeys.schedule_type_none.tr()),
                       ),
                       DropdownMenuItem(
                         value: DhikrScheduleType.daily,
-                        child: Text('يوميًا'),
+                        child: Text(LocaleKeys.daily.tr()),
                       ),
                       DropdownMenuItem(
                         value: DhikrScheduleType.weekly,
-                        child: Text('أيام محددة من الأسبوع'),
+                        child: Text(LocaleKeys.schedule_type_weekly_days.tr()),
                       ),
                       DropdownMenuItem(
                         value: DhikrScheduleType.specificDate,
-                        child: Text('تاريخ محدد مرة واحدة'),
+                        child: Text(
+                          LocaleKeys.schedule_type_specific_date.tr(),
+                        ),
                       ),
                     ],
 
@@ -395,8 +400,8 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
                 /// لو Weekly -> نعرض اختيارات الأيام
                 if (_selectedType == DhikrScheduleType.weekly) ...[
-                  const Text(
-                    'اختر اليوم / الأيام:',
+                  Text(
+                    LocaleKeys.schedule_select_days_label.tr(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.secondaryTextColor,
@@ -443,7 +448,7 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                           ),
                         ),
                         child: Text(
-                          'اختيار التاريخ',
+                          LocaleKeys.schedule_select_date_label.tr(),
                           style: TextStyle(fontSize: 12.sp),
                         ),
                       ),
@@ -481,7 +486,8 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                             Navigator.of(context).pop();
                           },
                           child: Text(
-                            'إلغاء',
+                            LocaleKeys.common_cancel.tr(),
+
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: Colors.black87,
@@ -509,7 +515,8 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                         widget.onSubmit(text, schedule);
                       },
                       child: Text(
-                        'حفظ الذكر',
+                        LocaleKeys.dhikr_save_button.tr(),
+
                         style: TextStyle(
                           fontSize: 14.sp,
 

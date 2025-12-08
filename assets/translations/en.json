@@ -57,5 +57,55 @@
  , 
  "short_iqama_sound":
 "short iqama sound",
-"no_prayer_times":"No prayer times found"
+"no_prayer_times":"No prayer times found",
+ "day_saturday": "Saturday",
+  "day_sunday": "Sunday",
+  "day_monday": "Monday",
+  "day_tuesday": "Tuesday",
+  "day_wednesday": "Wednesday",
+  "day_thursday": "Thursday",
+  "day_friday": "Friday",
+   "dhikr_edit_title": "Edit dhikr",
+  "dhikr_text_label": "Dhikr text",
+  "common_ok": "OK",
+  "common_cancel": "Cancel",
+    "mosque_edit_name_title": "Edit mosque name",
+  "mosque_name_label": "Mosque name",
+
+  "dhikr_delete_title": "Delete dhikr",
+  "dhikr_add_to_mosque": "Add dhikr to mosque",
+
+  "common_save": "Save",
+
+  "mosque_country_select_title": "Select mosque country",
+  "country_search_hint": "Search country",
+  "mosque_city_select_title": "Select mosque city",
+  "city_search_hint": "Search city",
+  "country_saudi_arabia": "Saudi Arabia",
+  "city_select_placeholder": "Select city",
+
+  "dhikr_delete_confirm_message": "Are you sure you want to delete this dhikr?",
+
+  "iqama_time_minutes_label": "Iqama time (minutes)",
+  "adhan_time_label": "Adhan time",
+  "open_prayer_times_button": "Go to prayer times",
+  "select_minutes_after_adhan": "Select number of minutes after adhan",
+  "iqama_setup_title": "Set iqama",
+
+  "dhikr_add_new_title": "Add new dhikr",
+  "dhikr_text_hint": "Write the dhikr text here",
+  "dhikr_text_required_error": "Please enter the dhikr text",
+
+  "schedule_type_label": "Schedule type",
+  "schedule_type_none": "No schedule (always visible)",
+  "schedule_type_daily": "Daily",
+  "schedule_type_weekly_days": "Specific days of the week",
+  "schedule_type_specific_date": "One-time specific date",
+  "schedule_select_days_label": "Select day(s):",
+  "schedule_select_date_label": "Select date",
+
+  "dhikr_save_button": "Save dhikr",
+  "saved_successfully": "Saved successfully",
+  "min":"min"
+
 }
