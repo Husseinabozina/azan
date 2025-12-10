@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
+import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -59,7 +60,10 @@ class _LiveClockRowState extends State<LiveClockRow> {
     final mStr = minute.toString().padLeft(2, '0');
 
     final time = '$hStr:$mStr';
-    return DateHelper.toArabicDigits(time);
+    return LocalizationHelper.isArabic(context)
+        ? DateHelper.toArabicDigits(time)
+        : DateHelper.toWesternDigits(time);
+    ;
   }
 
   // صباحًا / مساءً

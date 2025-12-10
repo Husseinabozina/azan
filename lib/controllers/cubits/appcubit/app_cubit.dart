@@ -3,6 +3,7 @@ import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/helpers/iqama_hive_helper.dart';
+import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/location_helper.dart';
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/diker.dart';
@@ -14,9 +15,11 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AppCubit extends Cubit<AppState> {
@@ -25,7 +28,9 @@ class AppCubit extends Cubit<AppState> {
 
   final Dio _dio;
   final AzanDataSource azanDataSource = AzanDataSourceImpl(Dio());
-  Future<String?> getTodayHijriDate() async {
+
+  HomeScreenMobileState? homeScreenMobile;
+  Future<String?> getTodayHijriDate(BuildContext context) async {
     emit(AppInitial());
     try {
       final now = DateTime.now();
@@ -48,7 +53,9 @@ class AppCubit extends Cubit<AppState> {
 
       final String day = hijri['day']; // "8"
       final String year = hijri['year']; // "1447"
-      final String monthAr = hijri['month']['ar']; // "جُمادى الآخرة"
+      final String monthAr = context.locale.languageCode == 'ar'
+          ? hijri['month']['ar']
+          : hijri['month']['en']; // "جُمادى الآخرة"
 
       // تبديل الاسم لو حابب الشكل اللي إنت كتبته
       final String monthName = monthAr;
@@ -56,7 +63,9 @@ class AppCubit extends Cubit<AppState> {
       final raw = '$day $monthName $year';
 
       // نحول الأرقام لأرقام عربية
-      final formatted = DateHelper.toArabicDigits(raw);
+      final formatted = LocalizationHelper.isArabic(context)
+          ? DateHelper.toArabicDigits(raw)
+          : DateHelper.toWesternDigits(raw);
 
       // النتيجة: "٨ جمادى الثاني ١٤٤٧"
       emit(AppChanged());
@@ -97,26 +106,24 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<LatLng?> fetchCityCoordinate(String city) async {
-    if (CacheHelper.getCoordinates() == null) {
-      OpenMeteoWeatherService service = OpenMeteoWeatherService(dio: _dio);
+    OpenMeteoWeatherService service = OpenMeteoWeatherService(dio: _dio);
 
-      GeoLocation? geoResponse = await service.fetchCoordinates(city: city);
+    GeoLocation? geoResponse = await service.fetchCoordinates(city: city);
 
-      if (geoResponse == null) {
-        return null;
-      }
-      LatLng latLng = LatLng(geoResponse!.latitude, geoResponse!.longitude);
-      CacheHelper.setCoordinates(latLng);
-      CacheHelper.setCity(
-        CityOption(
-          nameEn: city,
-          nameAr: LocationHelper.findSaudiCityByName(city)!.nameAr,
-          lat: latLng.latitude,
-          lon: latLng.longitude,
-        ),
-      );
-      return latLng;
+    if (geoResponse == null) {
+      return null;
     }
+    LatLng latLng = LatLng(geoResponse!.latitude, geoResponse!.longitude);
+    CacheHelper.setCoordinates(latLng);
+    CacheHelper.setCity(
+      CityOption(
+        nameEn: city,
+        nameAr: LocationHelper.findSaudiCityByName(city)!.nameAr,
+        lat: latLng.latitude,
+        lon: latLng.longitude,
+      ),
+    );
+    return latLng;
   }
 
   Future<adhan.PrayerTimes?> fetchPrayerTimesNew(
@@ -156,14 +163,24 @@ class AppCubit extends Cubit<AppState> {
     }
   }
 
-  Future<void> initializePrayerTimes(String city) async {
+  bool cityChanged = false;
+
+  void assignCityChanged(bool value) {
+    cityChanged = true;
+  }
+
+  Future<void> initializePrayerTimes({String? city}) async {
     if (!await _hasConnection) {
       emit(FetchPrayerTimesFailure("لا يوجد انترنت"));
       return;
     }
 
     emit(FetchPrayerTimesLoading());
-    if (CacheHelper.getCoordinates() == null) {
+    if (cityChanged) {
+      await fetchCityCoordinate(city!);
+      cityChanged = false;
+    }
+    if (CacheHelper.getCoordinates() == null && city != null) {
       await fetchCityCoordinate(city);
     }
     if (CacheHelper.getCoordinates() == null) {
@@ -212,37 +229,49 @@ class AppCubit extends Cubit<AppState> {
       Prayer(
         id: 1,
         title: LocaleKeys.fajr.tr(),
-        time: times == null ? null : DateFormat.jm().format(times.fajr),
+        time: times == null
+            ? null
+            : DateFormat.jm(CacheHelper.getLang()).format(times.fajr),
         dateTime: times?.fajr,
       ),
       Prayer(
         id: 2,
         title: LocaleKeys.sunrise.tr(),
-        time: times == null ? null : DateFormat.jm().format(times.sunrise),
+        time: times == null
+            ? null
+            : DateFormat.jm(CacheHelper.getLang()).format(times.sunrise),
         dateTime: times?.sunrise,
       ),
       Prayer(
         id: 3,
         title: LocaleKeys.dhuhr.tr(),
-        time: times == null ? null : DateFormat.jm().format(times.dhuhr),
+        time: times == null
+            ? null
+            : DateFormat.jm(CacheHelper.getLang()).format(times.dhuhr),
         dateTime: times?.dhuhr,
       ),
       Prayer(
         id: 4,
         title: LocaleKeys.asr.tr(),
-        time: times == null ? null : DateFormat.jm().format(times.asr),
+        time: times == null
+            ? null
+            : DateFormat.jm(CacheHelper.getLang()).format(times.asr),
         dateTime: times?.asr,
       ),
       Prayer(
         id: 5,
         title: LocaleKeys.maghrib.tr(),
-        time: times == null ? null : DateFormat.jm().format(times.maghrib),
+        time: times == null
+            ? null
+            : DateFormat.jm(CacheHelper.getLang()).format(times.maghrib),
         dateTime: times?.maghrib,
       ),
       Prayer(
         id: 6,
         title: LocaleKeys.isha.tr(),
-        time: times == null ? null : DateFormat.jm().format(times.isha),
+        time: times == null
+            ? null
+            : DateFormat.jm(CacheHelper.getLang()).format(times.isha),
         dateTime: times?.isha,
       ),
     ];
@@ -266,7 +295,7 @@ class AppCubit extends Cubit<AppState> {
       case adhan.Prayer.isha:
         return prayers[5];
       case adhan.Prayer.none:
-        await initializePrayerTimes(CacheHelper.getCity()!.nameEn);
+        await initializePrayerTimes(city: CacheHelper.getCity()!.nameEn);
         return prayers[0];
 
       default:

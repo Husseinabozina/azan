@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/latlng.dart';
+import 'package:azan/gen/assets.gen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHelper {
@@ -29,6 +30,7 @@ class CacheHelper {
   static const _fixedDhikr = "fixedDhikr";
   static const _isIqamaAppTheme = "_isIqamaAppTheme";
   static const _isAzanAppTheme = "_isAzanAppTheme";
+  static const _selectedBackground = "_selectedBackground";
 
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -288,5 +290,18 @@ class CacheHelper {
 
   static removeIsAzanAppTheme() async {
     await sharedPreferences.remove(_isAzanAppTheme);
+  }
+
+  static setSelectedBackground(String value) async {
+    await sharedPreferences.setString(_selectedBackground, value);
+  }
+
+  static String getSelectedBackground() {
+    return sharedPreferences.getString(_selectedBackground) ??
+        Assets.images.home.path;
+  }
+
+  static removeSelectedBackground() async {
+    await sharedPreferences.remove(_selectedBackground);
   }
 }

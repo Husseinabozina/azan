@@ -1,4 +1,8 @@
+import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class DateHelper {
   static const List<String> _western = [
@@ -52,10 +56,10 @@ class DateHelper {
 
     // 2) لو فيه ص/م عربيتين حوّلهم am/pm
     clean = clean
-        .replaceAll('ص', 'am')
-        .replaceAll('م', 'pm')
-        .replaceAll('ص.', 'am')
-        .replaceAll('م.', 'pm');
+        .replaceAll('ص', 'AM')
+        .replaceAll('م', 'PM')
+        .replaceAll('ص.', 'AM')
+        .replaceAll('م.', 'PM');
 
     final parts = clean.toLowerCase().split(
       RegExp(r'\s+'),
@@ -65,7 +69,7 @@ class DateHelper {
       throw FormatException('Invalid time format: $timeStr');
     }
 
-    final hm = parts[0].split(':'); // ["04", "34"]
+    final hm = parts[0].split(':');
     if (hm.length != 2) {
       throw FormatException('Invalid time format: $timeStr');
     }
@@ -76,9 +80,9 @@ class DateHelper {
     // لو فيه فترة (am/pm) عالجها، لو مفيش اعتبره 24h وخلاص
     if (parts.length == 2) {
       final String period = parts[1]; // "am" أو "pm"
-      if (period == 'pm' && hour != 12) {
+      if (period == "PM" && hour != 12) {
         hour += 12;
-      } else if (period == 'am' && hour == 12) {
+      } else if (period == "AM" && hour == 12) {
         hour = 0;
       }
     }
@@ -90,9 +94,13 @@ class DateHelper {
     final int hour12 = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final String hourStr = hour12.toString().padLeft(2, '0');
     final String minuteStr = time.minute.toString().padLeft(2, '0');
-    final String periodStr = time.period == DayPeriod.am ? 'AM' : 'PM';
+    final String periodStr = time.period == DayPeriod.am
+        ? LocaleKeys.am.tr()
+        : LocaleKeys.pm.tr();
 
-    return '$hourStr:$minuteStr $periodStr';
+    return CacheHelper.getLang() == 'en'
+        ? '$hourStr:$minuteStr $periodStr'
+        : toArabicDigits('${hourStr}:$minuteStr $periodStr');
   }
 
   static String addMinutesToTimeString(String timeStr, int minutesToAdd) {

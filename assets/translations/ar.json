@@ -107,5 +107,13 @@
 
   "dhikr_save_button": "حفظ الذكر",
   "saved_successfully": "تم الحفظ بنجاح",
-  "min":"د"
+  "min":"د",
+  "delete": "حذف",
+  "language":"اللغة",
+  "iqama":"اقامة",
+  "am":"ص",
+  "pm":"م",
+  "change_app_wallpaper":"تغيير صورة الخلفية للتطبيق"
+  ,"choose_app_wallpaper":"اختر الخلفية"
+  
 }

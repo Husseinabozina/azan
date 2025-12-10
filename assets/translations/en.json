@@ -106,6 +106,13 @@
 
   "dhikr_save_button": "Save dhikr",
   "saved_successfully": "Saved successfully",
-  "min":"min"
-
+  "min":"min",
+  "delete":"delete",
+  "language":"language"
+,"iqama":"iqama",
+"am":"AM",
+"pm":"PM",
+"change_app_wallpaper":"Change app wallpaper"
+,
+"choose_app_wallpaper":"Choose app wallpaper"
 }

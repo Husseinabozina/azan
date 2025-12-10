@@ -1,19 +1,21 @@
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 const String fixedDhikr = "حَسْبُنَا اللّهُ وَنِعْمَ الْوَكِيلُ";
-const List<String> prayers = [
-  "الفجر",
-  "الشروق",
-  "الظهر",
-  "العصر",
-  "المغرب",
-  "العشاء",
+List<String> get prayers => [
+  LocaleKeys.fajr.tr(),
+  LocaleKeys.sunrise.tr(),
+  LocaleKeys.dhuhr.tr(),
+  LocaleKeys.asr.tr(),
+  LocaleKeys.maghrib.tr(),
+  LocaleKeys.isha.tr(),
 ];
 
 List<String> prayerTimes = [

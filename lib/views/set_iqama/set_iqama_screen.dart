@@ -7,6 +7,7 @@ import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/iqama_hive_helper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
+import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -43,8 +44,8 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
       });
     });
 
-    // عدد العناصر = عدد الصلوات
-    // مبدئياً 10 دقايق لكل صلاة (عدّل براحتك أو حمّلها من cubit بعدين)
+    // ع${LocaleKeys.min.tr()}${LocaleKeys.min.tr()} العناصر = ع${LocaleKeys.min.tr()}${LocaleKeys.min.tr()} الصلوات
+    // مب${LocaleKeys.min.tr()}ئياً 10 ${LocaleKeys.min.tr()}قايق لكل صلاة (ع${LocaleKeys.min.tr()}ّل براحتك أو حمّلها من cubit بع${LocaleKeys.min.tr()}ين)
   }
 
   Future<void> _editIqamaMinutes(int index) async {
@@ -60,7 +61,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
             borderRadius: BorderRadius.circular(16.r),
           ),
           title: Text(
-            'ضبط إقامة ${prayers[index]}',
+            '${LocaleKeys.set_iqama_time.tr()}${prayers[index]}',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
@@ -73,7 +74,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'اختر عدد الدقائق بعد الأذان',
+                    LocaleKeys.select_minutes_after_adhan.tr(),
                     style: TextStyle(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
@@ -111,7 +112,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           color: Colors.white,
                         ),
                         child: Text(
-                          '$localValue د',
+                          '$localValue ${LocaleKeys.min.tr()}',
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
@@ -142,11 +143,12 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                         .map(
                           (v) => ChoiceChip(
                             color: WidgetStatePropertyAll(
-                              AppTheme.primaryTextColor,
+                              AppTheme.primaryButtonBackground,
                             ),
                             label: Text(
-                              '$v د',
+                              '$v ${LocaleKeys.min.tr()}',
                               style: TextStyle(
+                                color: AppTheme.primaryButtonTextColor,
                                 fontSize: 15.sp,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -173,7 +175,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16.sp,
-                  color: Colors.red,
+                  color: AppTheme.cancelButtonBackgroundColor,
                 ),
               ),
             ),
@@ -182,8 +184,12 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                 Navigator.of(context).pop(localValue);
               },
               child: Text(
-                LocaleKeys.common_save.tr(),
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
+                LocaleKeys.common_ok.tr(),
+                style: TextStyle(
+                  color: AppTheme.primaryButtonTextColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
+                ),
               ),
             ),
           ],
@@ -224,7 +230,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
           return Stack(
             children: [
               Image.asset(
-                Assets.images.home.path,
+                CacheHelper.getSelectedBackground(),
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.fill,
@@ -420,7 +426,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                             ),
                                           ),
                                           child: Text(
-                                            '${iqamaMinutes[index]} د', // د = دقيقة
+                                            '${iqamaMinutes[index]} ${LocaleKeys.min.tr()}', // ${LocaleKeys.min.tr()} = ${LocaleKeys.min.tr()}قيقة
                                             style: TextStyle(
                                               fontSize: 18.sp,
                                               fontWeight: FontWeight.bold,
@@ -440,7 +446,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                         Padding(
                           padding: EdgeInsets.only(left: 8.w, right: 8.w),
                           child: AppButton(
-                            color: AppTheme.primaryTextColor,
+                            color: AppTheme.primaryButtonBackground,
                             onPressed: () {
                               appCubit.saveIqamaTimes();
                             },
@@ -455,7 +461,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16.sp,
-                                      color: Colors.white,
+                                      color: AppTheme.primaryButtonTextColor,
                                     ),
                                   ),
                           ),

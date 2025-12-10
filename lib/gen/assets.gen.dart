@@ -14,11 +14,68 @@ import 'package:flutter/widgets.dart';
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/asr.png
+  AssetGenImage get asr => const AssetGenImage('assets/images/asr.png');
+
+  /// File path: assets/images/background_blueGrey_gold.jpg
+  AssetGenImage get backgroundBlueGreyGold =>
+      const AssetGenImage('assets/images/background_blueGrey_gold.jpg');
+
+  /// File path: assets/images/background_bround_with_mos_bird.png
+  AssetGenImage get backgroundBroundWithMosBird =>
+      const AssetGenImage('assets/images/background_bround_with_mos_bird.png');
+
+  /// File path: assets/images/background_green_with.jpg
+  AssetGenImage get backgroundGreenWith =>
+      const AssetGenImage('assets/images/background_green_with.jpg');
+
+  /// File path: assets/images/background_light.png
+  AssetGenImage get backgroundLight =>
+      const AssetGenImage('assets/images/background_light.png');
+
+  /// File path: assets/images/background_light2.jpg
+  AssetGenImage get backgroundLight2 =>
+      const AssetGenImage('assets/images/background_light2.jpg');
+
+  /// File path: assets/images/background_olive_green_with_mosq.png
+  AssetGenImage get backgroundOliveGreenWithMosq =>
+      const AssetGenImage('assets/images/background_olive_green_with_mosq.png');
+
+  /// File path: assets/images/dhuhr.png
+  AssetGenImage get dhuhr => const AssetGenImage('assets/images/dhuhr.png');
+
+  /// File path: assets/images/fajr.png
+  AssetGenImage get fajr => const AssetGenImage('assets/images/fajr.png');
+
   /// File path: assets/images/home.png
   AssetGenImage get home => const AssetGenImage('assets/images/home.png');
 
+  /// File path: assets/images/maghrib.png
+  AssetGenImage get maghrib => const AssetGenImage('assets/images/maghrib.png');
+
+  /// File path: assets/images/oil_lamp_background.jpg
+  AssetGenImage get oilLampBackground =>
+      const AssetGenImage('assets/images/oil_lamp_background.jpg');
+
+  /// File path: assets/images/sunrise.png
+  AssetGenImage get sunrise => const AssetGenImage('assets/images/sunrise.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [home];
+  List<AssetGenImage> get values => [
+    asr,
+    backgroundBlueGreyGold,
+    backgroundBroundWithMosBird,
+    backgroundGreenWith,
+    backgroundLight,
+    backgroundLight2,
+    backgroundOliveGreenWithMosq,
+    dhuhr,
+    fajr,
+    home,
+    maghrib,
+    oilLampBackground,
+    sunrise,
+  ];
 }
 
 class $AssetsSoundsGen {
@@ -46,11 +103,14 @@ class $AssetsSvgGen {
   /// File path: assets/svg/asr.svg
   String get asr => 'assets/svg/asr.svg';
 
+  /// File path: assets/svg/lang.svg
+  String get lang => 'assets/svg/lang.svg';
+
   /// File path: assets/svg/logosvg.svg
   String get logosvg => 'assets/svg/logosvg.svg';
 
   /// List of all assets
-  List<String> get values => [arrowBottom, asr, logosvg];
+  List<String> get values => [arrowBottom, asr, lang, logosvg];
 }
 
 class $AssetsTranslationsGen {

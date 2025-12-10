@@ -50,7 +50,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
           return Stack(
             children: [
               Image.asset(
-                Assets.images.home.path,
+                CacheHelper.getSelectedBackground(),
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.fill,
@@ -66,6 +66,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             IconButton(
+                              // iconSize: 20.r,
                               onPressed: () {
                                 AppNavigator.pushAndRemoveUntil(
                                   context,
@@ -134,7 +135,9 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                         VerticalSpace(height: 8),
                         AppButton(
                           width: 115.w,
-                          color: Colors.white,
+                          color: AppTheme.primaryButtonBackground,
+                          // color: Colors.white,
+                          height: 45.h,
                           radius: 25.r,
                           onPressed: () {
                             showAddDhikrDialog(

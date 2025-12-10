@@ -30,8 +30,8 @@ class OpenMeteoWeatherService {
       final response = await _dio.get(
         'https://api.open-meteo.com/v1/forecast',
         queryParameters: {
-          'latitude': "24.7136",
-          'longitude': "46.6753",
+          'latitude': location.latitude,
+          'longitude': location.longitude,
           'daily': 'temperature_2m_max', // العظمى بس
           'forecast_days': 1, // يوم واحد (النهاردة)
           'timezone': 'auto', // يخلي اليوم حسب توقيت المكان
@@ -78,13 +78,12 @@ class OpenMeteoWeatherService {
       final response = await _dio.get(
         'https://geocoding-api.open-meteo.com/v1/search',
         queryParameters: {
-          'name': "Riyadh",
+          'name': city,
           'count': 1, // أول نتيجة بس
           'language': 'ar', // يرجع أسماء بالعربي لو متاحة
           'format': 'json',
         },
       );
-      debugPrint('cityyyyyyyy: Riyadh, countryyyyyyyy: Saudi Arabia');
 
       if (response.statusCode != 200) {
         debugPrint(

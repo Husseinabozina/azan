@@ -8,7 +8,7 @@ void showCircularDialogue(BuildContext context) {
     context: context,
 
     builder: (ctx) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AppTheme.primaryTextColor),
       );
     },

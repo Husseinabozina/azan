@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
+extension ColoredPrint on String {
+  void log() => print('\x1B[33m$this\x1B[0m');
+}
+
 class R {
   final double h;
   final double w;

@@ -1,3 +1,7 @@
+import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/core/components/horizontal_space.dart';
+import 'package:azan/core/helpers/localizationHelper.dart';
+import 'package:azan/core/helpers/location_helper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
@@ -12,15 +16,19 @@ import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 
 class CustomDrawer extends StatefulWidget {
-  const CustomDrawer({super.key});
+  const CustomDrawer({super.key, required this.context});
+  final BuildContext context;
 
   @override
   State<CustomDrawer> createState() => _CustomDrawerState();
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
+  Locale _nextLocale(String locale) =>
+      locale == 'ar' ? const Locale('en') : const Locale('ar');
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -38,7 +46,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             return Stack(
               children: [
                 Image.asset(
-                  Assets.images.home.path,
+                  CacheHelper.getSelectedBackground(),
                   width: double.infinity,
                   height: double.infinity,
                   fit: BoxFit.fill,
@@ -144,10 +152,161 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     );
                                   },
                                 ),
+                                DrawerListTile(
+                                  r: r,
+                                  title: LocaleKeys.change_screen_background
+                                      .tr(),
+                                  onTap: () async {
+                                    await showChangeBackgroundDialog(
+                                      context,
+                                      backgrounds: [
+                                        Assets.images.home.path,
+                                        Assets.images.backgroundLight.path,
+                                        Assets
+                                            .images
+                                            .backgroundBlueGreyGold
+                                            .path,
+                                        Assets
+                                            .images
+                                            .backgroundBroundWithMosBird
+                                            .path,
+                                        Assets.images.backgroundLight.path,
+                                        Assets.images.backgroundLight2.path,
+                                        Assets
+                                            .images
+                                            .backgroundOliveGreenWithMosq
+                                            .path,
+                                        Assets.images.oilLampBackground.path,
+
+                                        // زوّد الباقي
+                                      ],
+                                      currentBackground:
+                                          CacheHelper.getSelectedBackground(),
+                                      onConfirm: (selectedPath) {
+                                        setState(() {
+                                          CacheHelper.setSelectedBackground(
+                                            selectedPath,
+                                          );
+                                        });
+
+                                        // احفظها في CacheHelper مثلاً وحدث الـ Cubit
+                                        // CacheHelper.saveData(key: 'current_bg', value: selectedPath);
+                                        // context.read<AppCubit>().changeBackground(selectedPath);
+                                      },
+                                    );
+                                  },
+                                ),
+                                LanguageDrawerTile(
+                                  r: r,
+                                  currentLanguage:
+                                      LocalizationHelper.isArabic(context)
+                                      ? LocaleKeys.arabic.tr()
+                                      : LocaleKeys.english.tr(),
+                                  onTap: () {
+                                    showChangeLanguageDialog(
+                                      context,
+                                      currentLanguageCode:
+                                          LocalizationHelper.localCode(
+                                            widget.context,
+                                          ),
+                                      onConfirm: (String code) async {
+                                        await widget.context.setLocale(
+                                          Locale(code),
+                                        );
+                                        setState(() {
+                                          CacheHelper.setLang(code);
+                                        });
+
+                                        AppCubit.get(
+                                          widget.context,
+                                        ).homeScreenMobile?.homeScreenWork();
+                                      },
+                                    );
+                                    // افتح BottomSheet / Dialog لاختيار اللغة
+                                  },
+                                ),
+
+                                // DrawerListTile(
+                                //   r: r,
+                                //   title:
+                                //       "${LocaleKeys.language.tr()} " +
+                                //       "(${(LocalizationHelper.isArabic(context) ? LocaleKeys.english.tr() : LocaleKeys.arabic.tr())})",
+                                // ),
                               ],
                             ),
                           ),
                         ),
+
+                        // SizedBox(
+                        //   width: 200.w,
+                        //   child: Row(
+                        //     mainAxisSize: MainAxisSize.min,
+                        //     children: [
+                        //       SvgPicture.asset(
+                        //         Assets.svg.lang,
+                        //         height: 24.h,
+                        //         width: 24.w,
+                        //       ),
+                        //       SizedBox(width: 7.w),
+                        //       Text(
+                        //         LocaleKeys.language.tr(),
+                        //         style: Theme.of(context).textTheme.bodyMedium!
+                        //             .copyWith(color: Colors.white),
+                        //       ),
+                        //       const Spacer(),
+                        //       Text(
+                        //         LocalizationHelper.isArabic(context)
+                        //             ? LocaleKeys.english.tr()
+                        //             : LocaleKeys.arabic.tr(),
+                        //         style: Theme.of(context).textTheme.bodyMedium!
+                        //             .copyWith(color: AppTheme.primaryTextColor),
+                        //       ),
+                        //       HorizontalSpace(width: 5.w),
+
+                        //       // CustomToggle(
+                        //       //   value: isArabic,
+                        //       //   onChanged: (value) async {
+                        //       //     await context.setLocale(_nextLocale(value));
+                        //       //     setState(() {
+                        //       //       CacheHelper.setLang(
+                        //       //         _nextLocale(value).languageCode,
+                        //       //       );
+                        //       //     });
+                        //       //   },
+                        //       // ),
+                        //       Transform.scale(
+                        //         scale: 0.8,
+                        //         child: Switch(
+                        //           // dragStartBehavior: DragStartBehavior.start,
+                        //           inactiveThumbColor: AppTheme.primaryTextColor,
+                        //           activeThumbColor: Colors.white,
+                        //           activeColor: Colors.white,
+                        //           // materialTapTargetSize:
+                        //           //     MaterialTapTargetSize.shrinkWrap,
+                        //           trackOutlineColor: WidgetStateProperty.all(
+                        //             Colors.transparent,
+                        //           ),
+                        //           padding: EdgeInsets.zero,
+                        //           // thumbColor: WidgetStateProperty.all(
+                        //           //   context.theme.colorScheme.primary,
+                        //           // ),
+                        //           activeTrackColor: AppTheme.primaryTextColor,
+                        //           value: !LocalizationHelper.isArabic(context),
+                        //           onChanged: (toEnglish) async {
+                        //             await context.setLocale(
+                        //               _nextLocale(toEnglish),
+                        //             );
+                        //             setState(() {
+                        //               CacheHelper.setLang(
+                        //                 _nextLocale(toEnglish).languageCode,
+                        //               );
+                        //             });
+                        //           },
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -212,6 +371,83 @@ class DrawerListTile extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LanguageDrawerTile extends StatelessWidget {
+  const LanguageDrawerTile({
+    super.key,
+    required this.r,
+    required this.currentLanguage, // مثال: "العربية" أو "English"
+    this.onTap,
+  });
+
+  final R r;
+  final String currentLanguage;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20.r),
+        splashColor: AppTheme.primaryTextColor.withOpacity(0.2),
+        highlightColor: AppTheme.primaryTextColor.withOpacity(0.1),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 10.h),
+          child: Row(
+            children: [
+              Container(
+                height: 10.h,
+                width: 10.w,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 2.w,
+                    color: AppTheme.primaryTextColor,
+                  ),
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              SizedBox(width: 10.w),
+
+              /// "اللغة: العربية" مع ألوان مختلفة
+              Text.rich(
+                TextSpan(
+                  text: LocaleKeys.language.tr(), // مثال: "اللغة"
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryTextColor.withOpacity(0.8),
+                  ),
+                  children: [
+                    TextSpan(
+                      text: " : ",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryTextColor.withOpacity(0.6),
+                      ),
+                    ),
+                    TextSpan(
+                      text: currentLanguage, // "العربية" أو "English"
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme
+                            .secondaryTextColor, // أو AppTheme.primaryColor لو حابب تميّزها
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

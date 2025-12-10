@@ -94,5 +94,12 @@ abstract class  LocaleKeys {
   static const dhikr_save_button = 'dhikr_save_button';
   static const saved_successfully = 'saved_successfully';
   static const min = 'min';
+  static const delete = 'delete';
+  static const language = 'language';
+  static const iqama = 'iqama';
+  static const am = 'am';
+  static const pm = 'pm';
+  static const change_app_wallpaper = 'change_app_wallpaper';
+  static const choose_app_wallpaper = 'choose_app_wallpaper';
 
 }

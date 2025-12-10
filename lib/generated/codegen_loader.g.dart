@@ -105,7 +105,14 @@ class CodegenLoader extends AssetLoader{
   "schedule_select_date_label": "Select date",
   "dhikr_save_button": "Save dhikr",
   "saved_successfully": "Saved successfully",
-  "min": "min"
+  "min": "min",
+  "delete": "delete",
+  "language": "language",
+  "iqama": "iqama",
+  "am": "AM",
+  "pm": "PM",
+  "change_app_wallpaper": "Change app wallpaper",
+  "choose_app_wallpaper": "Choose app wallpaper"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -199,7 +206,14 @@ static const Map<String,dynamic> _ar = {
   "schedule_select_date_label": "اختيار التاريخ",
   "dhikr_save_button": "حفظ الذكر",
   "saved_successfully": "تم الحفظ بنجاح",
-  "min": "د"
+  "min": "د",
+  "delete": "حذف",
+  "language": "اللغة",
+  "iqama": "اقامة",
+  "am": "ص",
+  "pm": "م",
+  "change_app_wallpaper": "تغيير صورة الخلفية للتطبيق",
+  "choose_app_wallpaper": "اختر الخلفية"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en": _en, "ar": _ar};
 }

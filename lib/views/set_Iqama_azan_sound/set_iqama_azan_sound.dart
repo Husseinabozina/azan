@@ -49,7 +49,7 @@ class _SetIqamaAzanSoundScreenState extends State<SetIqamaAzanSoundScreen> {
           return Stack(
             children: [
               Image.asset(
-                Assets.images.home.path,
+                CacheHelper.getSelectedBackground(),
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.fill,
@@ -99,7 +99,7 @@ class _SetIqamaAzanSoundScreenState extends State<SetIqamaAzanSoundScreen> {
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppTheme.primaryTextColor,
                           ),
                         ),
 
@@ -111,7 +111,7 @@ class _SetIqamaAzanSoundScreenState extends State<SetIqamaAzanSoundScreen> {
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
+                            color: AppTheme.accentColor,
                           ),
                         ),
 
@@ -169,7 +169,7 @@ class _SetIqamaAzanSoundScreenState extends State<SetIqamaAzanSoundScreen> {
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
+                            color: AppTheme.accentColor,
                           ),
                         ),
 
@@ -263,10 +263,7 @@ class CustomRadioTile extends StatelessWidget {
             height: radioSize.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? AppTheme.accentColor : Colors.white70,
-                width: 2,
-              ),
+              border: Border.all(color: AppTheme.accentColor, width: 2.w),
             ),
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
@@ -289,7 +286,7 @@ class CustomRadioTile extends StatelessWidget {
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppTheme.dialogBodyTextColor,
             ),
           ),
         ],

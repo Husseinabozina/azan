@@ -29,6 +29,11 @@ class _DhikrTileState extends State<DhikrTile> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             IconButton(
+              // iconSize: 40.r,
+              // style: ButtonStyle(
+              //   minimumSize: MaterialStateProperty.all(Size(40.r, 40.r)),
+              //   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              // ),
               onPressed: () {
                 showDeleteDhikrDialog(
                   context,
@@ -86,7 +91,7 @@ class _DhikrTileState extends State<DhikrTile> {
             children: [
               ...widget.dhikr.schedule!.weekdays!.map((day) {
                 return Padding(
-                  padding: const EdgeInsets.all(3),
+                  padding: EdgeInsets.all(3.r),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

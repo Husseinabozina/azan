@@ -60,7 +60,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
               return Stack(
                 children: [
                   Image.asset(
-                    Assets.images.home.path,
+                    CacheHelper.getSelectedBackground(),
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.fill,
@@ -123,13 +123,13 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                             children: [
                               AppButton(
                                 onPressed: null,
-                                color: Colors.white,
+                                color: AppTheme.primaryButtonBackground,
                                 width: 160.w,
                                 height: 40.h,
                                 child: Text(
                                   LocaleKeys.country_saudi_arabia.tr(),
                                   style: TextStyle(
-                                    color: AppTheme.darkBlue,
+                                    color: AppTheme.primaryButtonTextColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12.sp,
                                   ),
@@ -137,15 +137,28 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                               ),
                               // HorizontalSpace(width: 10),
                               AppButton(
+                                color: AppTheme.primaryButtonBackground,
+
                                 onPressed: () {
                                   showSaudiCityPickerDialog(context, (
                                     item,
                                   ) async {
                                     final city = item as CityOption;
                                     appCubit.setCity(city);
-                                    await appCubit.initializePrayerTimes(
-                                      city.nameEn,
-                                    );
+                                    appCubit.assignCityChanged(true);
+                                    // if (!CacheHelper.getFirstAppOpen()) {
+                                    //   await appCubit.initializePrayerTimes(
+                                    //     city: city.nameEn,
+                                    //   );
+                                    // } else {
+                                    // appCubit.homeScreenMobile!
+                                    //     .homeScreenWork();
+                                    // }
+
+                                    // appCubit.homeScreenMobile?.homeScreenWork(
+                                    //   city: appCubit.getCity()?.nameEn,
+                                    // );
+
                                     if (!CacheHelper.getFirstAppOpen()) {
                                       CacheHelper.setFirstAppOpen(true);
                                       AppNavigator.pop(context);
@@ -153,10 +166,15 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                         context,
                                         HomeScreenMobile(),
                                       );
+                                    } else {
+                                      AppNavigator.pop(context);
+                                      AppNavigator.push(
+                                        context,
+                                        HomeScreenMobile(),
+                                      );
                                     }
                                   });
                                 },
-                                color: Colors.white,
                                 width: 160.w,
                                 height: 40.h,
                                 child: Row(
@@ -168,7 +186,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                           LocaleKeys.mosque_city_select_title
                                               .tr(),
                                       style: TextStyle(
-                                        color: AppTheme.darkBlue,
+                                        color: AppTheme.primaryButtonTextColor,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12.sp,
                                       ),

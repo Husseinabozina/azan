@@ -1,7 +1,10 @@
 // selection_dialog.dart
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/country_option.dart';
+import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/data/data/city_country_data.dart';
+import 'package:azan/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -41,121 +44,115 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Container(
-          width: 1.sw - 70.w,
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-          decoration: BoxDecoration(
-            color: const Color(0xFF163A63),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.8),
-              width: 4.w,
+      child: Container(
+        width: 1.sw - 70.w,
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFF163A63),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withOpacity(0.8), width: 4.w),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.35),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.35),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
+          ],
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
           ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // العنوان + زر إغلاق
-                Row(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          widget.title,
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFFF4C66A),
-                          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // العنوان + زر إغلاق
+              Row(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        widget.title,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFF4C66A),
                         ),
                       ),
                     ),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-
-                // حقل البحث
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: widget.searchHint,
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 14.w,
-                      vertical: 10.h,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
-                  textAlign: TextAlign.right,
-                  onChanged: (val) {
-                    setState(() => _query = val);
-                  },
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+
+              // حقل البحث
+              TextField(
+                decoration: InputDecoration(
+                  hintText: widget.searchHint,
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 10.h,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
-                SizedBox(height: 16.h),
+                textAlign: TextAlign.right,
+                onChanged: (val) {
+                  setState(() => _query = val);
+                },
+              ),
+              SizedBox(height: 16.h),
 
-                // ليست العناصر
-                Expanded(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      final item = filtered[index];
-                      final label = widget.labelBuilder(item);
+              // ليست العناصر
+              Expanded(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    final label = widget.labelBuilder(item);
 
-                      return InkWell(
-                        onTap: () {
-                          widget.onSelected(item);
-                          Navigator.of(context).pop();
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 10.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Center(
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                fontSize: 15.sp,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w500,
-                              ),
+                    return InkWell(
+                      onTap: () {
+                        widget.onSelected(item);
+                        // AppNavigator.pop(context);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Center(
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
-                      );
-                    },
-                    separatorBuilder: (_, __) => SizedBox(height: 8.h),
-                    itemCount: filtered.length,
-                  ),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (_, __) => SizedBox(height: 8.h),
+                  itemCount: filtered.length,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -191,10 +188,10 @@ Future<CityOption?> showSaudiCityPickerDialog(
     barrierDismissible: true,
     builder: (ctx) {
       return _SelectionDialogBody<CityOption>(
-        title: 'اختر مدينة المسجد',
+        title: LocaleKeys.mosque_city_select_title.tr(),
         items: kSaudiCities,
         labelBuilder: (c) => c.nameAr,
-        searchHint: 'ابحث عن المدينة',
+        searchHint: LocaleKeys.city_search_hint.tr(),
         onSelected: onSelected,
       );
     },
