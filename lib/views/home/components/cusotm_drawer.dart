@@ -152,6 +152,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     );
                                   },
                                 ),
+
                                 DrawerListTile(
                                   r: r,
                                   title: LocaleKeys.change_screen_background
@@ -196,6 +197,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     );
                                   },
                                 ),
+
                                 LanguageDrawerTile(
                                   r: r,
                                   currentLanguage:

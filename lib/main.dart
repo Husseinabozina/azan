@@ -84,7 +84,7 @@ class MyApp extends StatelessWidget {
 
             theme: ThemeData(
               fontFamily: 'Tajawal',
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             ),
             builder: (_, child) {
               return child!;
