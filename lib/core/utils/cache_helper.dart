@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/latlng.dart';
+import 'package:azan/core/utils/constants.dart';
 import 'package:azan/gen/assets.gen.dart';
+import 'package:azan/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHelper {
@@ -31,7 +34,32 @@ class CacheHelper {
   static const _isIqamaAppTheme = "_isIqamaAppTheme";
   static const _isAzanAppTheme = "_isAzanAppTheme";
   static const _selectedBackground = "_selectedBackground";
-
+  static const _palestinianFlag = "_palestinianFlag";
+  static const _use24HourFormat = "_use24HourFormat";
+  static const _isFullTimeEnabled = "_isFullTimeEnabled";
+  static const _isPreviousPrayersDimmed = "_isPreviousPrayersDimmed";
+  static const _isChangeCounterEnabled = "_isChangeCounterEnabled";
+  static const _FontFamily = "_FontFamily";
+  static const _azkarFontFamily = "_azkarFontFamily";
+  static const _timeFontFamily = "_timeFontFamily";
+  static const _timesFontFamily = "_timesFontFamily";
+  static const _textsFontFamily = "_textsFontFamily";
+  static const _arabicNumbersEnabled = "_arabicNumbersEnabled";
+  static const _notificationMessageBeforeIqama =
+      "_notificationMessageBeforeIqama";
+  static const _fitrEid = "_fitrEid";
+  static const _adhaEid = "_adhaEid";
+  static const _showFitrEid = "_showFitrEid";
+  static const _showAdhaEid = "_showAdhaEid";
+  static const _enableCheckInternetConnection =
+      "_enableCheckInternetConnection";
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /// Initializes the SharedPreferences instance.
+  ///
+  /// This function must be called before any other function in this class.
+  /// It is asynchronous because SharedPreferences.getInstance() is asynchronous.
+  /// It is called automatically when an instance of this class is created.
+  /*******  28592b22-df0a-4587-9ba5-2aacf474dd62  *******/
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
   }
@@ -303,5 +331,210 @@ class CacheHelper {
 
   static removeSelectedBackground() async {
     await sharedPreferences.remove(_selectedBackground);
+  }
+
+  static setpalestinianFlag(bool value) async {
+    await sharedPreferences.setBool(_palestinianFlag, value);
+  }
+
+  static bool getpalestinianFlag() {
+    return sharedPreferences.getBool(_palestinianFlag) ?? false;
+  }
+
+  static removepalestinianFlag() async {
+    await sharedPreferences.remove(_palestinianFlag);
+  }
+
+  static setUse24HoursFormat(bool value) async {
+    await sharedPreferences.setBool(_use24HourFormat, value);
+  }
+
+  static bool getUse24HoursFormat() {
+    return sharedPreferences.getBool(_use24HourFormat) ?? false;
+  }
+
+  static removeUse24HoursFormat() async {
+    await sharedPreferences.remove(_use24HourFormat);
+  }
+
+  static setIsFullTimeEnabled(bool value) async {
+    await sharedPreferences.setBool(_isFullTimeEnabled, value);
+  }
+
+  static bool getIsFullTimeEnabled() {
+    return sharedPreferences.getBool(_isFullTimeEnabled) ?? false;
+  }
+
+  static removeIsFullTimeEnabled() async {
+    await sharedPreferences.remove(_isFullTimeEnabled);
+  }
+
+  static setIsPreviousPrayersDimmed(bool value) async {
+    await sharedPreferences.setBool(_isPreviousPrayersDimmed, value);
+  }
+
+  static bool getIsPreviousPrayersDimmed() {
+    return sharedPreferences.getBool(_isPreviousPrayersDimmed) ?? false;
+  }
+
+  static removeIsPreviousPrayersDimmed() async {
+    await sharedPreferences.remove(_isPreviousPrayersDimmed);
+  }
+
+  static setIsChangeCounterEnabled(bool value) async {
+    await sharedPreferences.setBool(_isChangeCounterEnabled, value);
+  }
+
+  static bool getIsChangeCounterEnabled() {
+    return sharedPreferences.getBool(_isChangeCounterEnabled) ?? false;
+  }
+
+  static removeIsChangeCounterEnabled() async {
+    await sharedPreferences.remove(_isChangeCounterEnabled);
+  }
+
+  static setFontFamily(String value) async {
+    await sharedPreferences.setString(_FontFamily, value);
+  }
+
+  static String getFontFamily() {
+    return sharedPreferences.getString(_FontFamily) ?? tajwalFont;
+  }
+
+  static removeFontFamily() async {
+    await sharedPreferences.remove(_FontFamily);
+  }
+
+  static setAzkarFontFamily(String value) async {
+    await sharedPreferences.setString(_azkarFontFamily, value);
+  }
+
+  static String getAzkarFontFamily() {
+    return sharedPreferences.getString(_azkarFontFamily) ?? ksaFont;
+  }
+
+  static removeAzkarFontFamily() {
+    sharedPreferences.remove(_azkarFontFamily);
+  }
+
+  static setTimeFontFamily(String value) async {
+    sharedPreferences.setString(_timeFontFamily, value);
+  }
+
+  static String getTimeFontFamily() {
+    return sharedPreferences.getString(_timeFontFamily) ?? tajwalFont;
+  }
+
+  static removeTimeFontFamily() {
+    sharedPreferences.remove(_timeFontFamily);
+  }
+
+  static setTimesFontFamily(String value) async {
+    await sharedPreferences.setString(_timesFontFamily, value);
+  }
+
+  static String getTimesFontFamily() {
+    return sharedPreferences.getString(_timesFontFamily) ?? tajwalFont;
+  }
+
+  static removeTimesFontFamily() {
+    sharedPreferences.remove(_timesFontFamily);
+  }
+
+  static setTextsFontFamily(String value) async {
+    await sharedPreferences.setString(_textsFontFamily, value);
+  }
+
+  static String getTextsFontFamily() {
+    return sharedPreferences.getString(_textsFontFamily) ?? tajwalFont;
+  }
+
+  static removeTextsFontFamily() {
+    sharedPreferences.remove(_textsFontFamily);
+  }
+
+  static setIsArabicNumbersEnabled(bool value) async {
+    await sharedPreferences.setBool(_arabicNumbersEnabled, value);
+  }
+
+  static getIsArabicNumbersEnabled() {
+    return sharedPreferences.getBool(_arabicNumbersEnabled) ?? false;
+  }
+
+  static removeIsArabicNumbersEnabled() {
+    sharedPreferences.remove(_arabicNumbersEnabled);
+  }
+
+  static setNotificationMessageBeforeIqama(String value) async {
+    await sharedPreferences.setString(_notificationMessageBeforeIqama, value);
+  }
+
+  static String getNotificationMessageBeforeIqama() {
+    return sharedPreferences.getString(_notificationMessageBeforeIqama) ??
+        LocaleKeys.please_turn_off_the_phone.tr();
+  }
+
+  static removeNotificationMessageBeforeIqama() {
+    sharedPreferences.remove(_notificationMessageBeforeIqama);
+  }
+
+  static setFitrEid(String date, String time) async {
+    await sharedPreferences.setStringList(_fitrEid, [date, time]);
+  }
+
+  static List<String>? getFitrEid() {
+    return sharedPreferences.getStringList(_fitrEid);
+  }
+
+  static removeFitrEid() {
+    sharedPreferences.remove(_fitrEid);
+  }
+
+  static setAdhaEid(String date, String time) async {
+    await sharedPreferences.setStringList(_adhaEid, [date, time]);
+  }
+
+  static List<String>? getAdhaEid() {
+    return sharedPreferences.getStringList(_adhaEid);
+  }
+
+  static removeAdhaEid() {
+    sharedPreferences.remove(_adhaEid);
+  }
+
+  static setShowFitrEid(bool value) async {
+    await sharedPreferences.setBool(_showFitrEid, value);
+  }
+
+  static getShowFitrEid() {
+    return sharedPreferences.getBool(_showFitrEid) ?? false;
+  }
+
+  static removeShowFitrEid() {
+    sharedPreferences.remove(_showFitrEid);
+  }
+
+  static setShowAdhaEid(bool value) async {
+    await sharedPreferences.setBool(_showAdhaEid, value);
+  }
+
+  static getShowAdhaEid() {
+    return sharedPreferences.getBool(_showAdhaEid) ?? false;
+  }
+
+  static removeShowAdhaEid() {
+    sharedPreferences.remove(_showAdhaEid);
+  }
+
+  static setEnableCheckInternetConnection(bool value) async {
+    await sharedPreferences.setBool(_enableCheckInternetConnection, value);
+  }
+
+  static bool getEnableCheckInternetConnection() {
+    return sharedPreferences.getBool(_enableCheckInternetConnection) ?? false;
+  }
+
+  static removeEnableCheckInternetConnection() {
+    sharedPreferences.remove(_enableCheckInternetConnection);
   }
 }

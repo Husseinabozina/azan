@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:adhan/adhan.dart' as adhan;
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/core/helpers/date_helper.dart';
@@ -12,6 +14,7 @@ import 'package:azan/core/models/latlng.dart';
 import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/services/open_weather_service.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -21,6 +24,8 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:typed_data';
+import 'dart:io' show gzip;
 
 class AppCubit extends Cubit<AppState> {
   AppCubit(this._dio) : super(AppInitial());
@@ -30,49 +35,88 @@ class AppCubit extends Cubit<AppState> {
   final AzanDataSource azanDataSource = AzanDataSourceImpl(Dio());
 
   HomeScreenMobileState? homeScreenMobile;
+
   Future<String?> getTodayHijriDate(BuildContext context) async {
     emit(AppInitial());
+
     try {
       final now = DateTime.now();
 
-      // صيغة التاريخ المطلوبة للـ API: DD-MM-YYYY
       final dateParam =
           '${now.day.toString().padLeft(2, '0')}-${now.month.toString().padLeft(2, '0')}-${now.year}';
 
+      debugPrint('getTodayHijriDate -> dateParam = $dateParam');
+
       final response = await _dio.get(
         'https://api.aladhan.com/v1/gToH',
+
         queryParameters: {'date': dateParam},
+
+        options: Options(
+          responseType: ResponseType.json,
+          headers: {
+            'Accept': 'application/json',
+
+            'Accept-Encoding': 'gzip, deflate',
+          },
+        ),
+      );
+      debugPrint('sssss');
+      debugPrint(
+        'Hijri status = ${response.statusCode}, data type = ${response.data.runtimeType}',
       );
 
       if (response.statusCode != 200 || response.data == null) {
         return null;
       }
 
-      final data = response.data['data'];
-      final hijri = data['hijri'];
+      Map<String, dynamic> decoded;
 
-      final String day = hijri['day']; // "8"
+      final raw = response.data;
+
+      if (raw is Map<String, dynamic>) {
+        decoded = raw;
+      } else if (raw is String) {
+        // لو لأي سبب رجع String
+        decoded = jsonDecode(raw) as Map<String, dynamic>;
+      } else {
+        debugPrint('Unexpected hijri response type: ${raw.runtimeType}');
+        return null;
+      }
+
+      final data = decoded['data'] as Map<String, dynamic>;
+      final hijri = data['hijri'] as Map<String, dynamic>;
+
+      final String day = hijri['day']; // "20"
       final String year = hijri['year']; // "1447"
-      final String monthAr = context.locale.languageCode == 'ar'
+
+      final String monthName = context.locale.languageCode == 'ar'
           ? hijri['month']['ar']
-          : hijri['month']['en']; // "جُمادى الآخرة"
+          : hijri['month']['en'];
 
-      // تبديل الاسم لو حابب الشكل اللي إنت كتبته
-      final String monthName = monthAr;
+      final rawText = '$day $monthName $year';
 
-      final raw = '$day $monthName $year';
+      final formatted = LocalizationHelper.isArAndArNumberEnable(context)
+          ? DateHelper.toArabicDigits(rawText)
+          : DateHelper.toWesternDigits(rawText);
 
-      // نحول الأرقام لأرقام عربية
-      final formatted = LocalizationHelper.isArabic(context)
-          ? DateHelper.toArabicDigits(raw)
-          : DateHelper.toWesternDigits(raw);
+      debugPrint('Hijri final formatted = $formatted');
 
-      // النتيجة: "٨ جمادى الثاني ١٤٤٧"
       emit(AppChanged());
-
       return formatted;
-    } catch (e) {
-      // تقدر تعمل log هنا لو حابب
+    } on DioException catch (e, st) {
+      debugPrint('DioException in getTodayHijriDate: $e');
+      debugPrint('Response status: ${e.response?.statusCode}');
+      debugPrint('Raw data: ${e.response?.data}');
+      debugPrint('Stack: $st');
+      return null;
+    } on FormatException catch (e, st) {
+      debugPrint('JSON FormatException in getTodayHijriDate: $e');
+      debugPrint('Stack: $st');
+      return null;
+    } catch (e, st) {
+      debugPrint('Unknown error in getTodayHijriDate: $e');
+      debugPrint('Stack: $st');
       return null;
     }
   }
@@ -103,6 +147,23 @@ class AppCubit extends Cubit<AppState> {
   Future<bool> get _hasConnection async {
     final result = await _connectivity.checkConnectivity();
     return !result.contains(ConnectivityResult.none);
+  }
+
+  bool? connectivity;
+  void checkConnectivity() {
+    _connectivity.onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) {
+      if (result.contains(ConnectivityResult.none)) {
+        connectivity = false;
+
+        emit(AppInitial());
+      } else {
+        connectivity = true;
+
+        emit(AppChanged());
+      }
+    });
   }
 
   Future<LatLng?> fetchCityCoordinate(String city) async {
@@ -169,7 +230,10 @@ class AppCubit extends Cubit<AppState> {
     cityChanged = true;
   }
 
-  Future<void> initializePrayerTimes({String? city}) async {
+  Future<void> initializePrayerTimes({
+    String? city,
+    required BuildContext context,
+  }) async {
     if (!await _hasConnection) {
       emit(FetchPrayerTimesFailure("لا يوجد انترنت"));
       return;
@@ -199,7 +263,7 @@ class AppCubit extends Cubit<AppState> {
       storeToMain: true,
     );
     if (success != null) {
-      allPrayers.addAll(_mapToPrayers(success));
+      allPrayers.addAll(_mapToPrayers(success, context: context));
       final lastPrayerTime = success.isha;
 
       emit(FetchPrayerTimesSuccess());
@@ -224,79 +288,92 @@ class AppCubit extends Cubit<AppState> {
   /// The [Prayer] objects in the returned list will contain the title
   /// of the prayer, its time, and the corresponding [DateTime] object.
   /*******  51c0fe4a-49d1-4cf4-972d-0db43860890e  *******/
-  List<Prayer> _mapToPrayers(adhan.PrayerTimes? times) {
+  String _time12(DateTime prayerTime, BuildContext context) {
+    return LocalizationHelper.isArAndArNumberEnable(context)
+        ? DateFormat.jm(CacheHelper.getLang()).format(prayerTime)
+        : DateFormat.jm('en').format(prayerTime);
+  }
+
+  String _time24(DateTime prayerTime, BuildContext context) {
+    return LocalizationHelper.isArAndArNumberEnable(context)
+        ? DateFormat('HH:mm', CacheHelper.getLang()).format(prayerTime)
+        : DateFormat('HH:mm', 'en').format(prayerTime);
+  }
+
+  List<Prayer> _mapToPrayers(
+    adhan.PrayerTimes? times, {
+    required BuildContext context,
+  }) {
     return [
       Prayer(
         id: 1,
         title: LocaleKeys.fajr.tr(),
-        time: times == null
-            ? null
-            : DateFormat.jm(CacheHelper.getLang()).format(times.fajr),
+        time: times == null ? null : _time12(times.fajr, context),
         dateTime: times?.fajr,
+        time24: times == null ? null : _time24(times.fajr, context),
       ),
       Prayer(
         id: 2,
         title: LocaleKeys.sunrise.tr(),
-        time: times == null
-            ? null
-            : DateFormat.jm(CacheHelper.getLang()).format(times.sunrise),
+        time: times == null ? null : _time12(times.sunrise, context),
         dateTime: times?.sunrise,
+        time24: times == null ? null : _time24(times.sunrise, context),
       ),
       Prayer(
         id: 3,
         title: LocaleKeys.dhuhr.tr(),
-        time: times == null
-            ? null
-            : DateFormat.jm(CacheHelper.getLang()).format(times.dhuhr),
+        time: times == null ? null : _time12(times.dhuhr, context),
         dateTime: times?.dhuhr,
+        time24: times == null ? null : _time24(times.dhuhr, context),
       ),
       Prayer(
         id: 4,
         title: LocaleKeys.asr.tr(),
-        time: times == null
-            ? null
-            : DateFormat.jm(CacheHelper.getLang()).format(times.asr),
+        time: times == null ? null : _time12(times.asr, context),
         dateTime: times?.asr,
+        time24: times == null ? null : _time24(times.asr, context),
       ),
       Prayer(
         id: 5,
         title: LocaleKeys.maghrib.tr(),
-        time: times == null
-            ? null
-            : DateFormat.jm(CacheHelper.getLang()).format(times.maghrib),
+        time: times == null ? null : _time12(times.maghrib, context),
         dateTime: times?.maghrib,
+        time24: times == null ? null : _time24(times.maghrib, context),
       ),
       Prayer(
         id: 6,
         title: LocaleKeys.isha.tr(),
-        time: times == null
-            ? null
-            : DateFormat.jm(CacheHelper.getLang()).format(times.isha),
+        time: times == null ? null : _time12(times.isha, context),
         dateTime: times?.isha,
+        time24: times == null ? null : _time24(times.isha, context),
       ),
     ];
   }
 
-  List<Prayer> get prayers => _mapToPrayers(prayerTimes);
+  List<Prayer> prayers(BuildContext context) =>
+      _mapToPrayers(prayerTimes, context: context);
 
-  Future<Prayer?> get nextPrayer async {
+  Future<Prayer?> nextPrayer(context) async {
     // fetchPrayerTimesNew(latLng, time)
     switch (prayerTimes?.nextPrayer()) {
       case adhan.Prayer.fajr:
-        return prayers[0];
+        return prayers(context)[0];
       case adhan.Prayer.sunrise:
-        return prayers[1];
+        return prayers(context)[1];
       case adhan.Prayer.dhuhr:
-        return prayers[2];
+        return prayers(context)[2];
       case adhan.Prayer.asr:
-        return prayers[3];
+        return prayers(context)[3];
       case adhan.Prayer.maghrib:
-        return prayers[4];
+        return prayers(context)[4];
       case adhan.Prayer.isha:
-        return prayers[5];
+        return prayers(context)[5];
       case adhan.Prayer.none:
-        await initializePrayerTimes(city: CacheHelper.getCity()!.nameEn);
-        return prayers[0];
+        await initializePrayerTimes(
+          city: CacheHelper.getCity()!.nameEn,
+          context: context,
+        );
+        return prayers(context)[0];
 
       default:
         return null;

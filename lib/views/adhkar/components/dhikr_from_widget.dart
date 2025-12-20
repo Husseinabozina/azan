@@ -4,6 +4,7 @@ import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/theme/app_theme.dart';
+import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -57,153 +58,10 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final size = MediaQuery.of(context).size;
-
-    // حساب الـ scale factor بناءً على عرض الشاشة
-    final scaleFactor = (size.width / 390).clamp(0.9, 1.8);
 
     // دالة مساعدة لحساب الحجم responsive
-    double responsiveFontSize(double baseSize) {
-      return (baseSize * scaleFactor).clamp(baseSize * 0.8, baseSize * 1.5);
-    }
 
-    const darkBlue = Color(0xFF0C355C);
-    const gold = Color(0xFFF4C66A);
-
-    final picked = await showDatePicker(
-      context: context,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 5),
-      initialDate: _selectedDate ?? now,
-      locale: Locale(context.locale.languageCode),
-      builder: (context, child) {
-        final baseTheme = Theme.of(context);
-
-        final datePickerTheme = DatePickerThemeData(
-          backgroundColor: AppTheme.dialogBackgroundColor,
-          headerBackgroundColor: AppTheme.dialogBackgroundColor,
-          headerForegroundColor: Colors.white,
-
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-
-          headerHeadlineStyle: TextStyle(
-            fontSize: responsiveFontSize(20),
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            height: 1.2,
-          ),
-
-          headerHelpStyle: TextStyle(
-            fontSize: responsiveFontSize(12),
-            fontWeight: FontWeight.w600,
-            color: Colors.white70,
-            height: 1.2,
-          ),
-
-          weekdayStyle: TextStyle(
-            fontSize: responsiveFontSize(12),
-            fontWeight: FontWeight.w600,
-            color: Colors.white70,
-            height: 1.2,
-          ),
-
-          dayStyle: TextStyle(
-            fontSize: responsiveFontSize(14),
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            height: 1.2,
-          ),
-
-          yearStyle: TextStyle(
-            fontSize: responsiveFontSize(16),
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            height: 1.2,
-          ),
-
-          dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
-            if (states.contains(WidgetState.selected)) {
-              return Colors.white;
-            }
-            return Colors.white;
-          }),
-
-          dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
-            if (states.contains(WidgetState.selected)) {
-              return gold;
-            }
-            return Colors.transparent;
-          }),
-
-          todayBackgroundColor: WidgetStateProperty.all(gold.withOpacity(0.2)),
-          todayBorder: const BorderSide(color: gold, width: 1),
-
-          dividerColor: Colors.white24,
-
-          cancelButtonStyle: ButtonStyle(
-            textStyle: WidgetStateProperty.all(
-              TextStyle(
-                fontSize: responsiveFontSize(14),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-
-          confirmButtonStyle: ButtonStyle(
-            textStyle: WidgetStateProperty.all(
-              TextStyle(
-                fontSize: responsiveFontSize(14),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        );
-
-        return Theme(
-          data: baseTheme.copyWith(
-            colorScheme: baseTheme.colorScheme.copyWith(
-              primary: gold,
-              onPrimary: Colors.white,
-              surface: darkBlue,
-              onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: darkBlue,
-            datePickerTheme: datePickerTheme,
-
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: gold,
-                textStyle: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: responsiveFontSize(14),
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16 * scaleFactor,
-                  vertical: 8 * scaleFactor,
-                ),
-              ),
-            ),
-          ),
-          // ✅ الحل: استخدم Column عشان الـ constraints تشتغل صح
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: (size.width * 0.9).clamp(280.w, 600.w),
-                  maxHeight: (size.height * 0.75).clamp(400.h, 700.h),
-                  minWidth: 280.w,
-                  minHeight: 400.h,
-                ),
-                child: child!,
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    final picked = await showCustomDatePicker(now, context);
 
     if (picked != null) {
       setState(() {
@@ -438,6 +296,8 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                     ElevatedButton(
                       onPressed: _pickDate,
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryButtonBackground,
+
                         padding: EdgeInsets.symmetric(
                           horizontal: 12.w,
                           vertical: 8.h,
@@ -445,7 +305,10 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                       ),
                       child: Text(
                         LocaleKeys.schedule_select_date_label.tr(),
-                        style: TextStyle(fontSize: 12.sp),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppTheme.primaryButtonTextColor,
+                        ),
                       ),
                     ),
                     const HorizontalSpace(width: 8),

@@ -5,7 +5,7 @@
    
 
     <application
-        android:label="تواقيت"
+        android:label="سجدة"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

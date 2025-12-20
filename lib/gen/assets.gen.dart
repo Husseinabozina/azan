@@ -57,6 +57,10 @@ class $AssetsImagesGen {
   AssetGenImage get oilLampBackground =>
       const AssetGenImage('assets/images/oil_lamp_background.jpg');
 
+  /// File path: assets/images/palastine.png
+  AssetGenImage get palastine =>
+      const AssetGenImage('assets/images/palastine.png');
+
   /// File path: assets/images/sunrise.png
   AssetGenImage get sunrise => const AssetGenImage('assets/images/sunrise.png');
 
@@ -74,6 +78,7 @@ class $AssetsImagesGen {
     home,
     maghrib,
     oilLampBackground,
+    palastine,
     sunrise,
   ];
 }

@@ -9,6 +9,20 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 const String fixedDhikr = "حَسْبُنَا اللّهُ وَنِعْمَ الْوَكِيلُ";
+const String ksaFont = "KSA";
+const String tajwalFont = "Tajwal";
+const String tahaFont = "Taha";
+const String freeSpansFont = "FreeSpans";
+const String sultanFont = "Sultan";
+const String fodaFont = "Foda";
+
+const List<String> azkarFonts = [ksaFont, tahaFont, sultanFont, fodaFont];
+const List<String> timeFonts = [tajwalFont, freeSpansFont, sultanFont];
+const List<String> timesFonts = [tajwalFont, freeSpansFont, sultanFont];
+const List<String> textsFonts = [tajwalFont, freeSpansFont, sultanFont];
+
+var kind;
+// const String
 List<String> get prayers => [
   LocaleKeys.fajr.tr(),
   LocaleKeys.sunrise.tr(),

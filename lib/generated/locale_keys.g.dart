@@ -101,5 +101,34 @@ abstract class  LocaleKeys {
   static const pm = 'pm';
   static const change_app_wallpaper = 'change_app_wallpaper';
   static const choose_app_wallpaper = 'choose_app_wallpaper';
+  static const additional_settings = 'additional_settings';
+  static const palestine_flag = 'palestine_flag';
+  static const enable_24_hours = 'enable_24_hours';
+  static const enable_full_time = 'enable_full_time';
+  static const dim_previous_prayers = 'dim_previous_prayers';
+  static const change_counter_color = 'change_counter_color';
+  static const set_app_fonts = 'set_app_fonts';
+  static const the_adhkar = 'the_adhkar';
+  static const time = 'time';
+  static const prayers = 'prayers';
+  static const texts = 'texts';
+  static const enable_arabic_numbers = 'enable_arabic_numbers';
+  static const notification_message_before_iqama = 'notification_message_before_iqama';
+  static const please_turn_off_the_phone = 'please_turn_off_the_phone';
+  static const the_message = 'the_message';
+  static const edit_nofication_message = 'edit_nofication_message';
+  static const notification_message = 'notification_message';
+  static const set_fetr_eid_prayer = 'set_fetr_eid_prayer';
+  static const set_adha_eid_prayer = 'set_adha_eid_prayer';
+  static const show_fetr_eid_prayer = 'show_fetr_eid_prayer';
+  static const show_adha_eid_prayer = 'show_adha_eid_prayer';
+  static const eid_al_fitr = 'eid_al_fitr';
+  static const eid_al_adha = 'eid_al_adha';
+  static const check_your_internet_connection_the_star = 'check_your_internet_connection_the_star';
+  static const connected = 'connected';
+  static const disconnected = 'disconnected';
+  static const copy_right_for_sadja = 'copy_right_for_sadja';
+  static const loading = 'loading';
+  static const date = 'date';
 
 }

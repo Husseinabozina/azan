@@ -115,5 +115,36 @@
   "pm":"م",
   "change_app_wallpaper":"تغيير صورة الخلفية للتطبيق"
   ,"choose_app_wallpaper":"اختر الخلفية"
-  
+  ,"additional_settings":"اعدادات إضافية",
+  "palestine_flag":"علم فلسطين",
+  "enable_24_hours":"تفعيل 24 ساعة",
+  "enable_full_time":"تفعيل الساعة الكاملة "
+  ,"dim_previous_prayers":"تخفيت الصلاة الماضية"
+,"change_counter_color":"تغيير لون العداد إلي اللون الأحمر في ٩٠ ثانية الأخيرة"
+,
+"set_app_fonts":"ضبط خطوط التطبيق",
+"the_adhkar":"الأذكار",
+"time":"الوقت",
+"prayers":"الأوقات",
+"texts":"نصوص",
+"enable_arabic_numbers":"تفعيل الارقام العربية",
+"notification_message_before_iqama":"رسالة التنبيه بالصوت عند اخر دقيقة قبل الاقامة (انقر لتغيير الرسالة)"
+,"the_message":"الرسالة"
+,"please_turn_off_the_phone":"من فضلك اغلق الهاتف"
+,"edit_nofication_message":"تحرير رسالة التنبيه"
+,"notification_message":"رسالة التنبيه"
+,"set_fetr_eid_prayer":"ضبط وقت صلاة عيد الفطر",
+"set_adha_eid_prayer":"ضبط وقت صلاة عيد الأضحي",
+"show_fetr_eid_prayer":"اظهار صلاة عيد الفطر ",
+"show_adha_eid_prayer":"اظهار صلاة عيد الأضحي",
+"eid_al_fitr":"عيد الفطر",
+"eid_al_adha":"عيد الأضحي",
+"connected":"متصل",
+"disconnected":"غير متصل",
+"copy_right_for_sadja":"جميع الحقوق محفوظة لتطبيق سجدة © 2025."
+,"loading":"جاري التحميل"
+,
+"check_your_internet_connection_the_star":"تحقق من الاتصال بالانترنت (النجمة أسفل الشاشة)"
+,"date":"التاريخ"
+
 }

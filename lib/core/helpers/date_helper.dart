@@ -1,8 +1,8 @@
+import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class DateHelper {
   static const List<String> _western = [
@@ -48,13 +48,14 @@ class DateHelper {
     return result;
   }
 
+  /// بارسر يدعم:
+  /// - "٠٤:٣٤ م" / "04:34 pm" (12h)
+  /// - "17:20" (24h)
   static TimeOfDay parseTime12h(String timeStr) {
-    // مثال: "٠٤:٣٤ م" أو "04:34 pm"
-
     // 1) حوّل الأرقام العربي لإنجليزي
     var clean = toWesternDigits(timeStr).trim();
 
-    // 2) لو فيه ص/م عربيتين حوّلهم am/pm
+    // 2) لو فيه ص/م عربيتين حوّلهم AM/PM
     clean = clean
         .replaceAll('ص', 'AM')
         .replaceAll('م', 'PM')
@@ -77,12 +78,12 @@ class DateHelper {
     int hour = int.parse(hm[0]);
     final int minute = int.parse(hm[1]);
 
-    // لو فيه فترة (am/pm) عالجها، لو مفيش اعتبره 24h وخلاص
+    // لو فيه فترة (am/pm) عالجها، لو مفيش اعتبره 24h
     if (parts.length == 2) {
       final String period = parts[1]; // "am" أو "pm"
-      if (period == "PM" && hour != 12) {
+      if (period.toUpperCase() == "PM" && hour != 12) {
         hour += 12;
-      } else if (period == "AM" && hour == 12) {
+      } else if (period.toUpperCase() == "AM" && hour == 12) {
         hour = 0;
       }
     }
@@ -90,23 +91,62 @@ class DateHelper {
     return TimeOfDay(hour: hour, minute: minute);
   }
 
-  static String formatTime12h(TimeOfDay time) {
+  /// فورمات 12 ساعة فقط
+  static String formatTime12h(TimeOfDay time, BuildContext context) {
     final int hour12 = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final String hourStr = hour12.toString().padLeft(2, '0');
     final String minuteStr = time.minute.toString().padLeft(2, '0');
     final String periodStr = time.period == DayPeriod.am
-        ? LocaleKeys.am.tr()
-        : LocaleKeys.pm.tr();
+        ? LocalizationHelper.isArAndArNumberEnable(context)
+              ? LocaleKeys.am.tr()
+              : 'AM'
+        : LocalizationHelper.isArAndArNumberEnable(context)
+        ? LocaleKeys.pm.tr()
+        : 'PM';
 
-    return CacheHelper.getLang() == 'en'
-        ? '$hourStr:$minuteStr $periodStr'
-        : toArabicDigits('${hourStr}:$minuteStr $periodStr');
+    final raw = '$hourStr:$minuteStr $periodStr';
+
+    return LocalizationHelper.isArAndArNumberEnable(context)
+        ? toArabicDigits(raw)
+        : raw;
   }
 
-  static String addMinutesToTimeString(String timeStr, int minutesToAdd) {
+  /// 🔹 جديد: فورمات 24 ساعة فقط
+  static String formatTime24h(TimeOfDay time) {
+    final String hourStr = time.hour.toString().padLeft(2, '0');
+    final String minuteStr = time.minute.toString().padLeft(2, '0');
+    final String raw = '$hourStr:$minuteStr';
+
+    return CacheHelper.getLang() == 'en' ? raw : toArabicDigits(raw);
+  }
+
+  /// 🔹 جديد: يختار بين 12 / 24 ساعة حسب إعداد المستخدم في CacheHelper
+  static String formatTimeWithSettings(TimeOfDay time, BuildContext context) {
+    final bool use24 =
+        CacheHelper.getUse24HoursFormat(); // تأكد إن دي موجودة عندك
+    return use24 ? formatTime24h(time) : formatTime12h(time, context);
+  }
+
+  /// النسخة القديمة: دايمًا 12 ساعة
+  static String addMinutesToTimeString(
+    String timeStr,
+    int minutesToAdd,
+    BuildContext context,
+  ) {
     final time = parseTime12h(timeStr);
     final updated = addMinutesToTimeOfDay(time, minutesToAdd);
-    return formatTime12h(updated);
+    return formatTime12h(updated, context);
+  }
+
+  /// 🔹 جديد: تزود دقائق وترجع الوقت حسب إعداد 12/24
+  static String addMinutesToTimeStringWithSettings(
+    String timeStr,
+    int minutesToAdd,
+    BuildContext context,
+  ) {
+    final time = parseTime12h(timeStr);
+    final updated = addMinutesToTimeOfDay(time, minutesToAdd);
+    return formatTimeWithSettings(updated, context);
   }
 
   static TimeOfDay addMinutesToTimeOfDay(TimeOfDay time, int minutesToAdd) {

@@ -9,6 +9,7 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
@@ -91,6 +92,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                   r: r,
                                   title: LocaleKeys.select_mosque_location.tr(),
                                   onTap: () {
+                                    // AppCubit.get(
+                                    //   context,
+                                    // ).getTodayHijriDate(context);
                                     AppNavigator.push(
                                       context,
                                       SelectLocationScreen(),
@@ -149,6 +153,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     AppNavigator.push(
                                       context,
                                       SetIqamaAzanSoundScreen(),
+                                    );
+                                  },
+                                ),
+                                DrawerListTile(
+                                  r: r,
+                                  title: LocaleKeys.additional_settings.tr(),
+                                  onTap: () {
+                                    AppNavigator.push(
+                                      context,
+                                      AdditionalSettingsScreen(),
                                     );
                                   },
                                 ),
@@ -309,6 +323,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         //     ],
                         //   ),
                         // ),
+                        // Spacer(),
+                        Text(
+                          LocaleKeys.copy_right_for_sadja.tr(),
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
                       ],
                     ),
                   ),

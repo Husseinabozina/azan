@@ -114,5 +114,35 @@
 "pm":"PM",
 "change_app_wallpaper":"Change app wallpaper"
 ,
-"choose_app_wallpaper":"Choose app wallpaper"
+"choose_app_wallpaper":"Choose app wallpaper",
+"additional_settings":"Additional settings",
+"palestine_flag":"Palestinian flag",
+"enable_24_hours":"Enable 24 hours",
+"enable_full_time":"Enable full time",
+"dim_previous_prayers":"Dim previous prayers"
+,"change_counter_color":"Change counter color to the red color in 90 seconds"
+,"set_app_fonts":"Set app fonts",
+"the_adhkar":"The Adhkar",
+"time":"Time",
+"prayers":"Prayers",
+"texts":"Texts",
+"enable_arabic_numbers":"Enable arabic numbers"
+,"notification_message_before_iqama":"Sound alert message in the last minute before Iqamah (tap to change the message)"
+,"please_turn_off_the_phone":"Please turn off the phone"
+,
+"the_message":"The message",
+"edit_nofication_message":"Edit notification message",
+"notification_message":"Notification message",
+"set_fetr_eid_prayer":"Set Fitr prayer time",
+"set_adha_eid_prayer":"Set Adha prayer time",
+"show_fetr_eid_prayer":"Show Fitr prayer",
+"show_adha_eid_prayer":"Show Adha prayer",
+"eid_al_fitr":"Eid al-Fitr",
+"eid_al_adha":"Eid al-Adha",
+"check_your_internet_connection_the_star":"Check your internet connection (the star at the bottom of the screen)"
+,"connected":"Connected",
+"disconnected":"Disconnected"
+,"copy_right_for_sadja":"All rights reserved for Sadja © 2025."
+,"loading":"Loading"
+,"date":"Date"
 }

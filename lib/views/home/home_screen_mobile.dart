@@ -17,6 +17,7 @@ import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/azan_time_tile.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
+import 'package:azan/views/home/components/home_star_hint.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -55,51 +56,52 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   bool isloading = false;
   Future<void> _assignHijriDate() async {
     hijriDate = await cubit.getTodayHijriDate(context);
+    'ldjfkld'.log();
   }
 
-  void homeScreenWork() {
-    'home screen workd'.log();
+  Future<void> homeScreenWork() async {
     if (!mounted) return;
-    setState(() {
-      'ldjf true'.log();
-      isloading = true;
-    });
+    setState(() => isloading = true);
+
     cubit = AppCubit.get(context);
     _lastDate = DateTime.now();
 
-    _initDayData();
-    'home screen workd center '.log();
+    final city = cubit.getCity()?.nameEn ?? '';
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    // ✅ 1) استنى الحاجات الأساسية بس
+    await Future.wait([
+      cubit.getIqamaTime(),
+      cubit.initializePrayerTimes(city: city, context: context),
+    ]);
+
+    if (!mounted) return;
+    setState(() => isloading = false);
+
+    // ✅ 2) الباقي اشتغله في الخلفية (من غير ما يوقف الواجهة)
+    unawaited(_assignHijriDate());
+    unawaited(cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city));
+    unawaited(cubit.assignAdhkar());
+
+    _startTick();
+  }
+
+  void _startTick() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
-        setState(() {
-          isloading = false;
-        });
-        'home screen workd timer '.log();
-
-        timer.cancel();
+        t.cancel();
         return;
       }
+      // هنظبط دي في الحل رقم 2 (مش setState للشاشة كلها)
+      setState(() {});
+      _checkAndPlayPrayerSound(DateTime.now());
 
       final now = DateTime.now();
-
-      // لل UI (الساعة / العد التنازلي)
-      setState(() {});
-      'home screen workd date '.log();
-
-      // ✅ هنا بنشيّك على الأذان والإقامة
-      _checkAndPlayPrayerSound(now);
-
-      // لو اليوم اتغيّر وإنت لسه فاتح الشاشة
       if (!_isSameDay(now, _lastDate)) {
         _lastDate = now;
         _onNewDay();
       }
     });
-    setState(() {
-      isloading = false;
-    });
-    'home screen workd finished '.log();
   }
 
   @override
@@ -114,7 +116,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
     final city = cubit.getCity()?.nameEn ?? '';
 
-    cubit.initializePrayerTimes(city: city);
+    cubit.initializePrayerTimes(city: city, context: context);
 
     cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city);
     cubit.getIqamaTime();
@@ -125,7 +127,9 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     // يوم جديد → نظّف ال flags وحدث المواقيت
     _playedAdhanToday.clear();
     _playedIqamaToday.clear();
-    _initDayData();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _initDayData();
+    });
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -136,7 +140,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   void _checkAndPlayPrayerSound(DateTime now) {
     if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
 
-    final prayers = cubit.prayers; // List<Prayer>
+    final prayers = cubit.prayers(context); // List<Prayer>
     final iqamaMinutes = cubit.iqamaMinutes!; // طولها 6 بإذن الله
 
     final azanSource = cubit.getAzanSoundSource;
@@ -186,6 +190,20 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final List<bool> pastIqamaFlags = cubit.prayers(context).map((p) {
+      if (p.dateTime == null ||
+          cubit.iqamaMinutes == null ||
+          cubit.iqamaMinutes!.length < p.id) {
+        return false;
+      }
+
+      final iqamaTime = p.dateTime!.add(
+        Duration(minutes: cubit.iqamaMinutes![p.id - 1]),
+      );
+
+      return iqamaTime.isBefore(now);
+    }).toList();
     return Scaffold(
       key: scaffoldKey,
       drawer: CustomDrawer(context: context),
@@ -268,40 +286,47 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                   MediaQuery.of(context).padding.bottom + 5.h,
                             ),
                             child: isloading
-                                ? Column(
-                                    children: [
-                                      SizedBox(
-                                        // height: 32.h,
-                                        child: HomeAppBar(
-                                          onDrawerTap: () {
-                                            scaffoldKey.currentState
-                                                ?.openDrawer();
-                                          },
+                                ? Center(
+                                    child: Column(
+                                      children: [
+                                        SizedBox(
+                                          // height: 32.h,
+                                          child: HomeAppBar(
+                                            onDrawerTap: () {
+                                              scaffoldKey.currentState
+                                                  ?.openDrawer();
+                                            },
+                                          ),
                                         ),
-                                      ),
 
-                                      Spacer(flex: 2),
-                                      Align(
-                                        alignment: AlignmentDirectional.center,
-                                        child: SizedBox(
-                                          child: Column(
-                                            children: [
-                                              CircularProgressIndicator(),
-                                              VerticalSpace(height: 8.h),
-                                              Text(
-                                                'loading',
-                                                style: TextStyle(
-                                                  fontSize: 20.sp,
-                                                  fontWeight: FontWeight.bold,
+                                        // Spacer(flex: 2),
+                                        VerticalSpace(height: 300.h),
+                                        Center(
+                                          child: SizedBox(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                CircularProgressIndicator(
                                                   color:
                                                       AppTheme.primaryTextColor,
                                                 ),
-                                              ),
-                                            ],
+                                                VerticalSpace(height: 8.h),
+                                                Text(
+                                                  LocaleKeys.loading.tr(),
+                                                  style: TextStyle(
+                                                    fontSize: 20.sp,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppTheme
+                                                        .primaryTextColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   )
                                 : Column(
                                     children: [
@@ -314,9 +339,24 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                           },
                                         ),
                                       ),
-
                                       Spacer(flex: 2),
 
+                                      Text(
+                                        context.locale.languageCode == 'en'
+                                            ? AppCubit.get(
+                                                context,
+                                              ).getCity()!.nameEn
+                                            : AppCubit.get(
+                                                context,
+                                              ).getCity()!.nameAr,
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          color: AppTheme.secondaryTextColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+
+                                      Spacer(flex: 1),
                                       SizedBox(
                                         height: 25.h,
                                         child: FittedBox(
@@ -337,6 +377,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                       // Spacer(),
                                       // Spacer(flex: 1),
                                       VerticalSpace(height: 5),
+
                                       SizedBox(
                                         height: 25.h,
                                         child: FittedBox(
@@ -404,10 +445,20 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                               cubit.maxTemp ==
                                                                       null
                                                                   ? "--"
+                                                                  : LocalizationHelper.isArAndArNumberEnable(
+                                                                      context,
+                                                                    )
+                                                                  ? DateHelper.toArabicDigits(
+                                                                      cubit
+                                                                          .maxTemp!
+                                                                          .toInt()
+                                                                          .toString(),
+                                                                    )
                                                                   : cubit
                                                                         .maxTemp!
                                                                         .toInt()
                                                                         .toString(),
+
                                                               style: TextStyle(
                                                                 fontSize: 24.sp,
                                                                 fontWeight:
@@ -422,13 +473,23 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                       ),
                                                     ),
                                                     Text(
-                                                      DateHelper.toWesternDigits(
-                                                        DateFormat(
-                                                          'dd/MM/yyyy',
-                                                        ).format(
-                                                          DateTime.now(),
-                                                        ),
-                                                      ),
+                                                      LocalizationHelper.isArAndArNumberEnable(
+                                                            context,
+                                                          )
+                                                          ? DateHelper.toArabicDigits(
+                                                              DateFormat(
+                                                                'dd/MM/yyyy',
+                                                              ).format(
+                                                                DateTime.now(),
+                                                              ),
+                                                            )
+                                                          : DateHelper.toWesternDigits(
+                                                              DateFormat(
+                                                                'dd/MM/yyyy',
+                                                              ).format(
+                                                                DateTime.now(),
+                                                              ),
+                                                            ),
                                                       style: TextStyle(
                                                         fontSize: 24.sp,
                                                         color: AppTheme
@@ -440,7 +501,9 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                               ),
                                               FittedBox(
                                                 child: FutureBuilder(
-                                                  future: cubit.nextPrayer,
+                                                  future: cubit.nextPrayer(
+                                                    context,
+                                                  ),
                                                   builder: (context, asyncSnapshot) {
                                                     return Column(
                                                       crossAxisAlignment:
@@ -453,6 +516,18 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                       ?.dateTime ==
                                                                   null
                                                               ? "--:--"
+                                                              : LocalizationHelper.isArAndArNumberEnable(
+                                                                  context,
+                                                                )
+                                                              ? DateHelper.toArabicDigits(
+                                                                  asyncSnapshot
+                                                                      .data!
+                                                                      .dateTime!
+                                                                      .difference(
+                                                                        DateTime.now(),
+                                                                      )
+                                                                      .formatDuration(),
+                                                                )
                                                               : asyncSnapshot
                                                                     .data!
                                                                     .dateTime!
@@ -461,11 +536,28 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                     )
                                                                     .formatDuration(),
                                                           style: TextStyle(
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
                                                             fontSize: 24.sp,
                                                             fontWeight:
                                                                 FontWeight.bold,
-                                                            color: AppTheme
-                                                                .secondaryTextColor,
+                                                            color:
+                                                                (CacheHelper.getIsChangeCounterEnabled() &&
+                                                                    asyncSnapshot
+                                                                            .data
+                                                                            ?.dateTime !=
+                                                                        null &&
+                                                                    asyncSnapshot
+                                                                            .data!
+                                                                            .dateTime!
+                                                                            .difference(
+                                                                              DateTime.now(),
+                                                                            )
+                                                                            .inSeconds <=
+                                                                        90)
+                                                                ? Colors.red
+                                                                : AppTheme
+                                                                      .secondaryTextColor,
                                                           ),
                                                         ),
                                                         Text(
@@ -494,6 +586,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                             fontSize: 24.sp,
                                                             color: AppTheme
                                                                 .primaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
                                                           ),
                                                         ),
                                                       ],
@@ -508,34 +602,164 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
                                       Spacer(flex: 1),
 
-                                      SizedBox(
-                                        height: 58.h,
-                                        child: FittedBox(
-                                          child: LiveClockRow(
-                                            timeFontSize: 64.sp,
-                                            periodFontSize: 24.sp,
+                                      Container(
+                                        height: 110.h,
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                            right: 10.w,
+                                            left: 10.w,
                                           ),
-                                        ),
-                                      ),
-                                      Spacer(flex: 2),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              if (CacheHelper.getShowFitrEid())
+                                                Flexible(
+                                                  flex: 15,
+                                                  child: Column(
+                                                    // crossAxisAlignment:
+                                                    //     CrossAxisAlignment.start,
+                                                    children: [
+                                                      FittedBox(
+                                                        child: Text(
+                                                          LocaleKeys.eid_al_fitr
+                                                              .tr(),
+                                                          style: TextStyle(
+                                                            fontSize: 24.sp,
+                                                            color: AppTheme
+                                                                .primaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      VerticalSpace(height: 5),
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getFitrEid()?[0] ??
+                                                              '--/--/--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      VerticalSpace(height: 5),
 
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                          right: 20.w,
-                                          left: 20.w,
-                                        ),
-                                        child: Container(
-                                          // height: 70.h,
-                                          // color: Colors.redAccent,
-                                          child: Text(
-                                            CacheHelper.getFixedDhikr(),
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 20.sp,
-                                              fontWeight: FontWeight.bold,
-                                              color:
-                                                  AppTheme.secondaryTextColor,
-                                            ),
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getFitrEid()?[1] ??
+                                                              '--:--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              Flexible(
+                                                flex: 70,
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: 10.w,
+                                                    right: 10.w,
+                                                  ),
+                                                  child: Column(
+                                                    children: [
+                                                      Container(
+                                                        alignment: Alignment
+                                                            .bottomCenter,
+                                                        height: 58.h,
+                                                        child: FittedBox(
+                                                          child: LiveClockRow(
+                                                            timeFontSize: 64.sp,
+                                                            periodFontSize:
+                                                                24.sp,
+                                                            use24Format:
+                                                                CacheHelper.getUse24HoursFormat(),
+                                                          ),
+                                                        ),
+                                                      ),
+
+                                                      // VerticalSpace(height: 10),
+                                                      Flexible(
+                                                        child: AdaptiveTextWidget(
+                                                          fontFamily:
+                                                              CacheHelper.getTextsFontFamily(),
+                                                          availableHeight: 30.h,
+                                                          text:
+                                                              CacheHelper.getFixedDhikr(),
+
+                                                          maxFontSize: 20.sp,
+                                                          minFontSize: 12.sp,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              if (CacheHelper.getShowAdhaEid())
+                                                Flexible(
+                                                  flex: 15,
+                                                  child: Column(
+                                                    // mainAxisAlignment:
+                                                    //     MainAxisAlignment
+                                                    //         .center,
+                                                    children: [
+                                                      FittedBox(
+                                                        child: Text(
+                                                          LocaleKeys.eid_al_adha
+                                                              .tr(),
+                                                          style: TextStyle(
+                                                            fontSize: 24.sp,
+                                                            color: AppTheme
+                                                                .primaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      VerticalSpace(height: 5),
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getAdhaEid()?[0] ??
+                                                              '--/--/--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      VerticalSpace(height: 5),
+
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getAdhaEid()?[1] ??
+                                                              '--:--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
                                           ),
                                         ),
                                       ),
@@ -557,23 +781,36 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                 child: Column(
                                                   children: [
                                                     AzanTitleTile(
+                                                      withNoAscentAndDescent:
+                                                          true,
                                                       width: 30.w,
                                                       title: LocaleKeys.prayer
                                                           .tr(),
-                                                      fontSize: 14.sp,
+                                                      fontSize: 16.sp,
                                                     ),
                                                     VerticalSpace(height: 10),
 
-                                                    ...prayers.map(
-                                                      (e) => Padding(
-                                                        padding:
-                                                            EdgeInsets.only(
-                                                              bottom: 10.h,
-                                                            ),
-                                                        child: PrayerText(
-                                                          title: e,
-                                                        ),
-                                                      ),
+                                                    ...List.generate(
+                                                      prayers.length,
+                                                      (index) {
+                                                        final dimmed =
+                                                            index <
+                                                                pastIqamaFlags
+                                                                    .length &&
+                                                            pastIqamaFlags[index];
+
+                                                        return Padding(
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                                bottom: 10.h,
+                                                              ),
+                                                          child: PrayerText(
+                                                            title:
+                                                                prayers[index],
+                                                            dimmed: dimmed,
+                                                          ),
+                                                        );
+                                                      },
                                                     ),
                                                   ],
                                                 ),
@@ -583,25 +820,47 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                 child: Column(
                                                   children: [
                                                     AzanTitleTile(
+                                                      withNoAscentAndDescent:
+                                                          true,
                                                       width: 30.w,
                                                       title: LocaleKeys.adhan
                                                           .tr(),
-                                                      fontSize: 14.sp,
+                                                      fontSize: 16.sp,
                                                     ),
 
                                                     VerticalSpace(height: 10),
 
-                                                    ...cubit.prayers.map(
-                                                      (e) => Padding(
-                                                        padding:
-                                                            EdgeInsets.only(
-                                                              bottom: 10.h,
-                                                            ),
-                                                        child: AzanTimeText(
-                                                          time:
-                                                              e.time ?? '--:--',
-                                                        ),
-                                                      ),
+                                                    ...List.generate(
+                                                      cubit
+                                                          .prayers(context)
+                                                          .length,
+                                                      (index) {
+                                                        final e = cubit.prayers(
+                                                          context,
+                                                        )[index];
+                                                        final dimmed =
+                                                            index <
+                                                                pastIqamaFlags
+                                                                    .length &&
+                                                            pastIqamaFlags[index];
+
+                                                        final timeStr =
+                                                            CacheHelper.getUse24HoursFormat()
+                                                            ? e.time24 ??
+                                                                  '--:--'
+                                                            : e.time ?? '--:--';
+
+                                                        return Padding(
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                                bottom: 10.h,
+                                                              ),
+                                                          child: AzanTimeText(
+                                                            time: timeStr,
+                                                            dimmed: dimmed,
+                                                          ),
+                                                        );
+                                                      },
                                                     ),
                                                   ],
                                                 ),
@@ -614,31 +873,51 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                       width: 30.w,
                                                       title: LocaleKeys.iqama
                                                           .tr(),
-                                                      fontSize: 14.sp,
+                                                      fontSize: 16.sp,
+                                                      withNoAscentAndDescent:
+                                                          true,
                                                     ),
                                                     VerticalSpace(height: 10),
 
-                                                    ...cubit.prayers.map(
-                                                      (e) => Padding(
-                                                        padding:
-                                                            EdgeInsets.only(
-                                                              bottom: 10.h,
-                                                            ),
-                                                        child: AzanTimeText(
-                                                          time:
-                                                              (e.time != null &&
-                                                                  cubit.iqamaMinutes !=
-                                                                      null)
-                                                              ? DateHelper.addMinutesToTimeString(
-                                                                  e.time!,
-                                                                  cubit
-                                                                      .iqamaMinutes![e
-                                                                          .id -
-                                                                      1],
-                                                                )
-                                                              : '--:--',
-                                                        ),
-                                                      ),
+                                                    ...List.generate(
+                                                      cubit
+                                                          .prayers(context)
+                                                          .length,
+                                                      (index) {
+                                                        final e = cubit.prayers(
+                                                          context,
+                                                        )[index];
+                                                        final dimmed =
+                                                            index <
+                                                                pastIqamaFlags
+                                                                    .length &&
+                                                            pastIqamaFlags[index];
+
+                                                        final iqamaTimeStr =
+                                                            (e.time != null &&
+                                                                cubit.iqamaMinutes !=
+                                                                    null)
+                                                            ? DateHelper.addMinutesToTimeStringWithSettings(
+                                                                e.time!,
+                                                                cubit
+                                                                    .iqamaMinutes![e
+                                                                        .id -
+                                                                    1],
+                                                                context,
+                                                              )
+                                                            : '--:--';
+
+                                                        return Padding(
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                                bottom: 10.h,
+                                                              ),
+                                                          child: AzanTimeText(
+                                                            time: iqamaTimeStr,
+                                                            dimmed: dimmed,
+                                                          ),
+                                                        );
+                                                      },
                                                     ),
                                                   ],
                                                 ),
@@ -683,19 +962,25 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 }
 
 class PrayerText extends StatelessWidget {
-  const PrayerText({super.key, required this.title});
+  const PrayerText({super.key, required this.title, this.dimmed = false});
 
-  // final R r;
   final String title;
+  final bool dimmed;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       title,
       style: TextStyle(
+        fontFamily: CacheHelper.getTimesFontFamily(),
+
         fontSize: 23.sp,
         fontWeight: FontWeight.bold,
-        color: AppTheme.primaryTextColor,
+        color: CacheHelper.getIsPreviousPrayersDimmed()
+            ? AppTheme.primaryTextColor
+            : dimmed
+            ? AppTheme.primaryTextColor.withOpacity(0.4) // خافت
+            : AppTheme.primaryTextColor, // عادي
       ),
     );
   }
@@ -755,25 +1040,74 @@ class _AzkarSliderState extends State<AzkarSlider> {
       return const SizedBox.shrink();
     }
 
-    return SizedBox(
-      height: widget.height,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: widget.adhkar.length,
-        itemBuilder: (context, index) {
-          final text = widget.adhkar[index];
-          return Padding(
-            padding: EdgeInsets.only(right: 16.w, left: 16.w),
-            child: AdaptiveTextWidget(
-              text: text,
-              maxFontSize: widget.maxFontSize,
-              minFontSize: widget.minFontSize,
-              availableHeight: widget.height,
+    return
+    // CacheHelper.getpalestinianFlag()
+    //     ?
+    SizedBox(
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: widget.height,
+              width: 1.sw - 70.w,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: widget.adhkar.length,
+                itemBuilder: (context, index) {
+                  final text = widget.adhkar[index];
+                  return Padding(
+                    padding: EdgeInsets.only(right: 16.w, left: 5.w),
+                    child: AdaptiveTextWidget(
+                      text: text,
+                      maxFontSize: widget.maxFontSize,
+                      minFontSize: widget.minFontSize,
+                      availableHeight: widget.height,
+                    ),
+                  );
+                },
+              ),
             ),
-          );
-        },
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.only(end: 5.w),
+            child: Column(
+              children: [
+                if (CacheHelper.getpalestinianFlag())
+                  Image.asset(
+                    Assets.images.palastine.path,
+                    width: 45.w,
+                    height: 45.h,
+                  ),
+                VerticalSpace(height: 5),
+
+                if (CacheHelper.getEnableCheckInternetConnection())
+                  BottomStarHint(text: LocaleKeys.connected.tr()),
+              ],
+            ),
+          ),
+        ],
       ),
     );
+    // :
+    // SizedBox(
+    //     height: widget.height,
+    //     child: PageView.builder(
+    //       controller: _pageController,
+    //       itemCount: widget.adhkar.length,
+    //       itemBuilder: (context, index) {
+    //         final text = widget.adhkar[index];
+    //         return Padding(
+    //           padding: EdgeInsets.only(right: 16.w, left: 16.w),
+    //           child: AdaptiveTextWidget(
+    //             text: text,
+    //             maxFontSize: widget.maxFontSize,
+    //             minFontSize: widget.minFontSize,
+    //             availableHeight: widget.height,
+    //           ),
+    //         );
+    //       },
+    //     ),
+    //   );
   }
 }
 
@@ -782,12 +1116,14 @@ class AdaptiveTextWidget extends StatelessWidget {
   final double maxFontSize;
   final double minFontSize;
   final double availableHeight;
+  final String? fontFamily;
 
   const AdaptiveTextWidget({
     required this.text,
     required this.maxFontSize,
     required this.minFontSize,
     required this.availableHeight,
+    this.fontFamily,
   });
 
   @override
@@ -812,6 +1148,7 @@ class AdaptiveTextWidget extends StatelessWidget {
               fontSize: currentFontSize,
               fontWeight: FontWeight.bold,
               height: 1, // line height
+              fontFamily: CacheHelper.getAzkarFontFamily(),
             ),
           );
           textPainter.layout(maxWidth: width);
@@ -849,6 +1186,8 @@ class AdaptiveTextWidget extends StatelessWidget {
               fontSize: currentFontSize,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryTextColor,
+              fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
+
               // height: 1.5,
             ),
             textAlign: TextAlign.center,

@@ -190,7 +190,8 @@ Future<CityOption?> showSaudiCityPickerDialog(
       return _SelectionDialogBody<CityOption>(
         title: LocaleKeys.mosque_city_select_title.tr(),
         items: kSaudiCities,
-        labelBuilder: (c) => c.nameAr,
+        labelBuilder: (c) =>
+            context.locale.languageCode == 'en' ? c.nameEn : c.nameAr,
         searchHint: LocaleKeys.city_search_hint.tr(),
         onSelected: onSelected,
       );

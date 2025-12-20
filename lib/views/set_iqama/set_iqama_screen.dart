@@ -4,7 +4,9 @@ import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
+import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/iqama_hive_helper.dart';
+import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -57,15 +59,16 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
         int localValue = current;
 
         return AlertDialog(
+          backgroundColor: AppTheme.dialogBackgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.r),
           ),
           title: Text(
-            '${LocaleKeys.set_iqama_time.tr()}${prayers[index]}',
+            '${LocaleKeys.set_iqama_time.tr()} ${prayers[index]}',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: AppTheme.accentColor,
             ),
           ),
           content: StatefulBuilder(
@@ -78,6 +81,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                     style: TextStyle(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
+                      color: AppTheme.secondaryTextColor,
                     ),
                   ),
                   SizedBox(height: 16.h),
@@ -94,7 +98,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                             });
                           }
                         },
-                        icon: const Icon(Icons.remove),
+                        icon: Icon(Icons.remove, color: AppTheme.accentColor),
                       ),
 
                       // القيمة الحالية
@@ -112,7 +116,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           color: Colors.white,
                         ),
                         child: Text(
-                          '$localValue ${LocaleKeys.min.tr()}',
+                          '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
@@ -128,7 +132,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                             localValue += 1;
                           });
                         },
-                        icon: const Icon(Icons.add),
+                        icon: Icon(Icons.add, color: AppTheme.accentColor),
                       ),
                     ],
                   ),
@@ -146,7 +150,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                               AppTheme.primaryButtonBackground,
                             ),
                             label: Text(
-                              '$v ${LocaleKeys.min.tr()}',
+                              '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
                               style: TextStyle(
                                 color: AppTheme.primaryButtonTextColor,
                                 fontSize: 15.sp,
@@ -186,7 +190,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
               child: Text(
                 LocaleKeys.common_ok.tr(),
                 style: TextStyle(
-                  color: AppTheme.primaryButtonTextColor,
+                  color: AppTheme.accentColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 16.sp,
                 ),
@@ -209,6 +213,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final prayersData = appCubit.prayers(context);
     return Scaffold(
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {
@@ -236,7 +241,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                 fit: BoxFit.fill,
               ),
 
-              if (appCubit.prayers[0].time == null)
+              if (appCubit.prayers(context)[0].time == null)
                 PositionedDirectional(
                   top: 40.h,
                   start: 32.w,
@@ -272,7 +277,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                   ),
                 ),
 
-              if (appCubit.prayers[0].time == null)
+              if (appCubit.prayers(context)[0].time == null)
                 Positioned(
                   top: .4.sh,
                   // bottom: 50.h,
@@ -312,7 +317,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                   ),
                 ),
 
-              if (appCubit.prayers[0].time != null)
+              if (appCubit.prayers(context)[0].time != null)
                 SafeArea(
                   child: Padding(
                     padding: EdgeInsets.only(
@@ -356,89 +361,264 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                         VerticalSpace(height: 30),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              children: [
-                                AzanTitleTile(
-                                  width: 30.w,
-                                  title: LocaleKeys.prayer.tr(),
-                                  fontSize: 14.sp,
-                                ),
-                                VerticalSpace(height: 10),
-
-                                ...prayers.map(
-                                  (e) => Padding(
-                                    padding: EdgeInsets.only(bottom: 19.h),
-                                    child: PrayerText(title: e),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // HorizontalSpace(width: 10),
-                            Column(
-                              children: [
-                                AzanTitleTile(
-                                  width: 30.w,
-                                  title: LocaleKeys.adhan_time_label.tr(),
-                                  fontSize: 14.sp,
-                                ),
-                                VerticalSpace(height: 10),
-
-                                ...appCubit.prayers.map(
-                                  (e) => Padding(
-                                    padding: EdgeInsets.only(bottom: 19.h),
-                                    child: PrayerText(title: e.time ?? '--:--'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (appCubit.prayers[0].time != null)
-                              Column(
+                            SizedBox(
+                              width: 100.w,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  AzanTitleTile(
-                                    width: 120.w,
-                                    title: LocaleKeys.iqama_time_minutes_label
-                                        .tr(),
-                                    fontSize: 12.sp,
+                                  Text(
+                                    LocaleKeys.prayer.tr(),
+                                    maxLines: 1,
+                                    textHeightBehavior:
+                                        const TextHeightBehavior(
+                                          applyHeightToFirstAscent: false,
+                                          applyHeightToLastDescent: false,
+                                        ),
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      height: 1, // ✅ يثبت ارتفاع السطر
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                      fontFamily:
+                                          CacheHelper.getTimesFontFamily(),
+                                    ),
                                   ),
-                                  VerticalSpace(height: 10),
-                                  ...List.generate(prayers.length, (index) {
-                                    return Padding(
-                                      padding: EdgeInsets.only(bottom: 10.h),
+                                  SizedBox(height: 2.h),
+                                  Container(
+                                    height: 2.h,
+                                    width: double.infinity,
+                                    color: AppTheme.primaryTextColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(
+                              width: 100.w,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    LocaleKeys.adhan_time_label
+                                        .tr(), // غيّرها حسب مشروعك
+                                    maxLines: 1,
+                                    textHeightBehavior:
+                                        const TextHeightBehavior(
+                                          applyHeightToFirstAscent: false,
+                                          applyHeightToLastDescent: false,
+                                        ),
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      height: 1,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                      fontFamily:
+                                          CacheHelper.getTimesFontFamily(),
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Container(
+                                    height: 2.h,
+                                    width: double.infinity,
+                                    color: AppTheme.primaryTextColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(
+                              width: 100.w,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    LocaleKeys.iqama_time_minutes_label
+                                        .tr(), // غيّرها حسب مشروعك
+                                    maxLines: 1,
+                                    textHeightBehavior:
+                                        const TextHeightBehavior(
+                                          applyHeightToFirstAscent: false,
+                                          applyHeightToLastDescent: false,
+                                        ),
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      height: 1,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                      fontFamily:
+                                          CacheHelper.getTimesFontFamily(),
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Container(
+                                    height: 2.h,
+                                    width: double.infinity,
+                                    color: AppTheme.primaryTextColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Table(
+                          columnWidths: {
+                            0: const FlexColumnWidth(3), // الصلاة
+                            1: FixedColumnWidth(2.w), // spacer
+                            2: const FlexColumnWidth(3), // الأذان
+                            3: FixedColumnWidth(4.w), // spacer
+                            4: const FlexColumnWidth(2), // الإقامة
+                          },
+                          defaultVerticalAlignment:
+                              TableCellVerticalAlignment.middle,
+                          children: [
+                            // Header
+                            // TableRow(
+                            //   children: [
+                            //     Padding(
+                            //       padding: EdgeInsets.only(
+                            //         right: 10.w,
+                            //         left: 10.w,
+                            //       ),
+                            //       child: Align(
+                            //         alignment: Alignment
+                            //             .center, // يخلي العنوان في النص
+                            //         child: AzanTitleTile(
+                            //           width: 30.w,
+                            //           title: LocaleKeys.prayer.tr(),
+                            //           fontSize: 14.sp,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     const SizedBox(), // spacer col
+
+                            //     Padding(
+                            //       padding: EdgeInsets.only(
+                            //         right: 10.w,
+                            //         left: 10.w,
+                            //       ),
+                            //       child: Align(
+                            //         alignment: Alignment.center,
+                            //         child: AzanTitleTile(
+                            //           width: 30.w,
+                            //           title: LocaleKeys.adhan_time_label.tr(),
+                            //           fontSize: 14.sp,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     const SizedBox(), // spacer col
+                            //     Padding(
+                            //       padding: EdgeInsets.only(
+                            //         right: 10.w,
+                            //         left: 10.w,
+                            //       ),
+                            //       child: Align(
+                            //         alignment: Alignment.center,
+                            //         child: SizedBox(
+                            //           width: 120.w,
+                            //           height: 50.h,
+
+                            //           child: FittedBox(
+                            //             fit: BoxFit.fitWidth,
+                            //             child: AzanTitleTile(
+                            //               width: 30.w,
+                            //               title: LocaleKeys
+                            //                   .iqama_time_minutes_label
+                            //                   .tr(),
+                            //               fontSize: 14.sp,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     ),
+
+                            //   ],
+                            // ),
+
+                            // Rows
+                            ...List.generate(prayers.length, (index) {
+                              return TableRow(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.only(
+                                      top: 10.h,
+                                      bottom: 10.h,
+                                      end: 30.w,
+                                      // right: 10.w,
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment
+                                          .center, // أو AlignmentDirectional.centerStart لو عايزها تبدأ من البداية
+                                      child: PrayerText(title: prayers[index]),
+                                    ),
+                                  ),
+                                  const SizedBox(),
+
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.only(
+                                      top: 10.h,
+                                      bottom: 10.h,
+                                      end: 30.w,
+                                      // right: 10.w,
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.center,
+                                      child: PrayerText(
+                                        title:
+                                            prayersData[index].time ?? '--:--',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(),
+
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 10.h,
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.center,
                                       child: InkWell(
                                         onTap: () => _editIqamaMinutes(index),
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 12.w,
-                                            vertical: 6.h,
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minWidth: 90.w,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(
-                                              0.15,
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 12.w,
+                                              vertical: 6.h,
                                             ),
-                                            borderRadius: BorderRadius.circular(
-                                              16.r,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(
+                                                0.15,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16.r),
+                                              border: Border.all(
+                                                color:
+                                                    AppTheme.primaryTextColor,
+                                                width: 1.5,
+                                              ),
                                             ),
-                                            border: Border.all(
-                                              color: AppTheme.primaryTextColor,
-                                              width: 1.5,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${iqamaMinutes[index]} ${LocaleKeys.min.tr()}', // ${LocaleKeys.min.tr()} = ${LocaleKeys.min.tr()}قيقة
-                                            style: TextStyle(
-                                              fontSize: 18.sp,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppTheme.primaryTextColor,
+                                            child: Center(
+                                              child: Text(
+                                                '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits(iqamaMinutes[index].toString()) : iqamaMinutes[index]} ${LocaleKeys.min.tr()}',
+                                                style: TextStyle(
+                                                  fontSize: 18.sp,
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      AppTheme.primaryTextColor,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    );
-                                  }),
+                                    ),
+                                  ),
                                 ],
-                              ),
+                              );
+                            }),
                           ],
                         ),
 

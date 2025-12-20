@@ -1,4 +1,6 @@
+import 'package:azan/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomCheckbox extends StatelessWidget {
   final bool value;
@@ -14,10 +16,10 @@ class CustomCheckbox extends StatelessWidget {
   final Color activeColor;
 
   /// سمك البوردر
-  final double borderWidth;
+  final double? borderWidth;
 
   /// درجة دوران الزوايا
-  final double borderRadius;
+  final double? borderRadius;
 
   const CustomCheckbox({
     super.key,
@@ -26,8 +28,8 @@ class CustomCheckbox extends StatelessWidget {
     this.size = 22, // تقدر تغيره من برة
     this.borderColor = Colors.grey,
     this.activeColor = Colors.blue,
-    this.borderWidth = 1.8,
-    this.borderRadius = 6,
+    this.borderWidth,
+    this.borderRadius,
   });
 
   @override
@@ -41,11 +43,11 @@ class CustomCheckbox extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
-            color: value ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(borderRadius),
+            color: value ? activeColor : AppTheme.secondaryTextColor,
+            borderRadius: BorderRadius.circular(borderRadius ?? 5.r),
             border: Border.all(
               color: value ? activeColor : borderColor,
-              width: borderWidth,
+              width: borderWidth ?? 1.w,
             ),
           ),
           child: value

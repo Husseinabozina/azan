@@ -37,6 +37,7 @@ class HomeAppBar extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(top: 5.h),
                   child: AdaptiveTextWidget(
+                    fontFamily: CacheHelper.getTextsFontFamily(),
                     availableHeight: 35.h,
                     text:
                         CacheHelper.getMosqueName() ??

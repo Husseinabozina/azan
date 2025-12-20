@@ -4,6 +4,7 @@ import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
+import 'package:azan/core/utils/device_kind_helper.dart';
 import 'package:azan/generated/codegen_loader.g.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/home/home_screen.dart';
@@ -22,10 +23,19 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  kind = await DeviceKindHelper.detectBeforeRunApp();
+  if (kind == DeviceKind.tv || kind == DeviceKind.desktop) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  } else {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
   await CacheHelper.init();
   if (!CacheHelper.getFirstAppOpen()) {
     await CacheHelper.setFixedDhikr(fixedDhikr);
@@ -57,11 +67,14 @@ final RouteObserver<ModalRoute<void>> routeObserver =
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(393, 852),
+    // return
+
+    Widget widget = ScreenUtilInit(
+      designSize: kind == DeviceKind.tv || kind == DeviceKind.desktop
+          ? Size(852, 393)
+          : const Size(393, 852),
       minTextAdapt: true,
       useInheritedMediaQuery: true,
       splitScreenMode: true,
@@ -83,7 +96,8 @@ class MyApp extends StatelessWidget {
             },
 
             theme: ThemeData(
-              fontFamily: 'Tajawal',
+              fontFamily: CacheHelper.getTextsFontFamily(),
+
               // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             ),
             builder: (_, child) {
@@ -95,5 +109,11 @@ class MyApp extends StatelessWidget {
         );
       },
     );
+
+    if (kind == DeviceKind.tv || kind == DeviceKind.desktop) {
+      return RotatedBox(quarterTurns: 3, child: widget);
+    } else {
+      return widget;
+    }
   }
 }

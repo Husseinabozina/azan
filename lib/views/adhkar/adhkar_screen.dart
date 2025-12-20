@@ -156,7 +156,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1B375D),
+                              color: AppTheme.secondaryTextColor,
                             ),
                           ),
                         ),

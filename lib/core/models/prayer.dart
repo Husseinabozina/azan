@@ -5,11 +5,13 @@ class Prayer {
   final String title;
   final String? time;
   final DateTime? dateTime;
+  final String? time24;
   Prayer({
     required this.id,
     required this.title,
     required this.time,
     required this.dateTime,
+    this.time24,
   });
 
   factory Prayer.fromJson(Map<String, dynamic> json) {
@@ -18,6 +20,7 @@ class Prayer {
       title: json['name'],
       time: json['time'],
       dateTime: json['adhanPrayer'],
+      time24: json['time24'],
     );
   }
 
@@ -27,6 +30,7 @@ class Prayer {
       title: title ?? this.title,
       time: time ?? this.time,
       dateTime: dateTime ?? this.dateTime,
+      time24: time24,
     );
   }
 }

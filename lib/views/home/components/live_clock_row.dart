@@ -4,6 +4,7 @@ import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/theme/app_theme.dart';
+import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +12,13 @@ import 'package:flutter/material.dart';
 class LiveClockRow extends StatefulWidget {
   final double timeFontSize;
   final double periodFontSize;
+  final bool use24Format;
 
   const LiveClockRow({
     super.key,
     required this.timeFontSize,
     required this.periodFontSize,
+    this.use24Format = false,
   });
 
   @override
@@ -31,7 +34,6 @@ class _LiveClockRowState extends State<LiveClockRow> {
     super.initState();
     _now = DateTime.now();
 
-    // نحدّث الوقت كل ثانية
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {
@@ -46,46 +48,54 @@ class _LiveClockRowState extends State<LiveClockRow> {
     super.dispose();
   }
 
-  // صيغة 12 ساعة + أرقام عربية
   String _formattedTime() {
     int hour = _now.hour;
     final minute = _now.minute;
+    final second = _now.second;
 
-    // نخليها 12-ساعة
-    final isAm = hour < 12;
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
+    // ✅ هل نعرض الثواني؟ (00:00:00)
+    final showSeconds = CacheHelper.getIsFullTimeEnabled();
 
-    final hStr = hour.toString().padLeft(2, '0');
-    final mStr = minute.toString().padLeft(2, '0');
+    String hStr;
+    String mStr = minute.toString().padLeft(2, '0');
+    String sStr = second.toString().padLeft(2, '0');
 
-    final time = '$hStr:$mStr';
+    if (widget.use24Format) {
+      // 24 ساعة
+      hStr = hour.toString().padLeft(2, '0');
+    } else {
+      // 12 ساعة
+      hour = hour % 12;
+      if (hour == 0) hour = 12;
+      hStr = hour.toString().padLeft(2, '0');
+    }
+
+    // ⏱ لو full time → hh:mm:ss / لو مش مفعّل → hh:mm
+    final rawTime = showSeconds ? '$hStr:$mStr:$sStr' : '$hStr:$mStr';
+
     return LocalizationHelper.isArabic(context)
-        ? DateHelper.toArabicDigits(time)
-        : DateHelper.toWesternDigits(time);
-    ;
+        ? DateHelper.toArabicDigits(rawTime)
+        : DateHelper.toWesternDigits(rawTime);
   }
 
-  // صباحًا / مساءً
+  String? _periodLabel(BuildContext context) {
+    // في 24 ساعة ما نعرضش AM/PM
+    if (widget.use24Format) return null;
 
-  String _periodLabel(BuildContext context) {
     final isAm = _now.hour < 12;
-
-    // لو عندك مفتاحين في اللغات:
     return isAm ? LocaleKeys.am_label.tr() : LocaleKeys.pm_label.tr();
-
-    // لو عندك مفتاح واحد فقط (am_label) وبيطلع صح مهما كان الوقت:
-    // return LocaleKeys.am_label.tr();
   }
 
   @override
   Widget build(BuildContext context) {
+    final period = _periodLabel(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           _formattedTime(),
           style: TextStyle(
+            fontFamily: CacheHelper.getTimeFontFamily(),
             fontSize: widget.timeFontSize,
             fontWeight: FontWeight.bold,
             color: AppTheme.secondaryTextColor,
@@ -93,8 +103,10 @@ class _LiveClockRowState extends State<LiveClockRow> {
         ),
         HorizontalSpace(width: 10),
         Text(
-          _periodLabel(context),
+          period ?? '',
           style: TextStyle(
+            fontFamily: CacheHelper.getTimeFontFamily(),
+
             fontSize: widget.periodFontSize,
             color: AppTheme.primaryTextColor,
           ),
