@@ -106,6 +106,7 @@ class _LiveClockRowState extends State<LiveClockRow> {
           period ?? '',
           style: TextStyle(
             fontFamily: CacheHelper.getTimeFontFamily(),
+            fontWeight: FontWeight.bold,
 
             fontSize: widget.periodFontSize,
             color: AppTheme.primaryTextColor,

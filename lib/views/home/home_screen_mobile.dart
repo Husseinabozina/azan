@@ -630,6 +630,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                 .primaryTextColor,
                                                             fontFamily:
                                                                 CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ),
@@ -644,6 +646,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                 .secondaryTextColor,
                                                             fontFamily:
                                                                 CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ),
@@ -659,6 +663,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                 .secondaryTextColor,
                                                             fontFamily:
                                                                 CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ),
@@ -724,6 +730,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                 .primaryTextColor,
                                                             fontFamily:
                                                                 CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ),
@@ -736,6 +744,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                             fontSize: 16.sp,
                                                             color: AppTheme
                                                                 .secondaryTextColor,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontFamily:
                                                                 CacheHelper.getTimesFontFamily(),
                                                           ),
@@ -749,6 +759,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                               '--:--',
                                                           style: TextStyle(
                                                             fontSize: 16.sp,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             color: AppTheme
                                                                 .secondaryTextColor,
                                                             fontFamily:

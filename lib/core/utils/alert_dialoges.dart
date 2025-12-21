@@ -1059,12 +1059,95 @@ Future<TimeOfDay?> pickTime(BuildContext context) async {
           EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h);
 
       final dialogBg = AppTheme.dialogBackgroundColor;
-      final accent = AppTheme
-          .primaryButtonBackground; // ده البديل للـ AppTheme.primaryTextColor
-      final onAccent = AppTheme.primaryButtonTextColor;
 
-      // لون نص واضح داخل الدايلوج (متكيف مع الخلفية عندك)
-      final onDialog = AppTheme.dialogBodyTextColor;
+      // ========= Contrast helpers (WCAG-ish) =========
+      double _lin(Color c) {
+        double ch(int v) {
+          final s = v / 255.0;
+          return (s <= 0.03928)
+              ? (s / 12.92)
+              : MathPow.pow((s + 0.055) / 1.055, 2.4).toDouble();
+        }
+
+        // ignore: deprecated_member_use
+        return 0.2126 * ch(c.red) + 0.7152 * ch(c.green) + 0.0722 * ch(c.blue);
+      }
+
+      double _contrast(Color a, Color b) {
+        final l1 = _lin(a);
+        final l2 = _lin(b);
+        final bright = l1 > l2 ? l1 : l2;
+        final dark = l1 > l2 ? l2 : l1;
+        return (bright + 0.05) / (dark + 0.05);
+      }
+
+      Color _onFor(Color bg) {
+        final br = ThemeData.estimateBrightnessForColor(bg);
+        // dark bg -> near-white, light bg -> near-black
+        return br == Brightness.dark
+            ? const Color(0xFFF5F7FA)
+            : const Color(0xFF121212);
+      }
+
+      Color _mix(Color fg, Color bg, double t) {
+        // t: 0..1 (0 = fg, 1 = bg)
+        return Color.lerp(fg, bg, t)!;
+      }
+
+      Color _ensureContrast(Color fg, Color bg, {double min = 4.5}) {
+        if (_contrast(fg, bg) >= min) return fg;
+
+        final prefer = _onFor(bg);
+        // جرّب الأول أبيض/أسود حسب الخلفية
+        if (_contrast(prefer, bg) >= min) return prefer;
+
+        // لو لسه (نادر جدًا)، نقرب تدريجيًا من prefer
+        Color cur = fg;
+        for (int i = 0; i < 12; i++) {
+          cur = _mix(cur, prefer, 0.25);
+          if (_contrast(cur, bg) >= min) return cur;
+        }
+        return prefer;
+      }
+
+      Color _tuneAccent(Color accent, Color bg) {
+        // عايزين accent واضح فوق bg (min 3.0 كفاية للأيقونات/الحواف)
+        const min = 3.0;
+        if (_contrast(accent, bg) >= min) return accent;
+
+        final br = ThemeData.estimateBrightnessForColor(bg);
+        var hsl = HSLColor.fromColor(accent);
+
+        // لو الخلفية غامقة -> زوّد lightness شوية، لو فاتحة -> قلله
+        for (int i = 0; i < 10; i++) {
+          final delta = br == Brightness.dark ? 0.06 : -0.06;
+          hsl = hsl.withLightness((hsl.lightness + delta).clamp(0.10, 0.90));
+          final tuned = hsl.toColor();
+          if (_contrast(tuned, bg) >= min) return tuned;
+        }
+
+        // fallback واضح
+        return br == Brightness.dark
+            ? const Color(0xFF66C6FF)
+            : const Color(0xFF0A66C2);
+      }
+
+      // ====== derive safe colors ======
+      final onDialog = _ensureContrast(_onFor(dialogBg), dialogBg, min: 7.0);
+      final onDialogMuted = _ensureContrast(
+        onDialog.withOpacity(0.78),
+        dialogBg,
+        min: 4.5,
+      );
+
+      final rawAccent = AppTheme.primaryButtonBackground;
+      final accent = _tuneAccent(rawAccent, dialogBg);
+
+      // لون النص فوق accent (للـ selected / hand)
+      final onAccent = _ensureContrast(_onFor(accent), accent, min: 4.5);
+
+      Color _surfaceTint(double opacity) =>
+          Color.alphaBlend(onDialog.withOpacity(opacity), dialogBg);
 
       final timePickerTheme = TimePickerThemeData(
         backgroundColor: dialogBg,
@@ -1077,8 +1160,18 @@ Future<TimeOfDay?> pickTime(BuildContext context) async {
           fontSize: fs(12),
           fontWeight: FontWeight.w600,
           height: 1.2,
-          color: onDialog.withOpacity(0.80),
+          color: onDialogMuted,
           fontFamily: CacheHelper.getTimesFontFamily(),
+        ),
+
+        timeSelectorSeparatorTextStyle: WidgetStateProperty.all(
+          TextStyle(
+            fontSize: fs(12),
+            fontWeight: FontWeight.w700,
+            height: 1.2,
+            color: onDialogMuted,
+            fontFamily: CacheHelper.getTimesFontFamily(),
+          ),
         ),
 
         hourMinuteTextStyle: TextStyle(
@@ -1089,45 +1182,54 @@ Future<TimeOfDay?> pickTime(BuildContext context) async {
           fontFamily: CacheHelper.getTimesFontFamily(),
         ),
 
-        // ✅ دي properties بتاخد Color? → استخدم WidgetStateColor
         hourMinuteColor: WidgetStateColor.resolveWith((states) {
-          if (states.contains(WidgetState.selected))
-            return accent.withOpacity(0.25);
-          return onDialog.withOpacity(0.08);
+          if (states.contains(WidgetState.selected)) {
+            return Color.alphaBlend(accent.withOpacity(0.22), dialogBg);
+          }
+          return _surfaceTint(0.06);
         }),
         hourMinuteTextColor: WidgetStateColor.resolveWith((states) {
-          return onDialog; // نفس اللون في الحالتين
+          // نص الساعة داخل الـ pill
+          if (states.contains(WidgetState.selected)) return onDialog;
+          return onDialog;
         }),
 
         dayPeriodTextStyle: TextStyle(
           fontSize: fs(12),
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
           height: 1.1,
+          color: onDialog,
           fontFamily: CacheHelper.getTimesFontFamily(),
         ),
         dayPeriodColor: WidgetStateColor.resolveWith((states) {
-          if (states.contains(WidgetState.selected))
-            return accent.withOpacity(0.25);
-          return onDialog.withOpacity(0.08);
+          if (states.contains(WidgetState.selected)) {
+            return Color.alphaBlend(accent.withOpacity(0.22), dialogBg);
+          }
+          return _surfaceTint(0.06);
         }),
         dayPeriodTextColor: WidgetStateColor.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return onDialog;
-          return onDialog.withOpacity(0.70);
+          return onDialogMuted;
         }),
         dayPeriodShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
 
-        dialBackgroundColor: onDialog.withOpacity(0.10),
+        dialBackgroundColor: _surfaceTint(0.08),
         dialHandColor: accent,
+
         dialTextStyle: TextStyle(
           fontSize: fs(12),
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           fontFamily: CacheHelper.getTimesFontFamily(),
         ),
         dialTextColor: WidgetStateColor.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return onDialog;
-          return onDialog.withOpacity(0.70);
+          if (states.contains(WidgetState.selected)) return onAccent;
+          return _ensureContrast(
+            onDialog.withOpacity(0.80),
+            _surfaceTint(0.08),
+            min: 4.5,
+          );
         }),
 
         entryModeIconColor: accent,
@@ -1140,18 +1242,22 @@ Future<TimeOfDay?> pickTime(BuildContext context) async {
           ),
           hintStyle: TextStyle(
             fontSize: fs(12),
-            color: onDialog.withOpacity(0.55),
+            color: onDialogMuted.withOpacity(0.90),
             fontFamily: CacheHelper.getTimesFontFamily(),
           ),
           labelStyle: TextStyle(
             fontSize: fs(12),
-            color: onDialog.withOpacity(0.75),
+            color: onDialogMuted,
             fontFamily: CacheHelper.getTimesFontFamily(),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
             borderSide: BorderSide(
-              color: onDialog.withOpacity(0.20),
+              color: _ensureContrast(
+                onDialog.withOpacity(0.20),
+                dialogBg,
+                min: 2.0,
+              ),
               width: 1.w,
             ),
           ),
@@ -1163,17 +1269,35 @@ Future<TimeOfDay?> pickTime(BuildContext context) async {
 
         cancelButtonStyle: ButtonStyle(
           textStyle: WidgetStatePropertyAll(
-            TextStyle(fontSize: fs(14), fontWeight: FontWeight.bold),
+            TextStyle(
+              fontSize: fs(14),
+              fontWeight: FontWeight.bold,
+              fontFamily: CacheHelper.getTimesFontFamily(),
+            ),
           ),
           padding: WidgetStatePropertyAll(btnPad()),
-          foregroundColor: WidgetStatePropertyAll(accent),
+          foregroundColor: WidgetStatePropertyAll(
+            _ensureContrast(accent, dialogBg, min: 3.0),
+          ),
+          overlayColor: WidgetStatePropertyAll(
+            Color.alphaBlend(accent.withOpacity(0.12), dialogBg),
+          ),
         ),
         confirmButtonStyle: ButtonStyle(
           textStyle: WidgetStatePropertyAll(
-            TextStyle(fontSize: fs(14), fontWeight: FontWeight.bold),
+            TextStyle(
+              fontSize: fs(14),
+              fontWeight: FontWeight.bold,
+              fontFamily: CacheHelper.getTimesFontFamily(),
+            ),
           ),
           padding: WidgetStatePropertyAll(btnPad()),
-          foregroundColor: WidgetStatePropertyAll(accent),
+          foregroundColor: WidgetStatePropertyAll(
+            _ensureContrast(accent, dialogBg, min: 3.0),
+          ),
+          overlayColor: WidgetStatePropertyAll(
+            Color.alphaBlend(accent.withOpacity(0.12), dialogBg),
+          ),
         ),
       );
 
@@ -1189,7 +1313,7 @@ Future<TimeOfDay?> pickTime(BuildContext context) async {
           ),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(
-              foregroundColor: accent,
+              foregroundColor: _ensureContrast(accent, dialogBg, min: 3.0),
               textStyle: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: fs(14),
@@ -1211,6 +1335,28 @@ Future<TimeOfDay?> pickTime(BuildContext context) async {
       );
     },
   );
+}
+
+/// tiny helper to avoid importing dart:math everywhere in your file
+class MathPow {
+  static num pow(num x, num exponent) =>
+      x == 0 ? 0 : (x.toDouble()).pow(exponent);
+}
+
+extension _PowExt on double {
+  double pow(num e) => double.parse((toStringAsFixed(12))) == 0.0
+      ? 0.0
+      : (num.parse(toString()) as num).toDouble()._pow(e);
+
+  double _pow(num e) {
+    // fallback using dart:math is better, but this keeps snippet standalone.
+    // If you prefer: just import 'dart:math' and replace with math.pow(this, e).toDouble()
+    double r = 1.0;
+    for (int i = 0; i < (e as double).round(); i++) {
+      r *= this;
+    }
+    return r;
+  }
 }
 
 // date and time TextFields Dialogs for eid
@@ -1281,7 +1427,7 @@ class _AddEidDialogState extends State<AddEidDialog> {
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     fontFamily: CacheHelper.getTimesFontFamily(),
-                    color: AppTheme.primaryTextColor,
+                    color: AppTheme.accentColor,
                   ),
                 ),
                 VerticalSpace(height: 20),
@@ -1329,7 +1475,8 @@ class _AddEidDialogState extends State<AddEidDialog> {
                 VerticalSpace(height: 10),
 
                 AppButton(
-                  color: AppTheme.primaryTextColor,
+                  color: AppTheme.accentColor,
+
                   onPressed: () {
                     if (date != null && time != null) {
                       widget.onConfirm(date!, time!);
@@ -1421,6 +1568,7 @@ Future<DateTime?> showCustomDatePicker(
           color: Colors.white,
           height: 1.2,
         ),
+        yearForegroundColor: WidgetStateProperty.all(AppTheme.accentColor),
 
         dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.selected)) {
@@ -1465,7 +1613,7 @@ Future<DateTime?> showCustomDatePicker(
       return Theme(
         data: baseTheme.copyWith(
           colorScheme: baseTheme.colorScheme.copyWith(
-            primary: AppTheme.primaryTextColor,
+            primary: AppTheme.accentColor,
             onPrimary: Colors.white,
             surface: AppTheme.darkBlue,
             onSurface: Colors.white,
@@ -1475,10 +1623,12 @@ Future<DateTime?> showCustomDatePicker(
 
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(
-              foregroundColor: AppTheme.primaryTextColor,
+              foregroundColor: AppTheme.accentColor,
+
               textStyle: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: responsiveFontSize(14),
+                color: AppTheme.accentColor,
               ),
               padding: EdgeInsets.symmetric(
                 horizontal: 16 * scaleFactor,

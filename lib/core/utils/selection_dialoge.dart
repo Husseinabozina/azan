@@ -2,6 +2,7 @@
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/country_option.dart';
 import 'package:azan/core/router/app_navigation.dart';
+import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/data/data/city_country_data.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -42,13 +43,13 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
     }).toList();
 
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.dialogBackgroundColor,
       insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Container(
         width: 1.sw - 70.w,
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
         decoration: BoxDecoration(
-          color: const Color(0xFF163A63),
+          color: AppTheme.dialogBackgroundColor,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.white.withOpacity(0.8), width: 4.w),
           boxShadow: [
@@ -76,7 +77,7 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFF4C66A),
+                          color: AppTheme.accentColor,
                         ),
                       ),
                     ),

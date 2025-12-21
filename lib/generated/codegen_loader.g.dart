@@ -257,7 +257,7 @@ static const Map<String,dynamic> _ar = {
   "enable_arabic_numbers": "تفعيل الارقام العربية",
   "notification_message_before_iqama": "رسالة التنبيه بالصوت عند اخر دقيقة قبل الاقامة (انقر لتغيير الرسالة)",
   "the_message": "الرسالة",
-  "please_turn_off_the_phone": "من فضلك افلق الهاتف",
+  "please_turn_off_the_phone": "من فضلك اغلق الهاتف",
   "edit_nofication_message": "تحرير رسالة التنبيه",
   "notification_message": "رسالة التنبيه",
   "set_fetr_eid_prayer": "ضبط وقت صلاة عيد الفطر",
