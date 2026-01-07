@@ -428,6 +428,9 @@ class AppCubit extends Cubit<AppState> {
   Future<void> getIqamaTime() async {
     emit(AppInitial());
     iqamaMinutes = await IqamaHiveHelper.loadIqamaMinutes(prayerCount: 6);
+    if (DateHelper.isFriday() && iqamaMinutes != null) {
+      iqamaMinutes![2] = CacheHelper.getFridayTime();
+    }
     emit(AppChanged());
   }
 

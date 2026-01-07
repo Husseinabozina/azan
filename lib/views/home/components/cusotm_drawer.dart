@@ -11,6 +11,7 @@ import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
+import 'package:azan/views/friday_prayer_settings/friday_prayer_settings_screen.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
 import 'package:azan/views/set_iqama/set_iqama_screen.dart';
@@ -146,6 +147,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     );
                                   },
                                 ),
+                                // DrawerListTile(
+                                //   r: r,
+                                //   title: LocaleKeys.friday_prayer_settings.tr(),
+                                //   onTap: () {
+                                //     AppNavigator.push(
+                                //       context,
+                                //       FridayPrayerSettingsScreen(),
+                                //     );
+                                //   },
+                                // ),
                                 DrawerListTile(
                                   r: r,
                                   title: LocaleKeys.set_iqama_azan_sound.tr(),
@@ -166,7 +177,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     );
                                   },
                                 ),
-
                                 DrawerListTile(
                                   r: r,
                                   title: LocaleKeys.change_screen_background
@@ -175,25 +185,50 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     await showChangeBackgroundDialog(
                                       context,
                                       backgrounds: [
+                                        // ====== القديم ======
                                         Assets.images.home.path,
-                                        Assets.images.backgroundLight.path,
-                                        Assets
-                                            .images
-                                            .backgroundBlueGreyGold
-                                            .path,
                                         Assets
                                             .images
                                             .backgroundBroundWithMosBird
                                             .path,
-                                        Assets.images.backgroundLight.path,
                                         Assets.images.backgroundLight2.path,
                                         Assets
                                             .images
                                             .backgroundOliveGreenWithMosq
                                             .path,
-                                        Assets.images.oilLampBackground.path,
+                                        Assets.images.backgroundGreenWith.path,
 
-                                        // زوّد الباقي
+                                        // ====== الجديد (اللي كنت ضايفه قبل كدا) ======
+                                        Assets.images.awesomeBackground.path,
+                                        Assets.images.awesome2.path,
+                                        Assets.images.darkBrownBackground.path,
+                                        Assets.images.lightBackground1.path,
+                                        Assets.images.lightBrownBackground.path,
+                                        Assets.images.brownBackground.path,
+                                        Assets.images.background2.path,
+                                        Assets
+                                            .images
+                                            .whiteBackgroundWithNaqsh
+                                            .path,
+
+                                        // ====== الجديد (اللي بعتهم دلوقتي) ======
+                                        Assets
+                                            .images
+                                            .elegantTealArabesqueBackground
+                                            .path,
+                                        Assets
+                                            .images
+                                            .elegantBurgundyArabesqueBackground
+                                            .path,
+                                        Assets
+                                            .images
+                                            .convinentOliveGreenBackground
+                                            .path,
+                                        Assets
+                                            .images
+                                            .convinentBeigeBackground
+                                            .path,
+                                        Assets.images.tealBlueBackground.path,
                                       ],
                                       currentBackground:
                                           CacheHelper.getSelectedBackground(),
@@ -204,8 +239,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                           );
                                         });
 
-                                        // احفظها في CacheHelper مثلاً وحدث الـ Cubit
-                                        // CacheHelper.saveData(key: 'current_bg', value: selectedPath);
+                                        // لو حابب تحدث Cubit كمان:
                                         // context.read<AppCubit>().changeBackground(selectedPath);
                                       },
                                     );
@@ -325,7 +359,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         // ),
                         // Spacer(),
                         Text(
-                          LocaleKeys.copy_right_for_sadja.tr(),
+                          LocaleKeys.developed_by_ifadh.tr(),
                           style: TextStyle(
                             fontSize: 15.sp,
                             color: AppTheme.primaryTextColor,

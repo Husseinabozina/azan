@@ -2,11 +2,14 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/models/diker.dart';
+import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/device_kind_helper.dart';
 import 'package:azan/generated/codegen_loader.g.dart';
+import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
+import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
@@ -24,7 +27,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   kind = await DeviceKindHelper.detectBeforeRunApp();
-  if (kind == DeviceKind.tv || kind == DeviceKind.desktop) {
+  if (kind == DeviceKind.tv ||
+      kind == DeviceKind.desktop ||
+      kind == DeviceKind.web ||
+      kind == DeviceKind.tablet) {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -72,7 +78,11 @@ class MyApp extends StatelessWidget {
     // return
 
     Widget widget = ScreenUtilInit(
-      designSize: kind == DeviceKind.tv || kind == DeviceKind.desktop
+      designSize:
+          kind == DeviceKind.tv ||
+              kind == DeviceKind.desktop ||
+              kind == DeviceKind.web ||
+              kind == DeviceKind.tablet
           ? Size(852, 393)
           : const Size(393, 852),
       minTextAdapt: true,
@@ -103,14 +113,25 @@ class MyApp extends StatelessWidget {
             builder: (_, child) {
               return child!;
             },
-            home: nextScreen,
+            home: AzanPrayerScreen(
+              nextPrayer: Prayer(
+                id: 1,
+                title: LocaleKeys.fajr.tr(),
+                time: '20:20',
+                dateTime: DateTime.now(),
+                time24: '20:20',
+              ),
+            ),
             // home: SetIqamaAzanSoundScreen(),
           ),
         );
       },
     );
 
-    if (kind == DeviceKind.tv || kind == DeviceKind.desktop) {
+    if (kind == DeviceKind.tv ||
+        kind == DeviceKind.desktop ||
+        kind == DeviceKind.web ||
+        kind == DeviceKind.tablet) {
       return RotatedBox(quarterTurns: 3, child: widget);
     } else {
       return widget;

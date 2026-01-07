@@ -14,12 +14,17 @@ import 'package:flutter/widgets.dart';
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
-  /// File path: assets/images/asr.png
-  AssetGenImage get asr => const AssetGenImage('assets/images/asr.png');
+  /// File path: assets/images/awesome_2.png
+  AssetGenImage get awesome2 =>
+      const AssetGenImage('assets/images/awesome_2.png');
 
-  /// File path: assets/images/background_blueGrey_gold.jpg
-  AssetGenImage get backgroundBlueGreyGold =>
-      const AssetGenImage('assets/images/background_blueGrey_gold.jpg');
+  /// File path: assets/images/awesome_background.png
+  AssetGenImage get awesomeBackground =>
+      const AssetGenImage('assets/images/awesome_background.png');
+
+  /// File path: assets/images/background_2.png
+  AssetGenImage get background2 =>
+      const AssetGenImage('assets/images/background_2.png');
 
   /// File path: assets/images/background_bround_with_mos_bird.png
   AssetGenImage get backgroundBroundWithMosBird =>
@@ -29,10 +34,6 @@ class $AssetsImagesGen {
   AssetGenImage get backgroundGreenWith =>
       const AssetGenImage('assets/images/background_green_with.jpg');
 
-  /// File path: assets/images/background_light.png
-  AssetGenImage get backgroundLight =>
-      const AssetGenImage('assets/images/background_light.png');
-
   /// File path: assets/images/background_light2.jpg
   AssetGenImage get backgroundLight2 =>
       const AssetGenImage('assets/images/background_light2.jpg');
@@ -41,45 +42,76 @@ class $AssetsImagesGen {
   AssetGenImage get backgroundOliveGreenWithMosq =>
       const AssetGenImage('assets/images/background_olive_green_with_mosq.png');
 
-  /// File path: assets/images/dhuhr.png
-  AssetGenImage get dhuhr => const AssetGenImage('assets/images/dhuhr.png');
+  /// File path: assets/images/brown_background.png
+  AssetGenImage get brownBackground =>
+      const AssetGenImage('assets/images/brown_background.png');
 
-  /// File path: assets/images/fajr.png
-  AssetGenImage get fajr => const AssetGenImage('assets/images/fajr.png');
+  /// File path: assets/images/convinent_beige_background.png
+  AssetGenImage get convinentBeigeBackground =>
+      const AssetGenImage('assets/images/convinent_beige_background.png');
+
+  /// File path: assets/images/convinent_olive_green_background.png
+  AssetGenImage get convinentOliveGreenBackground =>
+      const AssetGenImage('assets/images/convinent_olive_green_background.png');
+
+  /// File path: assets/images/dark_brown_background.png
+  AssetGenImage get darkBrownBackground =>
+      const AssetGenImage('assets/images/dark_brown_background.png');
+
+  /// File path: assets/images/elegant_burgundy_arabesque_background.png
+  AssetGenImage get elegantBurgundyArabesqueBackground => const AssetGenImage(
+    'assets/images/elegant_burgundy_arabesque_background.png',
+  );
+
+  /// File path: assets/images/elegant_teal_arabesque_background.png
+  AssetGenImage get elegantTealArabesqueBackground => const AssetGenImage(
+    'assets/images/elegant_teal_arabesque_background.png',
+  );
 
   /// File path: assets/images/home.png
   AssetGenImage get home => const AssetGenImage('assets/images/home.png');
 
-  /// File path: assets/images/maghrib.png
-  AssetGenImage get maghrib => const AssetGenImage('assets/images/maghrib.png');
+  /// File path: assets/images/light_background_1.png
+  AssetGenImage get lightBackground1 =>
+      const AssetGenImage('assets/images/light_background_1.png');
 
-  /// File path: assets/images/oil_lamp_background.jpg
-  AssetGenImage get oilLampBackground =>
-      const AssetGenImage('assets/images/oil_lamp_background.jpg');
+  /// File path: assets/images/light_brown_background.png
+  AssetGenImage get lightBrownBackground =>
+      const AssetGenImage('assets/images/light_brown_background.png');
 
   /// File path: assets/images/palastine.png
   AssetGenImage get palastine =>
       const AssetGenImage('assets/images/palastine.png');
 
-  /// File path: assets/images/sunrise.png
-  AssetGenImage get sunrise => const AssetGenImage('assets/images/sunrise.png');
+  /// File path: assets/images/teal_blue_background.png
+  AssetGenImage get tealBlueBackground =>
+      const AssetGenImage('assets/images/teal_blue_background.png');
+
+  /// File path: assets/images/white_background_with_naqsh.png
+  AssetGenImage get whiteBackgroundWithNaqsh =>
+      const AssetGenImage('assets/images/white_background_with_naqsh.png');
 
   /// List of all assets
   List<AssetGenImage> get values => [
-    asr,
-    backgroundBlueGreyGold,
+    awesome2,
+    awesomeBackground,
+    background2,
     backgroundBroundWithMosBird,
     backgroundGreenWith,
-    backgroundLight,
     backgroundLight2,
     backgroundOliveGreenWithMosq,
-    dhuhr,
-    fajr,
+    brownBackground,
+    convinentBeigeBackground,
+    convinentOliveGreenBackground,
+    darkBrownBackground,
+    elegantBurgundyArabesqueBackground,
+    elegantTealArabesqueBackground,
     home,
-    maghrib,
-    oilLampBackground,
+    lightBackground1,
+    lightBrownBackground,
     palastine,
-    sunrise,
+    tealBlueBackground,
+    whiteBackgroundWithNaqsh,
   ];
 }
 

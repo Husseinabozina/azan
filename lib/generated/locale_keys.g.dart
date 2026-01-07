@@ -17,7 +17,6 @@ abstract class  LocaleKeys {
   static const isha = 'isha';
   static const prayer = 'prayer';
   static const adhan = 'adhan';
-  static const iqama_time = 'iqama_time';
   static const select_mosque_location = 'select_mosque_location';
   static const options = 'options';
   static const edit_mosque_name = 'edit_mosque_name';
@@ -130,5 +129,13 @@ abstract class  LocaleKeys {
   static const copy_right_for_sadja = 'copy_right_for_sadja';
   static const loading = 'loading';
   static const date = 'date';
+  static const adhan_time = 'adhan_time';
+  static const iqama_time = 'iqama_time';
+  static const developed_by_ifadh = 'developed_by_ifadh';
+  static const friday_prayer_settings = 'friday_prayer_settings';
+  static const friday_sermon_time = 'friday_sermon_time';
+  static const time_between_adhan_and_iqama = 'time_between_adhan_and_iqama';
+  static const friday = 'friday';
+  static const adhan_ = 'adhan_';
 
 }

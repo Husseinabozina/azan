@@ -14,8 +14,6 @@
   "isha": "Isha",
   "prayer": "Prayer",
   "adhan": "Adhan",
-  "iqama_time": "Iqama time"
-  ,
     "select_mosque_location": "Select mosque location",
   "options": "Options",
   "edit_mosque_name": "Edit mosque name",
@@ -115,7 +113,7 @@
 "change_app_wallpaper":"Change app wallpaper"
 ,
 "choose_app_wallpaper":"Choose app wallpaper",
-"additional_settings":"Additional settings",
+"additional_settings":"Additional Options",
 "palestine_flag":"Palestinian flag",
 "enable_24_hours":"Enable 24 hours",
 "enable_full_time":"Enable full time",
@@ -144,5 +142,13 @@
 "disconnected":"Disconnected"
 ,"copy_right_for_sadja":"All rights reserved for Sadja © 2025."
 ,"loading":"Loading"
-,"date":"Date"
+,"date":"Date",
+"adhan_time":"Adhan time",
+"iqama_time":"Iqama time",
+"developed_by_ifadh":"Developed by Ifadh company",
+"friday_prayer_settings":"Friday prayer settings",
+"friday_sermon_time":"Friday sermon time"
+,"time_between_adhan_and_iqama":"Time between adhan and iqama",
+"friday":"Friday",
+"adhan_":"Adhan"
 }

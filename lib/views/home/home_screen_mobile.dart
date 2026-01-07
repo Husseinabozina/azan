@@ -341,21 +341,20 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                       ),
                                       Spacer(flex: 2),
 
-                                      Text(
-                                        context.locale.languageCode == 'en'
-                                            ? AppCubit.get(
-                                                context,
-                                              ).getCity()!.nameEn
-                                            : AppCubit.get(
-                                                context,
-                                              ).getCity()!.nameAr,
-                                        style: TextStyle(
-                                          fontSize: 14.sp,
-                                          color: AppTheme.secondaryTextColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-
+                                      // Text(
+                                      //   context.locale.languageCode == 'en'
+                                      //       ? AppCubit.get(
+                                      //           context,
+                                      //         ).getCity()!.nameEn
+                                      //       : AppCubit.get(
+                                      //           context,
+                                      //         ).getCity()!.nameAr,
+                                      //   style: TextStyle(
+                                      //     fontSize: 14.sp,
+                                      //     color: AppTheme.secondaryTextColor,
+                                      //     fontWeight: FontWeight.bold,
+                                      //   ),
+                                      // ),
                                       Spacer(flex: 1),
                                       SizedBox(
                                         height: 25.h,
@@ -835,7 +834,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                       withNoAscentAndDescent:
                                                           true,
                                                       width: 30.w,
-                                                      title: LocaleKeys.adhan
+                                                      title: LocaleKeys
+                                                          .adhan_time
                                                           .tr(),
                                                       fontSize: 16.sp,
                                                     ),
@@ -883,7 +883,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                   children: [
                                                     AzanTitleTile(
                                                       width: 30.w,
-                                                      title: LocaleKeys.iqama
+                                                      title: LocaleKeys
+                                                          .iqama_time
                                                           .tr(),
                                                       fontSize: 16.sp,
                                                       withNoAscentAndDescent:
@@ -956,6 +957,39 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                           maxFontSize: 20.sp,
                                           minFontSize: 11.sp,
                                         ),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 10.w,
+                                          right: 10.w,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              LocaleKeys.copy_right_for_sadja
+                                                  .tr(),
+                                              style: TextStyle(
+                                                fontSize: 15.sp,
+                                                color:
+                                                    AppTheme.primaryTextColor,
+                                              ),
+                                            ),
+                                            HorizontalSpace(width: 8),
+                                            Text(
+                                              'SA, ${AppCubit.get(context).getCity()!.nameEn}',
+                                              style: TextStyle(
+                                                fontSize: 15.sp,
+                                                color:
+                                                    AppTheme.primaryTextColor,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
                           ),
@@ -989,10 +1023,10 @@ class PrayerText extends StatelessWidget {
         fontSize: 23.sp,
         fontWeight: FontWeight.bold,
         color: CacheHelper.getIsPreviousPrayersDimmed()
-            ? AppTheme.primaryTextColor
-            : dimmed
-            ? AppTheme.primaryTextColor.withOpacity(0.4) // خافت
-            : AppTheme.primaryTextColor, // عادي
+            ? (dimmed
+                  ? AppTheme.primaryTextColor.withOpacity(0.4)
+                  : AppTheme.primaryTextColor)
+            : AppTheme.primaryTextColor,
       ),
     );
   }
@@ -1080,23 +1114,23 @@ class _AzkarSliderState extends State<AzkarSlider> {
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsetsDirectional.only(end: 5.w),
-            child: Column(
-              children: [
-                if (CacheHelper.getpalestinianFlag())
-                  Image.asset(
-                    Assets.images.palastine.path,
-                    width: 45.w,
-                    height: 45.h,
-                  ),
-                VerticalSpace(height: 5),
+          // Padding(
+          //   padding: EdgeInsetsDirectional.only(end: 5.w),
+          //   child: Column(
+          //     children: [
+          //       if (CacheHelper.getpalestinianFlag())
+          //         Image.asset(
+          //           Assets.images.palastine.path,
+          //           width: 45.w,
+          //           height: 45.h,
+          //         ),
+          //       VerticalSpace(height: 5),
 
-                if (CacheHelper.getEnableCheckInternetConnection())
-                  BottomStarHint(text: LocaleKeys.connected.tr()),
-              ],
-            ),
-          ),
+          //       if (CacheHelper.getEnableCheckInternetConnection())
+          //         BottomStarHint(text: LocaleKeys.connected.tr()),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );

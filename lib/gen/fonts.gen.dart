@@ -11,6 +11,21 @@
 class FontFamily {
   FontFamily._();
 
+  /// Font family: Foda
+  static const String foda = 'Foda';
+
+  /// Font family: FreeSpans
+  static const String freeSpans = 'FreeSpans';
+
+  /// Font family: Ksa
+  static const String ksa = 'Ksa';
+
+  /// Font family: Sultan
+  static const String sultan = 'Sultan';
+
+  /// Font family: Taha
+  static const String taha = 'Taha';
+
   /// Font family: Tajawal
   static const String tajawal = 'Tajawal';
 }

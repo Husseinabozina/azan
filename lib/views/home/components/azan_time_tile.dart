@@ -24,28 +24,30 @@ class AzanTitleTile extends StatelessWidget {
       children: [
         Container(
           // width: double.infinity,
-          width: 80.w,
+          // width: 80.w,
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(width: 2.w, color: AppTheme.primaryTextColor),
             ),
           ),
 
-          child: Center(
-            child: Text(
-              title,
-              textHeightBehavior: withNoAscentAndDescent == true
-                  ? TextHeightBehavior(
-                      applyHeightToFirstAscent: false,
-                      applyHeightToLastDescent: false,
-                    )
-                  : null,
-              style: TextStyle(
-                fontFamily: CacheHelper.getTimesFontFamily(),
-                height: withNoAscentAndDescent == true ? 1 : null,
-                fontSize: fontSize,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryTextColor,
+          child: FittedBox(
+            child: Center(
+              child: Text(
+                title,
+                textHeightBehavior: withNoAscentAndDescent == true
+                    ? TextHeightBehavior(
+                        applyHeightToFirstAscent: false,
+                        applyHeightToLastDescent: false,
+                      )
+                    : null,
+                style: TextStyle(
+                  fontFamily: CacheHelper.getTimesFontFamily(),
+                  height: withNoAscentAndDescent == true ? 1 : null,
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryTextColor,
+                ),
               ),
             ),
           ),
@@ -70,10 +72,10 @@ class AzanTimeText extends StatelessWidget {
         fontSize: 23.sp,
         fontWeight: FontWeight.bold,
         color: CacheHelper.getIsPreviousPrayersDimmed()
-            ? AppTheme.secondaryTextColor
-            : dimmed
-            ? AppTheme.secondaryTextColor.withOpacity(0.4) // خافت
-            : AppTheme.secondaryTextColor, // عادي
+            ? (dimmed
+                  ? AppTheme.primaryTextColor.withOpacity(0.4)
+                  : AppTheme.primaryTextColor)
+            : AppTheme.primaryTextColor, // عادي
       ),
     );
   }

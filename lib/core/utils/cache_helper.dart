@@ -53,6 +53,7 @@ class CacheHelper {
   static const _showAdhaEid = "_showAdhaEid";
   static const _enableCheckInternetConnection =
       "_enableCheckInternetConnection";
+  static const _fridayTime = "_friDayTime";
   /*************  ✨ Windsurf Command ⭐  *************/
   /// Initializes the SharedPreferences instance.
   ///
@@ -536,5 +537,17 @@ class CacheHelper {
 
   static removeEnableCheckInternetConnection() {
     sharedPreferences.remove(_enableCheckInternetConnection);
+  }
+
+  static setFridayTime(int value) async {
+    await sharedPreferences.setInt(_fridayTime, value);
+  }
+
+  static int getFridayTime() {
+    return sharedPreferences.getInt(_fridayTime) ?? 10;
+  }
+
+  static removeFridayTime() {
+    sharedPreferences.remove(_fridayTime);
   }
 }

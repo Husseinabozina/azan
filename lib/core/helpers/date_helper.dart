@@ -112,19 +112,21 @@ class DateHelper {
   }
 
   /// 🔹 جديد: فورمات 24 ساعة فقط
-  static String formatTime24h(TimeOfDay time) {
+  static String formatTime24h(TimeOfDay time, BuildContext context) {
     final String hourStr = time.hour.toString().padLeft(2, '0');
     final String minuteStr = time.minute.toString().padLeft(2, '0');
     final String raw = '$hourStr:$minuteStr';
 
-    return CacheHelper.getLang() == 'en' ? raw : toArabicDigits(raw);
+    return LocalizationHelper.isArAndArNumberEnable(context)
+        ? toArabicDigits(raw)
+        : raw;
   }
 
   /// 🔹 جديد: يختار بين 12 / 24 ساعة حسب إعداد المستخدم في CacheHelper
   static String formatTimeWithSettings(TimeOfDay time, BuildContext context) {
     final bool use24 =
         CacheHelper.getUse24HoursFormat(); // تأكد إن دي موجودة عندك
-    return use24 ? formatTime24h(time) : formatTime12h(time, context);
+    return use24 ? formatTime24h(time, context) : formatTime12h(time, context);
   }
 
   /// النسخة القديمة: دايمًا 12 ساعة
@@ -160,4 +162,13 @@ class DateHelper {
 
     return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
   }
+
+  static bool isFriday() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return today.weekday == 6;
+  }
 }
+
+ // if today is friday
+  

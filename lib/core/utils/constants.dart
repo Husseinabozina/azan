@@ -1,3 +1,4 @@
+import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -26,7 +27,7 @@ var kind;
 List<String> get prayers => [
   LocaleKeys.fajr.tr(),
   LocaleKeys.sunrise.tr(),
-  LocaleKeys.dhuhr.tr(),
+  DateHelper.isFriday() ? LocaleKeys.dhuhr.tr() : LocaleKeys.friday.tr(),
   LocaleKeys.asr.tr(),
   LocaleKeys.maghrib.tr(),
   LocaleKeys.isha.tr(),

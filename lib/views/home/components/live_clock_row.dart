@@ -73,7 +73,7 @@ class _LiveClockRowState extends State<LiveClockRow> {
     // ⏱ لو full time → hh:mm:ss / لو مش مفعّل → hh:mm
     final rawTime = showSeconds ? '$hStr:$mStr:$sStr' : '$hStr:$mStr';
 
-    return LocalizationHelper.isArabic(context)
+    return LocalizationHelper.isArAndArNumberEnable(context)
         ? DateHelper.toArabicDigits(rawTime)
         : DateHelper.toWesternDigits(rawTime);
   }

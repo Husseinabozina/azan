@@ -29,7 +29,6 @@ class CodegenLoader extends AssetLoader{
   "isha": "Isha",
   "prayer": "Prayer",
   "adhan": "Adhan",
-  "iqama_time": "Iqama time",
   "select_mosque_location": "Select mosque location",
   "options": "Options",
   "edit_mosque_name": "Edit mosque name",
@@ -113,7 +112,7 @@ class CodegenLoader extends AssetLoader{
   "pm": "PM",
   "change_app_wallpaper": "Change app wallpaper",
   "choose_app_wallpaper": "Choose app wallpaper",
-  "additional_settings": "Additional settings",
+  "additional_settings": "Additional Options",
   "palestine_flag": "Palestinian flag",
   "enable_24_hours": "Enable 24 hours",
   "enable_full_time": "Enable full time",
@@ -141,7 +140,15 @@ class CodegenLoader extends AssetLoader{
   "disconnected": "Disconnected",
   "copy_right_for_sadja": "All rights reserved for Sadja © 2025.",
   "loading": "Loading",
-  "date": "Date"
+  "date": "Date",
+  "adhan_time": "Adhan time",
+  "iqama_time": "Iqama time",
+  "developed_by_ifadh": "Developed by Ifadh company",
+  "friday_prayer_settings": "Friday prayer settings",
+  "friday_sermon_time": "Friday sermon time",
+  "time_between_adhan_and_iqama": "Time between adhan and iqama",
+  "friday": "Friday",
+  "adhan_": "Adhan"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -149,8 +156,8 @@ static const Map<String,dynamic> _ar = {
   "thursday": "الخميس",
   "second": "ثانية",
   "time_left_for_fajr": "المتبقي للفجر",
-  "am_label": "صباحا",
-  "pm_label": "مساءا",
+  "am_label": "صباحاً",
+  "pm_label": "مساءاً",
   "fajr": "الفجر",
   "sunrise": "الشروق",
   "dhuhr": "الظهر",
@@ -159,7 +166,6 @@ static const Map<String,dynamic> _ar = {
   "isha": "العشاء",
   "prayer": "الصلاة",
   "adhan": "الأذان",
-  "iqama_time": "الوقت للإقامة",
   "select_mosque_location": "اختيار موقع المسجد",
   "options": "خيارات",
   "edit_mosque_name": "تحرير اسم المسجد",
@@ -243,7 +249,7 @@ static const Map<String,dynamic> _ar = {
   "pm": "م",
   "change_app_wallpaper": "تغيير صورة الخلفية للتطبيق",
   "choose_app_wallpaper": "اختر الخلفية",
-  "additional_settings": "اعدادات إضافية",
+  "additional_settings": "خيارات إضافية",
   "palestine_flag": "علم فلسطين",
   "enable_24_hours": "تفعيل 24 ساعة",
   "enable_full_time": "تفعيل الساعة الكاملة ",
@@ -271,7 +277,15 @@ static const Map<String,dynamic> _ar = {
   "copy_right_for_sadja": "جميع الحقوق محفوظة لتطبيق سجدة © 2025.",
   "loading": "جاري التحميل",
   "check_your_internet_connection_the_star": "تحقق من الاتصال بالانترنت (النجمة أسفل الشاشة)",
-  "date": "التاريخ"
+  "date": "التاريخ",
+  "adhan_time": "وقت الأذان",
+  "iqama_time": "وقت الإقامة",
+  "developed_by_ifadh": "تطوير شركة إفادة للبرمجيات",
+  "friday_prayer_settings": "إعدادات صلاة الجمعة",
+  "friday_sermon_time": "وقت خطبة الجمعة",
+  "time_between_adhan_and_iqama": "الوقت بين أذان والاقامة",
+  "friday": "الجمعة",
+  "adhan_": "أذان"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en": _en, "ar": _ar};
 }
