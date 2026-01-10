@@ -11,9 +11,11 @@ import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/location_helper.dart';
 import 'package:azan/core/helpers/simple_sound_player.dart';
+import 'package:azan/core/models/next_Iqama.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/components/azan_time_tile.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
@@ -42,7 +44,6 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
   late AppCubit cubit;
 
-  String? hijriDate;
   late DateTime _lastDate;
 
   // ✅ الصوت
@@ -54,9 +55,25 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
   Timer? _timer;
   bool isloading = false;
+
+  void performAdhanActions(BuildContext context) {
+    if (cubit.prayerTimes == null) return;
+    final prayers = cubit.prayers(context); // List<Prayer>
+    for (final prayer in prayers) {
+      final int id = prayer.id; // 1..6
+      final DateTime? adhanTime = prayer.dateTime;
+      if (adhanTime == null) continue;
+      if (_isSameMinute(adhanTime, DateTime.now())) {
+        setState(() {
+          cubit.currentPrayer = prayer;
+          cubit.showPrayerAzanPage = true;
+        });
+      }
+    }
+  }
+
   Future<void> _assignHijriDate() async {
-    hijriDate = await cubit.getTodayHijriDate(context);
-    'ldjfkld'.log();
+    await cubit.getTodayHijriDate(context);
   }
 
   Future<void> homeScreenWork() async {
@@ -95,6 +112,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       // هنظبط دي في الحل رقم 2 (مش setState للشاشة كلها)
       setState(() {});
       _checkAndPlayPrayerSound(DateTime.now());
+      performAdhanActions(context);
 
       final now = DateTime.now();
       if (!_isSameDay(now, _lastDate)) {
@@ -147,7 +165,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     final iqamaSource = cubit.getIqamaSoundSource;
 
     for (final prayer in prayers) {
-      final int id = prayer.id; // 1..6
+      final int id = prayer.id;
       final DateTime? adhanTime = prayer.dateTime;
       if (adhanTime == null) continue;
 
@@ -155,6 +173,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
         _playedAdhanToday.add(id);
         _soundPlayer.playAdhanPing(azanSource);
+
+        // cubit.nextAdhan = prayer;
       }
 
       // 2️⃣ وقت الإقامة
@@ -162,6 +182,20 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
         final DateTime iqamaTime = adhanTime.add(
           Duration(minutes: iqamaMinutes[id - 1]),
         );
+        if (cubit.currentPrayer != null &&
+            cubit.nextPrayerVar!.dateTime != null &&
+            iqamaTime.isBefore(cubit.nextPrayerVar!.dateTime!) &&
+            iqamaTime.isAfter(cubit.currentPrayer!.dateTime!)) {
+          cubit.nextAdhan = NextAdhan(
+            title: cubit.nextPrayerVar!.title,
+            adhanType: AdhanType.iqamaa,
+          );
+        } else {
+          cubit.nextAdhan = NextAdhan(
+            title: cubit.nextPrayerVar?.title ?? '',
+            adhanType: AdhanType.adhan,
+          );
+        }
 
         if (!_playedIqamaToday.contains(id) && _isSameMinute(iqamaTime, now)) {
           _playedIqamaToday.add(id);
@@ -381,9 +415,9 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                         height: 25.h,
                                         child: FittedBox(
                                           child: Text(
-                                            hijriDate == null
+                                            cubit.hijriDate == null
                                                 ? "--:--"
-                                                : hijriDate!,
+                                                : cubit.hijriDate!,
                                             style: TextStyle(
                                               fontSize: 20.sp,
                                               fontWeight: FontWeight.bold,
@@ -504,6 +538,12 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                     context,
                                                   ),
                                                   builder: (context, asyncSnapshot) {
+                                                    if (asyncSnapshot.data !=
+                                                        null) {
+                                                      cubit.assignNextPrayerVar(
+                                                        asyncSnapshot.data,
+                                                      );
+                                                    }
                                                     return Column(
                                                       crossAxisAlignment:
                                                           CrossAxisAlignment
@@ -998,6 +1038,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                     );
                   },
                 ),
+                if (cubit.currentPrayer != null && cubit.showPrayerAzanPage)
+                  AzanPrayerScreen(currentPrayer: cubit.currentPrayer!),
               ],
             ),
           );

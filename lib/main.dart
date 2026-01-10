@@ -114,7 +114,7 @@ class MyApp extends StatelessWidget {
               return child!;
             },
             home: AzanPrayerScreen(
-              nextPrayer: Prayer(
+              currentPrayer: Prayer(
                 id: 1,
                 title: LocaleKeys.fajr.tr(),
                 time: '20:20',

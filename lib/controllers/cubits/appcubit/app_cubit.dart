@@ -11,6 +11,7 @@ import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/models/geo_location.dart';
 import 'package:azan/core/models/latlng.dart';
+import 'package:azan/core/models/next_Iqama.dart';
 import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/services/open_weather_service.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -35,6 +36,7 @@ class AppCubit extends Cubit<AppState> {
   final AzanDataSource azanDataSource = AzanDataSourceImpl(Dio());
 
   HomeScreenMobileState? homeScreenMobile;
+  String? hijriDate;
 
   Future<String?> getTodayHijriDate(BuildContext context) async {
     emit(AppInitial());
@@ -103,6 +105,7 @@ class AppCubit extends Cubit<AppState> {
       debugPrint('Hijri final formatted = $formatted');
 
       emit(AppChanged());
+      hijriDate = formatted;
       return formatted;
     } on DioException catch (e, st) {
       debugPrint('DioException in getTodayHijriDate: $e');
@@ -461,5 +464,22 @@ class AppCubit extends Cubit<AppState> {
     return CacheHelper.getIsIqamaAppTheme()
         ? Assets.sounds.alarmSound
         : Assets.sounds.iqama;
+  }
+
+  bool showPrayerAzanPage = false;
+  Prayer? currentPrayer;
+
+  void togglePrayerAzanPage() {
+    emit(AppChanged());
+    showPrayerAzanPage = !showPrayerAzanPage;
+    emit(AppInitial());
+  }
+
+  NextAdhan? nextAdhan;
+  Prayer? nextPrayerVar;
+  void assignNextPrayerVar(Prayer? prayer) {
+    emit(AppInitial());
+    nextPrayerVar = prayer;
+    emit(AppChanged());
   }
 }

@@ -46,6 +46,10 @@ class $AssetsImagesGen {
   AssetGenImage get brownBackground =>
       const AssetGenImage('assets/images/brown_background.png');
 
+  /// File path: assets/images/close phone.png
+  AssetGenImage get closePhone =>
+      const AssetGenImage('assets/images/close phone.png');
+
   /// File path: assets/images/convinent_beige_background.png
   AssetGenImage get convinentBeigeBackground =>
       const AssetGenImage('assets/images/convinent_beige_background.png');
@@ -101,6 +105,7 @@ class $AssetsImagesGen {
     backgroundLight2,
     backgroundOliveGreenWithMosq,
     brownBackground,
+    closePhone,
     convinentBeigeBackground,
     convinentOliveGreenBackground,
     darkBrownBackground,
