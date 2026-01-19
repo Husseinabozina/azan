@@ -11,9 +11,11 @@ import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/home_screen.dart';
+import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
+import 'package:azan/views/set_hide_screen/set_hide_screen.dart';
 import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -26,21 +28,19 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  kind = await DeviceKindHelper.detectBeforeRunApp();
-  if (kind == DeviceKind.tv ||
-      kind == DeviceKind.desktop ||
-      kind == DeviceKind.web ||
-      kind == DeviceKind.tablet) {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  } else {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-  }
+  // kind = await DeviceKindHelper.detectBeforeRunApp();
+  // if (kind == DeviceKind.tv ||
+  //     kind == DeviceKind.desktop ||
+  //     kind == DeviceKind.web ||
+  //     kind == DeviceKind.tablet) {
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+
+  // }
 
   await CacheHelper.init();
   if (!CacheHelper.getFirstAppOpen()) {
@@ -75,66 +75,42 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        final designSize = (orientation == Orientation.landscape)
+            ? const Size(960, 540)
+            : const Size(393, 852);
 
-    Widget widget = ScreenUtilInit(
-      designSize:
-          kind == DeviceKind.tv ||
-              kind == DeviceKind.desktop ||
-              kind == DeviceKind.web ||
-              kind == DeviceKind.tablet
-          ? Size(852, 393)
-          : const Size(393, 852),
-      minTextAdapt: true,
-      useInheritedMediaQuery: true,
-      splitScreenMode: true,
+        return ScreenUtilInit(
+          designSize: designSize,
+          minTextAdapt: true,
+          useInheritedMediaQuery: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return BlocProvider(
+              create: (context) => AppCubit(Dio()),
+              child: MaterialApp(
+                debugShowCheckedModeBanner: false,
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                localeResolutionCallback: (locale, supportedLocales) {
+                  return supportedLocales.firstWhere(
+                    (supportedLocale) =>
+                        supportedLocale.languageCode == locale!.languageCode,
+                    orElse: () => supportedLocales.first,
+                  );
+                },
 
-      builder: (context, child) {
-        return BlocProvider(
-          create: (context) => AppCubit(Dio()),
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
-            localeResolutionCallback: (locale, supportedLocales) {
-              return supportedLocales.firstWhere(
-                (supportedLocale) =>
-                    supportedLocale.languageCode == locale!.languageCode,
-                orElse: () => supportedLocales.first,
-              );
-            },
+                theme: ThemeData(fontFamily: CacheHelper.getTextsFontFamily()),
+                home: nextScreen(context),
 
-            theme: ThemeData(
-              fontFamily: CacheHelper.getTextsFontFamily(),
-
-              // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            ),
-            builder: (_, child) {
-              return child!;
-            },
-            home: AzanPrayerScreen(
-              currentPrayer: Prayer(
-                id: 1,
-                title: LocaleKeys.fajr.tr(),
-                time: '20:20',
-                dateTime: DateTime.now(),
-                time24: '20:20',
+                // 👈 مهم جدًا (مش Landscape/Mobile هنا)
               ),
-            ),
-            // home: SetIqamaAzanSoundScreen(),
-          ),
+            );
+          },
         );
       },
     );
-
-    if (kind == DeviceKind.tv ||
-        kind == DeviceKind.desktop ||
-        kind == DeviceKind.web ||
-        kind == DeviceKind.tablet) {
-      return RotatedBox(quarterTurns: 3, child: widget);
-    } else {
-      return widget;
-    }
   }
 }

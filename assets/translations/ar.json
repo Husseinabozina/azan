@@ -20,7 +20,7 @@
   "edit_mosque_announcements": "تحرير إعلانات المسجد",
   "change_screen_background": "تغيير خلفية الشاشة",
   "set_adhan_iqama_time": "ضبط وقت الأذان والإقامة",
-  "set_screen_hide_time": "ضبط إخفاء الشاشة",
+  "set_screen_hide": "ضبط إخفاء الشاشة",
   "view_adhkar": "استعراض الأذكار",
   "morning_evening_adhkar": "أذكار الصباح والمساء",
   "view_slides": "استعراض الشرائح",
@@ -156,5 +156,22 @@
 "time_between_adhan_and_iqama":"الوقت بين أذان والاقامة"
 , "friday":"الجمعة"
 ,"adhan_":"أذان"
+,"remaining_for_iqamaa":"الوقت المتبقي للاقامة"
+,
+"prayer_duration_for_hiding_screen":"مدة الصلاة لإخفاء الشاشة"
+,
+"show_time_on_black_screen":"اظهار الوقت على الشاشة السوداء"
+,
+"show_date_on_black_screen":"اظهار التاريخ على الشاشة السوداء"
+,
+"hide_screen_after_sunrise_by":"اخفاء الشاشة بعد الشروق بعد",
+"hide_screen_after_Ishaa_by":"اخفاء الشاشة بعد العشاء بعد"
+,"enable_hiding_screen_during_prayer":"تفعيل اخفاء الشاشة أثناء الصلاة"
+,"iqama_time_has_begun_now":"حان الآن وقت إقامة الصلاة",
+"prayer_is_currently_being_performed":"الصلاة قائمة",
+  "day": "اليوم",
+  "hijri_date": "التاريخ الهجري",
+  "gregorian_date": "التاريخ الميلادي",
+  "temp": "الحرارة"
 
 }

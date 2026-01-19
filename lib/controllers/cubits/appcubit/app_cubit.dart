@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:adhan/adhan.dart' as adhan;
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
@@ -7,6 +8,7 @@ import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/helpers/iqama_hive_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/location_helper.dart';
+import 'package:azan/core/helpers/prayer_duration_hive_helper.dart';
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/models/geo_location.dart';
@@ -19,6 +21,7 @@ import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -36,6 +39,7 @@ class AppCubit extends Cubit<AppState> {
   final AzanDataSource azanDataSource = AzanDataSourceImpl(Dio());
 
   HomeScreenMobileState? homeScreenMobile;
+  HomeScreenLandscapeState? homeScreenLandscape;
   String? hijriDate;
 
   Future<String?> getTodayHijriDate(BuildContext context) async {
@@ -445,6 +449,32 @@ class AppCubit extends Cubit<AppState> {
     } catch (e) {
       emit(saveIqamaTimesFailure());
     }
+  }
+
+  Future<void> savePrayerDurations(List<int> prayersDuration) async {
+    emit(savePrayerDurationLoading());
+    try {
+      await PrayerDurationHiveHelper.savePrayerDurations(prayersDuration);
+      emit(savePrayerDurationSuccess());
+    } catch (e) {
+      emit(savePrayerDurationFailure());
+    }
+  }
+
+  List<int>? prayersDuration;
+
+  Future<void> getPrayerDurations() async {
+    emit(AppInitial());
+    prayersDuration = await PrayerDurationHiveHelper.loadPrayerDurations(
+      prayerCount: 6,
+    );
+    emit(AppChanged());
+  }
+
+  int? currentPrayerDuration;
+  int getCurrentPrayerDuraion() {
+    currentPrayerDuration = prayersDuration![currentPrayer!.id - 1];
+    return currentPrayerDuration!;
   }
 
   List<Dhikr>? get todaysAdkar {

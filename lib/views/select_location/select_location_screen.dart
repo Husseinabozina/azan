@@ -15,6 +15,7 @@ import 'package:azan/core/utils/selection_dialoge.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
+import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +85,10 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                       onPressed: () {
                                         AppNavigator.pushAndRemoveUntil(
                                           context,
-                                          HomeScreenMobile(),
+                                          MediaQuery.of(context).orientation ==
+                                                  Orientation.landscape
+                                              ? const HomeScreenLandscape()
+                                              : HomeScreenMobile(),
                                         );
                                       },
                                       icon: Icon(
@@ -164,13 +168,19 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                       AppNavigator.pop(context);
                                       AppNavigator.pushAndRemoveUntil(
                                         context,
-                                        HomeScreenMobile(),
+                                        MediaQuery.of(context).orientation ==
+                                                Orientation.landscape
+                                            ? const HomeScreenLandscape()
+                                            : HomeScreenMobile(),
                                       );
                                     } else {
                                       AppNavigator.pop(context);
                                       AppNavigator.push(
                                         context,
-                                        HomeScreenMobile(),
+                                        MediaQuery.of(context).orientation ==
+                                                Orientation.landscape
+                                            ? const HomeScreenLandscape()
+                                            : HomeScreenMobile(),
                                       );
                                     }
                                   });

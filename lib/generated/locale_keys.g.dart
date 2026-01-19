@@ -23,7 +23,7 @@ abstract class  LocaleKeys {
   static const edit_mosque_announcements = 'edit_mosque_announcements';
   static const change_screen_background = 'change_screen_background';
   static const set_adhan_iqama_time = 'set_adhan_iqama_time';
-  static const set_screen_hide_time = 'set_screen_hide_time';
+  static const set_screen_hide = 'set_screen_hide';
   static const view_adhkar = 'view_adhkar';
   static const morning_evening_adhkar = 'morning_evening_adhkar';
   static const view_slides = 'view_slides';
@@ -137,5 +137,18 @@ abstract class  LocaleKeys {
   static const time_between_adhan_and_iqama = 'time_between_adhan_and_iqama';
   static const friday = 'friday';
   static const adhan_ = 'adhan_';
+  static const remaining_for_iqamaa = 'remaining_for_iqamaa';
+  static const prayer_duration_for_hiding_screen = 'prayer_duration_for_hiding_screen';
+  static const show_time_on_black_screen = 'show_time_on_black_screen';
+  static const show_date_on_black_screen = 'show_date_on_black_screen';
+  static const hide_screen_after_sunrise_by = 'hide_screen_after_sunrise_by';
+  static const hide_screen_after_Ishaa_by = 'hide_screen_after_Ishaa_by';
+  static const enable_hiding_screen_during_prayer = 'enable_hiding_screen_during_prayer';
+  static const iqama_time_has_begun_now = 'iqama_time_has_begun_now';
+  static const prayer_is_currently_being_performed = 'prayer_is_currently_being_performed';
+  static const day = 'day';
+  static const hijri_date = 'hijri_date';
+  static const gregorian_date = 'gregorian_date';
+  static const temp = 'temp';
 
 }

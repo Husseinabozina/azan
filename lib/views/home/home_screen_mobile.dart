@@ -12,6 +12,7 @@ import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/location_helper.dart';
 import 'package:azan/core/helpers/simple_sound_player.dart';
 import 'package:azan/core/models/next_Iqama.dart';
+import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -31,6 +32,7 @@ import 'package:flutter/material.dart' as material;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:azan/core/models/prayer.dart' as prayerModel;
 
 class HomeScreenMobile extends StatefulWidget {
   const HomeScreenMobile({super.key});
@@ -42,8 +44,7 @@ class HomeScreenMobile extends StatefulWidget {
 class HomeScreenMobileState extends State<HomeScreenMobile> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  late AppCubit cubit;
-
+  AppCubit get cubit => AppCubit.get(context);
   late DateTime _lastDate;
 
   // ✅ الصوت
@@ -53,64 +54,94 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   final Set<int> _playedAdhanToday = <int>{};
   final Set<int> _playedIqamaToday = <int>{};
 
-  Timer? _timer;
+  // ✅ Timers
+  Timer? _tickTimer; // كل ثانية للساعة/الصوت/فتح شاشة الأذان
+  Timer? _minuteTimer; // كل دقيقة لتحديث futures
+
+  // ✅ Futures (ما تتولدش في build)
+  Future<bool> _hideFuture = Future.value(false);
+  Future<prayerModel.Prayer?> _nextPrayerFuture = Future.value(null);
+
   bool isloading = false;
 
-  void performAdhanActions(BuildContext context) {
-    if (cubit.prayerTimes == null) return;
-    final prayers = cubit.prayers(context); // List<Prayer>
-    for (final prayer in prayers) {
-      final int id = prayer.id; // 1..6
-      final DateTime? adhanTime = prayer.dateTime;
-      if (adhanTime == null) continue;
-      if (_isSameMinute(adhanTime, DateTime.now())) {
-        setState(() {
-          cubit.currentPrayer = prayer;
-          cubit.showPrayerAzanPage = true;
-        });
-      }
-    }
-  }
+  // =========================
+  //  Helpers
+  // =========================
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  bool _isSameMinute(DateTime a, DateTime b) =>
+      a.year == b.year &&
+      a.month == b.month &&
+      a.day == b.day &&
+      a.hour == b.hour &&
+      a.minute == b.minute;
 
   Future<void> _assignHijriDate() async {
     await cubit.getTodayHijriDate(context);
   }
 
-  Future<void> homeScreenWork() async {
-    if (!mounted) return;
-    setState(() => isloading = true);
+  void _onNewDay() {
+    _playedAdhanToday.clear();
+    _playedIqamaToday.clear();
 
-    cubit = AppCubit.get(context);
-    _lastDate = DateTime.now();
-
-    final city = cubit.getCity()?.nameEn ?? '';
-
-    // ✅ 1) استنى الحاجات الأساسية بس
-    await Future.wait([
-      cubit.getIqamaTime(),
-      cubit.initializePrayerTimes(city: city, context: context),
-    ]);
-
-    if (!mounted) return;
-    setState(() => isloading = false);
-
-    // ✅ 2) الباقي اشتغله في الخلفية (من غير ما يوقف الواجهة)
-    unawaited(_assignHijriDate());
-    unawaited(cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city));
-    unawaited(cubit.assignAdhkar());
-
-    _startTick();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      _initDayData();
+    });
   }
 
-  void _startTick() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+  void _initDayData() {
+    unawaited(_assignHijriDate());
+
+    final city = cubit.getCity()?.nameEn ?? '';
+    unawaited(cubit.initializePrayerTimes(city: city, context: context));
+    unawaited(cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city));
+    unawaited(cubit.getIqamaTime());
+    unawaited(cubit.assignAdhkar());
+
+    // بعد تحديثات اليوم (حتى لو async)، جدّد الـ futures
+    _refreshMinuteFutures();
+  }
+
+  // =========================
+  //  Minute refresh (futures)
+  // =========================
+
+  void _refreshMinuteFutures() {
+    // ⚠️ لازم cubit يكون متعين + prayerTimes تكون جاهزة
+    _hideFuture = isAfterFixedTimeForIshaaOrSunrise(context: context);
+
+    _nextPrayerFuture = cubit.nextPrayer(context).then((p) {
+      // ✅ حدث nextPrayerVar هنا خارج build (من غير emit) عشان كود الإقامة بتاعك
+      cubit.nextPrayerVar = p;
+      return p;
+    });
+  }
+
+  // =========================
+  //  Timers
+  // =========================
+
+  void _startTimers() {
+    _tickTimer?.cancel();
+    _minuteTimer?.cancel();
+
+    // ✅ أول مرة قبل ما التايمرز تبدأ
+    _refreshMinuteFutures();
+
+    // ✅ كل ثانية: ساعة + صوت + دخول شاشة الأذان + check day rollover
+    _tickTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
         t.cancel();
         return;
       }
-      // هنظبط دي في الحل رقم 2 (مش setState للشاشة كلها)
-      setState(() {});
+
+      setState(
+        () {},
+      ); // لو عايز الساعة تتحرك وكل الواجهة تتبني (ممكن نخففها بعدين)
+
       _checkAndPlayPrayerSound(DateTime.now());
       performAdhanActions(context);
 
@@ -120,6 +151,44 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
         _onNewDay();
       }
     });
+
+    // ✅ كل دقيقة: حدّث futures مرة واحدة
+    _minuteTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        _refreshMinuteFutures();
+      });
+    });
+  }
+
+  // =========================
+  //  Main work
+  // =========================
+
+  Future<void> homeScreenWork() async {
+    if (!mounted) return;
+    setState(() => isloading = true);
+
+    _lastDate = DateTime.now();
+
+    final city = cubit.getCity()?.nameEn ?? '';
+
+    // ✅ استنى الأساسيات فقط
+    await Future.wait([
+      cubit.getIqamaTime(),
+      cubit.initializePrayerTimes(city: city, context: context),
+    ]);
+
+    if (!mounted) return;
+    setState(() => isloading = false);
+
+    // ✅ الباقي في الخلفية
+    unawaited(_assignHijriDate());
+    unawaited(cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city));
+    unawaited(cubit.assignAdhkar());
+
+    // ✅ شغل التايمرز بعد ما الأساسيات خلصت
+    _startTimers();
   }
 
   @override
@@ -129,38 +198,32 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     homeScreenWork();
   }
 
-  void _initDayData() {
-    _assignHijriDate();
+  // =========================
+  //  Actions you already have
+  // =========================
 
-    final city = cubit.getCity()?.nameEn ?? '';
+  void performAdhanActions(BuildContext context) {
+    if (cubit.prayerTimes == null) return;
 
-    cubit.initializePrayerTimes(city: city, context: context);
+    final prayers = cubit.prayers(context);
+    for (final prayer in prayers) {
+      final DateTime? adhanTime = prayer.dateTime;
+      if (adhanTime == null) continue;
 
-    cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city);
-    cubit.getIqamaTime();
-    cubit.assignAdhkar();
+      if (_isSameMinute(adhanTime, DateTime.now())) {
+        setState(() {
+          cubit.currentPrayer = prayer;
+          cubit.showPrayerAzanPage = true;
+        });
+      }
+    }
   }
 
-  void _onNewDay() {
-    // يوم جديد → نظّف ال flags وحدث المواقيت
-    _playedAdhanToday.clear();
-    _playedIqamaToday.clear();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _initDayData();
-    });
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-
-  /// ✅ دي الدالة اللي بتشيّك كل ثانية: هل دخلنا على دقيقة الأذان أو الإقامة؟
   void _checkAndPlayPrayerSound(DateTime now) {
     if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
 
-    final prayers = cubit.prayers(context); // List<Prayer>
-    final iqamaMinutes = cubit.iqamaMinutes!; // طولها 6 بإذن الله
-
+    final prayers = cubit.prayers(context);
+    final iqamaMinutes = cubit.iqamaMinutes!;
     final azanSource = cubit.getAzanSoundSource;
     final iqamaSource = cubit.getIqamaSoundSource;
 
@@ -173,8 +236,6 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
         _playedAdhanToday.add(id);
         _soundPlayer.playAdhanPing(azanSource);
-
-        // cubit.nextAdhan = prayer;
       }
 
       // 2️⃣ وقت الإقامة
@@ -182,10 +243,15 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
         final DateTime iqamaTime = adhanTime.add(
           Duration(minutes: iqamaMinutes[id - 1]),
         );
-        if (cubit.currentPrayer != null &&
-            cubit.nextPrayerVar!.dateTime != null &&
-            iqamaTime.isBefore(cubit.nextPrayerVar!.dateTime!) &&
-            iqamaTime.isAfter(cubit.currentPrayer!.dateTime!)) {
+
+        // ✅ حماية من null بدل nextPrayerVar!
+        final nextVarTime = cubit.nextPrayerVar?.dateTime;
+        final currentTime = cubit.currentPrayer?.dateTime;
+
+        if (currentTime != null &&
+            nextVarTime != null &&
+            iqamaTime.isBefore(nextVarTime) &&
+            iqamaTime.isAfter(currentTime)) {
           cubit.nextAdhan = NextAdhan(
             title: cubit.nextPrayerVar!.title,
             adhanType: AdhanType.iqamaa,
@@ -205,19 +271,50 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     }
   }
 
-  /// مقارنة بالدقيقة بدون ثواني
-  /// مقارنة بالدقيقة بدون ثواني
-  bool _isSameMinute(DateTime a, DateTime b) {
-    return a.year == b.year &&
-        a.month == b.month &&
-        a.day == b.day &&
-        a.hour == b.hour &&
-        a.minute == b.minute;
+  // =========================
+  //  Your hide logic (as-is)
+  // =========================
+
+  Future<bool> isAfterFixedTimeForIshaaOrSunrise({
+    required BuildContext context,
+    Duration stopBeforeNextPrayerBy = const Duration(hours: 2),
+  }) async {
+    if (cubit.currentPrayer == null) return false;
+
+    final prayer = cubit.currentPrayer;
+    final prayerTime = prayer?.dateTime;
+    if (prayer == null || prayerTime == null) return false;
+
+    const ishaaId = 6;
+    const sunriseId = 2;
+
+    final int offsetMinutes;
+    if (prayer.id == ishaaId) {
+      offsetMinutes = CacheHelper.getHideScreenAfterIshaaMinutes();
+    } else if (prayer.id == sunriseId) {
+      offsetMinutes = CacheHelper.getHideScreenAfterSunriseMinutes();
+    } else {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final start = prayerTime.add(Duration(minutes: offsetMinutes));
+    if (now.isBefore(start)) return false;
+
+    final next = await cubit.nextPrayer(context);
+    final nextTime = next?.dateTime;
+    if (nextTime == null) return true;
+
+    final end = nextTime.subtract(stopBeforeNextPrayerBy);
+    if (!end.isAfter(start)) return false;
+
+    return now.isBefore(end);
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _tickTimer?.cancel();
+    _minuteTimer?.cancel();
     _soundPlayer.dispose();
     super.dispose();
   }
@@ -390,18 +487,38 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                       //   ),
                                       // ),
                                       Spacer(flex: 1),
-                                      SizedBox(
-                                        height: 25.h,
-                                        child: FittedBox(
-                                          child: Text(
-                                            LocalizationHelper.isArabic(context)
-                                                ? DateTime.now().weekdayNameAr
-                                                : DateTime.now().weekday
-                                                      .toWeekDay(),
-                                            style: TextStyle(
-                                              fontSize: 20.sp, // from height h
-                                              fontWeight: FontWeight.bold,
-                                              color: AppTheme.primaryTextColor,
+                                      GestureDetector(
+                                        onTap: () {
+                                          if (cubit.nextPrayerVar == null)
+                                            return;
+                                          AppNavigator.push(
+                                            context,
+                                            AzanPrayerScreen(
+                                              currentPrayer: cubit
+                                                  .nextPrayerVar!
+                                                  .copywith(
+                                                    dateTime: DateTime.now(),
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                        child: SizedBox(
+                                          height: 25.h,
+                                          child: FittedBox(
+                                            child: Text(
+                                              LocalizationHelper.isArabic(
+                                                    context,
+                                                  )
+                                                  ? DateTime.now().weekdayNameAr
+                                                  : DateTime.now().weekday
+                                                        .toWeekDay(),
+                                              style: TextStyle(
+                                                fontSize:
+                                                    20.sp, // from height h
+                                                fontWeight: FontWeight.bold,
+                                                color:
+                                                    AppTheme.primaryTextColor,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -533,17 +650,15 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                 ),
                                               ),
                                               FittedBox(
-                                                child: FutureBuilder(
-                                                  future: cubit.nextPrayer(
-                                                    context,
-                                                  ),
+                                                child: FutureBuilder<prayerModel.Prayer?>(
+                                                  future: _nextPrayerFuture,
                                                   builder: (context, asyncSnapshot) {
-                                                    if (asyncSnapshot.data !=
-                                                        null) {
-                                                      cubit.assignNextPrayerVar(
-                                                        asyncSnapshot.data,
-                                                      );
-                                                    }
+                                                    // if (asyncSnapshot.data !=
+                                                    //     null) {
+                                                    //   cubit.assignNextPrayerVar(
+                                                    //     asyncSnapshot.data,
+                                                    //   );
+                                                    // }
                                                     return Column(
                                                       crossAxisAlignment:
                                                           CrossAxisAlignment
@@ -599,6 +714,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                       .secondaryTextColor,
                                                           ),
                                                         ),
+
                                                         Text(
                                                           LocalizationHelper.isArabic(
                                                                 context,
@@ -1019,7 +1135,10 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                             ),
                                             HorizontalSpace(width: 8),
                                             Text(
-                                              'SA, ${AppCubit.get(context).getCity()!.nameEn}',
+                                              AppCubit.get(context).getCity() !=
+                                                      null
+                                                  ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
+                                                  : "",
                                               style: TextStyle(
                                                 fontSize: 15.sp,
                                                 color:
@@ -1038,8 +1157,48 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                     );
                   },
                 ),
-                if (cubit.currentPrayer != null && cubit.showPrayerAzanPage)
-                  AzanPrayerScreen(currentPrayer: cubit.currentPrayer!),
+
+                // if (cubit.currentPrayer != null && cubit.showPrayerAzanPage)
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 1500),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, anim) =>
+                      FadeTransition(opacity: anim, child: child),
+                  child:
+                      (cubit.currentPrayer != null && cubit.showPrayerAzanPage)
+                      ? AzanPrayerScreen(
+                          key: const ValueKey('azan-test'),
+                          currentPrayer: cubit.currentPrayer!,
+                        )
+                      : SizedBox.shrink(),
+                ),
+                FutureBuilder<bool>(
+                  future: _hideFuture,
+                  builder: (context, snapshot) {
+                    final shouldHide = snapshot.data == true;
+
+                    // لو لسه بيحمّل أو الشرط مش متحقق أو الفيتشر مقفولة
+                    if (!CacheHelper.getHideScreenAfterIshaaEnabled() ||
+                        !shouldHide) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 1500),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, anim) =>
+                          FadeTransition(opacity: anim, child: child),
+                      child: Container(
+                        key: const ValueKey('black_screen'),
+                        height: 1.sh,
+                        width: 1.sw,
+                        color: Colors.black,
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           );

@@ -20,7 +20,7 @@
   "edit_mosque_announcements": "Edit mosque announcements",
   "change_screen_background": "Change screen background",
   "set_adhan_iqama_time": "Set Adhan & Iqama time",
-  "set_screen_hide_time": "Set screen hide time",
+  "set_screen_hide": "Set screen hide time",
   "view_adhkar": "View Adhkar",
   "morning_evening_adhkar": "Morning & evening Adhkar",
   "view_slides": "View slides",
@@ -150,5 +150,20 @@
 "friday_sermon_time":"Friday sermon time"
 ,"time_between_adhan_and_iqama":"Time between adhan and iqama",
 "friday":"Friday",
-"adhan_":"Adhan"
+"adhan_":"Adhan",
+"remaining_for_iqamaa":"Remaining for iqamaa",
+"prayer_duration_for_hiding_screen":"Prayer duration for hiding screen",
+"show_time_on_black_screen":"Show time on black screen",
+"show_date_on_black_screen":"Show date on black screen",
+"hide_screen_after_sunrise_by":"Hide screen after sunrise after",
+"hide_screen_after_Ishaa_by":"Hide screen after Ishaa after"
+,
+"enable_hiding_screen_during_prayer":"Enable hiding screen during prayer"
+,
+"iqama_time_has_begun_now":"Iqama time has begun now",
+"prayer_is_currently_being_performed":"Prayer is currently being performed",
+  "day": "Day",
+  "hijri_date": "Hijri Date",
+  "gregorian_date": "Gregorian Date",
+  "temp": "Temperature"
 }

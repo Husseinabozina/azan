@@ -35,7 +35,7 @@ class CodegenLoader extends AssetLoader{
   "edit_mosque_announcements": "Edit mosque announcements",
   "change_screen_background": "Change screen background",
   "set_adhan_iqama_time": "Set Adhan & Iqama time",
-  "set_screen_hide_time": "Set screen hide time",
+  "set_screen_hide": "Set screen hide time",
   "view_adhkar": "View Adhkar",
   "morning_evening_adhkar": "Morning & evening Adhkar",
   "view_slides": "View slides",
@@ -148,7 +148,20 @@ class CodegenLoader extends AssetLoader{
   "friday_sermon_time": "Friday sermon time",
   "time_between_adhan_and_iqama": "Time between adhan and iqama",
   "friday": "Friday",
-  "adhan_": "Adhan"
+  "adhan_": "Adhan",
+  "remaining_for_iqamaa": "Remaining for iqamaa",
+  "prayer_duration_for_hiding_screen": "Prayer duration for hiding screen",
+  "show_time_on_black_screen": "Show time on black screen",
+  "show_date_on_black_screen": "Show date on black screen",
+  "hide_screen_after_sunrise_by": "Hide screen after sunrise after",
+  "hide_screen_after_Ishaa_by": "Hide screen after Ishaa after",
+  "enable_hiding_screen_during_prayer": "Enable hiding screen during prayer",
+  "iqama_time_has_begun_now": "Iqama time has begun now",
+  "prayer_is_currently_being_performed": "Prayer is currently being performed",
+  "day": "Day",
+  "hijri_date": "Hijri Date",
+  "gregorian_date": "Gregorian Date",
+  "temp": "Temperature"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -172,7 +185,7 @@ static const Map<String,dynamic> _ar = {
   "edit_mosque_announcements": "تحرير إعلانات المسجد",
   "change_screen_background": "تغيير خلفية الشاشة",
   "set_adhan_iqama_time": "ضبط وقت الأذان والإقامة",
-  "set_screen_hide_time": "ضبط إخفاء الشاشة",
+  "set_screen_hide": "ضبط إخفاء الشاشة",
   "view_adhkar": "استعراض الأذكار",
   "morning_evening_adhkar": "أذكار الصباح والمساء",
   "view_slides": "استعراض الشرائح",
@@ -285,7 +298,20 @@ static const Map<String,dynamic> _ar = {
   "friday_sermon_time": "وقت خطبة الجمعة",
   "time_between_adhan_and_iqama": "الوقت بين أذان والاقامة",
   "friday": "الجمعة",
-  "adhan_": "أذان"
+  "adhan_": "أذان",
+  "remaining_for_iqamaa": "الوقت المتبقي للاقامة",
+  "prayer_duration_for_hiding_screen": "مدة الصلاة لإخفاء الشاشة",
+  "show_time_on_black_screen": "اظهار الوقت على الشاشة السوداء",
+  "show_date_on_black_screen": "اظهار التاريخ على الشاشة السوداء",
+  "hide_screen_after_sunrise_by": "اخفاء الشاشة بعد الشروق بعد",
+  "hide_screen_after_Ishaa_by": "اخفاء الشاشة بعد العشاء بعد",
+  "enable_hiding_screen_during_prayer": "تفعيل اخفاء الشاشة أثناء الصلاة",
+  "iqama_time_has_begun_now": "حان الآن وقت إقامة الصلاة",
+  "prayer_is_currently_being_performed": "الصلاة قائمة",
+  "day": "اليوم",
+  "hijri_date": "التاريخ الهجري",
+  "gregorian_date": "التاريخ الميلادي",
+  "temp": "الحرارة"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en": _en, "ar": _ar};
 }

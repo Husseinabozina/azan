@@ -10,10 +10,10 @@ class CustomCheckbox extends StatelessWidget {
   final double size;
 
   /// لون البوردر لما يكون مش متعلم
-  final Color borderColor;
+  final Color? borderColor;
 
   /// لون الباكجراوند لما يكون متعلم
-  final Color activeColor;
+  final Color? activeColor;
 
   /// سمك البوردر
   final double? borderWidth;
@@ -26,8 +26,8 @@ class CustomCheckbox extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.size = 22, // تقدر تغيره من برة
-    this.borderColor = Colors.grey,
-    this.activeColor = Colors.blue,
+    this.borderColor,
+    this.activeColor,
     this.borderWidth,
     this.borderRadius,
   });
@@ -43,10 +43,14 @@ class CustomCheckbox extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
-            color: value ? activeColor : AppTheme.secondaryTextColor,
+            color: value
+                ? activeColor ?? AppTheme.accentColor
+                : AppTheme.secondaryTextColor,
             borderRadius: BorderRadius.circular(borderRadius ?? 5.r),
             border: Border.all(
-              color: value ? activeColor : borderColor,
+              color: value
+                  ? activeColor ?? AppTheme.accentColor
+                  : borderColor ?? AppTheme.secondaryTextColor,
               width: borderWidth ?? 1.w,
             ),
           ),

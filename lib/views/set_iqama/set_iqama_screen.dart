@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/core/components/appbutton.dart';
@@ -5,22 +6,19 @@ import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
-import 'package:azan/core/helpers/iqama_hive_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
-import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
-import 'package:azan/views/home/components/azan_time_tile.dart';
+import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class SetIqamaScreen extends StatefulWidget {
   const SetIqamaScreen({super.key});
@@ -42,6 +40,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
     iqamaMinutes = List<int>.filled(prayers.length, 10);
 
     appCubit.getIqamaTime().then((_) {
+      if (!mounted) return;
       setState(() {
         if (appCubit.iqamaMinutes != null &&
             appCubit.iqamaMinutes!.isNotEmpty) {
@@ -49,9 +48,6 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
         }
       });
     });
-
-    // ع${LocaleKeys.min.tr()}${LocaleKeys.min.tr()} العناصر = ع${LocaleKeys.min.tr()}${LocaleKeys.min.tr()} الصلوات
-    // مب${LocaleKeys.min.tr()}ئياً 10 ${LocaleKeys.min.tr()}قايق لكل صلاة (ع${LocaleKeys.min.tr()}ّل براحتك أو حمّلها من cubit بع${LocaleKeys.min.tr()}ين)
   }
 
   Future<void> _editIqamaMinutes(int index) async {
@@ -89,23 +85,17 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                     ),
                   ),
                   SizedBox(height: 16.h),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // زرار -
                       IconButton(
                         onPressed: () {
                           if (localValue > 0) {
-                            setStateDialog(() {
-                              localValue -= 1;
-                            });
+                            setStateDialog(() => localValue -= 1);
                           }
                         },
                         icon: Icon(Icons.remove, color: AppTheme.accentColor),
                       ),
-
-                      // القيمة الحالية
                       Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 16.w,
@@ -128,22 +118,15 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           ),
                         ),
                       ),
-
-                      // زرار +
                       IconButton(
                         onPressed: () {
-                          setStateDialog(() {
-                            localValue += 1;
-                          });
+                          setStateDialog(() => localValue += 1);
                         },
                         icon: Icon(Icons.add, color: AppTheme.accentColor),
                       ),
                     ],
                   ),
-
                   SizedBox(height: 8.h),
-
-                  // اختيارات سريعة زي 5، 10، 15... الخ
                   Wrap(
                     spacing: 8.w,
                     runSpacing: 8.h,
@@ -163,9 +146,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                             ),
                             selected: localValue == v,
                             onSelected: (_) {
-                              setStateDialog(() {
-                                localValue = v;
-                              });
+                              setStateDialog(() => localValue = v);
                             },
                           ),
                         )
@@ -188,9 +169,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(localValue);
-              },
+              onPressed: () => Navigator.of(context).pop(localValue),
               child: Text(
                 LocaleKeys.common_ok.tr(),
                 style: TextStyle(
@@ -206,12 +185,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
     );
 
     if (result != null && mounted) {
-      setState(() {
-        iqamaMinutes[index] = result;
-      });
-
-      // ولو حابب تحفظ في الكيوبِت:
-      // appCubit.setIqamaMinutesForPrayer(index, result);
+      setState(() => iqamaMinutes[index] = result);
     }
   }
 
@@ -250,23 +224,17 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                     ),
                   ),
                   SizedBox(height: 16.h),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // زرار -
                       IconButton(
                         onPressed: () {
                           if (localValue > 0) {
-                            setStateDialog(() {
-                              localValue -= 1;
-                            });
+                            setStateDialog(() => localValue -= 1);
                           }
                         },
                         icon: Icon(Icons.remove, color: AppTheme.accentColor),
                       ),
-
-                      // القيمة الحالية
                       Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 16.w,
@@ -289,22 +257,15 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           ),
                         ),
                       ),
-
-                      // زرار +
                       IconButton(
                         onPressed: () {
-                          setStateDialog(() {
-                            localValue += 1;
-                          });
+                          setStateDialog(() => localValue += 1);
                         },
                         icon: Icon(Icons.add, color: AppTheme.accentColor),
                       ),
                     ],
                   ),
-
                   SizedBox(height: 8.h),
-
-                  // اختيارات سريعة زي 5، 10، 15... الخ
                   Wrap(
                     spacing: 8.w,
                     runSpacing: 8.h,
@@ -323,11 +284,8 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                               ),
                             ),
                             selected: localValue == v,
-                            onSelected: (_) {
-                              setStateDialog(() {
-                                localValue = v;
-                              });
-                            },
+                            onSelected: (_) =>
+                                setStateDialog(() => localValue = v),
                           ),
                         )
                         .toList(),
@@ -349,9 +307,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(localValue);
-              },
+              onPressed: () => Navigator.of(context).pop(localValue),
               child: Text(
                 LocaleKeys.common_ok.tr(),
                 style: TextStyle(
@@ -367,20 +323,25 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
     );
 
     if (result != null && mounted) {
-      setState(() {
-        friDaySermonMinutes = result;
-
-        // iqamaMinutes[index] = result;
-      });
-
-      // ولو حابب تحفظ في الكيوبِت:
-      // appCubit.setIqamaMinutesForPrayer(index, result);
+      setState(() => friDaySermonMinutes = result);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final prayersData = appCubit.prayers(context);
+    final bool hasTimes = prayersData.isNotEmpty && prayersData[0].time != null;
+
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final screenW = MediaQuery.of(context).size.width;
+
+    // ✅ width responsive بدل 100.w
+    final double colW = isLandscape ? (screenW * 0.18) : 100.w;
+
+    // ✅ Header font responsive
+    final double headerFont = isLandscape ? 16.sp : 14.sp;
+
     return Scaffold(
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {
@@ -408,7 +369,10 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                 fit: BoxFit.fill,
               ),
 
-              if (appCubit.prayers(context)[0].time == null)
+              // =========================
+              //  NO TIMES UI (as-is)
+              // =========================
+              if (!hasTimes)
                 PositionedDirectional(
                   top: 40.h,
                   start: 32.w,
@@ -420,7 +384,10 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                         onPressed: () {
                           AppNavigator.pushAndRemoveUntil(
                             context,
-                            HomeScreenMobile(),
+                            MediaQuery.of(context).orientation ==
+                                    Orientation.landscape
+                                ? const HomeScreenLandscape()
+                                : HomeScreenMobile(),
                           );
                         },
                         icon: Icon(
@@ -429,11 +396,8 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           size: 35.r,
                         ),
                       ),
-
                       IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                        onPressed: () => Navigator.pop(context),
                         icon: Icon(
                           Icons.menu,
                           color: AppTheme.primaryTextColor,
@@ -444,10 +408,9 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                   ),
                 ),
 
-              if (appCubit.prayers(context)[0].time == null)
+              if (!hasTimes)
                 Positioned(
                   top: .4.sh,
-                  // bottom: 50.h,
                   right: .10.sw,
                   left: .10.sw,
                   child: Center(
@@ -456,7 +419,6 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                         Text(
                           LocaleKeys.no_prayer_times.tr(),
                           textAlign: TextAlign.center,
-
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
@@ -468,7 +430,6 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           color: AppTheme.primaryTextColor,
                           child: Text(
                             LocaleKeys.open_prayer_times_button.tr(),
-
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -484,268 +445,213 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                   ),
                 ),
 
-              if (appCubit.prayers(context)[0].time != null)
+              // =========================
+              //  TIMES UI (Responsive + Scroll)
+              // =========================
+              if (hasTimes)
                 SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: 20.r,
-                      left: 15.w,
-                      right: 15.w,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                AppNavigator.pushAndRemoveUntil(
-                                  context,
-                                  HomeScreenMobile(),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.close,
-                                color: AppTheme.accentColor,
-                                size: 35.r,
-                              ),
-                            ),
-
-                            IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: Icon(
-                                Icons.menu,
-                                color: AppTheme.primaryTextColor,
-                                size: 35.r,
-                              ),
-                            ),
-                          ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          top: 20.r,
+                          left: 15.w,
+                          right: 15.w,
+                          bottom: 16.h,
                         ),
-                        VerticalSpace(height: 30),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(
-                              width: 100.w,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Top bar
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    LocaleKeys.prayer.tr(),
-                                    maxLines: 1,
-                                    textHeightBehavior:
-                                        const TextHeightBehavior(
-                                          applyHeightToFirstAscent: false,
-                                          applyHeightToLastDescent: false,
-                                        ),
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      height: 1, // ✅ يثبت ارتفاع السطر
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryTextColor,
-                                      fontFamily:
-                                          CacheHelper.getTimesFontFamily(),
+                                  IconButton(
+                                    onPressed: () {
+                                      AppNavigator.pushAndRemoveUntil(
+                                        context,
+                                        MediaQuery.of(context).orientation ==
+                                                Orientation.landscape
+                                            ? const HomeScreenLandscape()
+                                            : HomeScreenMobile(),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.close,
+                                      color: AppTheme.accentColor,
+                                      size: 35.r,
                                     ),
                                   ),
-                                  SizedBox(height: 2.h),
-                                  Container(
-                                    height: 2.h,
-                                    width: double.infinity,
-                                    color: AppTheme.primaryTextColor,
+                                  IconButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    icon: Icon(
+                                      Icons.menu,
+                                      color: AppTheme.primaryTextColor,
+                                      size: 35.r,
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
 
-                            SizedBox(
-                              width: 100.w,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                              VerticalSpace(height: 30),
+
+                              // ✅ Header row responsive
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    LocaleKeys.adhan_time_label
-                                        .tr(), // غيّرها حسب مشروعك
-                                    maxLines: 1,
-                                    textHeightBehavior:
-                                        const TextHeightBehavior(
-                                          applyHeightToFirstAscent: false,
-                                          applyHeightToLastDescent: false,
-                                        ),
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      height: 1,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryTextColor,
-                                      fontFamily:
-                                          CacheHelper.getTimesFontFamily(),
-                                    ),
+                                  _HeaderBlock(
+                                    width: colW,
+                                    text: LocaleKeys.prayer.tr(),
+                                    fontSize: headerFont,
                                   ),
-                                  SizedBox(height: 2.h),
-                                  Container(
-                                    height: 2.h,
-                                    width: double.infinity,
-                                    color: AppTheme.primaryTextColor,
+                                  _HeaderBlock(
+                                    width: colW,
+                                    text: LocaleKeys.adhan_time_label.tr(),
+                                    fontSize: headerFont,
+                                  ),
+                                  _HeaderBlock(
+                                    width: colW,
+                                    text: LocaleKeys.iqama_time_minutes_label
+                                        .tr(),
+                                    fontSize: headerFont,
                                   ),
                                 ],
                               ),
-                            ),
 
-                            SizedBox(
-                              width: 100.w,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                              SizedBox(height: 10.h),
+
+                              // Table (same logic)
+                              Table(
+                                columnWidths: {
+                                  0: const FlexColumnWidth(3), // الصلاة
+                                  1: FixedColumnWidth(2.w), // spacer
+                                  2: const FlexColumnWidth(3), // الأذان
+                                  3: FixedColumnWidth(4.w), // spacer
+                                  4: const FlexColumnWidth(2), // الإقامة
+                                },
+                                defaultVerticalAlignment:
+                                    TableCellVerticalAlignment.middle,
                                 children: [
-                                  Text(
-                                    LocaleKeys.iqama_time_minutes_label
-                                        .tr(), // غيّرها حسب مشروعك
-                                    maxLines: 1,
-                                    textHeightBehavior:
-                                        const TextHeightBehavior(
-                                          applyHeightToFirstAscent: false,
-                                          applyHeightToLastDescent: false,
+                                  ...List.generate(prayers.length, (index) {
+                                    return TableRow(
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsetsDirectional.only(
+                                            top: 10.h,
+                                            bottom: 10.h,
+                                            end: 30.w,
+                                          ),
+                                          child: Align(
+                                            alignment: Alignment.center,
+                                            child: PrayerText(
+                                              title: prayers[index],
+                                            ),
+                                          ),
                                         ),
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      height: 1,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryTextColor,
-                                      fontFamily:
-                                          CacheHelper.getTimesFontFamily(),
-                                    ),
-                                  ),
-                                  SizedBox(height: 2.h),
-                                  Container(
-                                    height: 2.h,
-                                    width: double.infinity,
-                                    color: AppTheme.primaryTextColor,
-                                  ),
+                                        const SizedBox(),
+
+                                        Padding(
+                                          padding: EdgeInsetsDirectional.only(
+                                            top: 10.h,
+                                            bottom: 10.h,
+                                            end: 30.w,
+                                          ),
+                                          child: Align(
+                                            alignment: Alignment.center,
+                                            child: PrayerText(
+                                              title:
+                                                  prayersData[index].time ??
+                                                  '--:--',
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(),
+
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 10.h,
+                                          ),
+                                          child: Align(
+                                            alignment: Alignment.center,
+                                            child: InkWell(
+                                              onTap: () =>
+                                                  _editIqamaMinutes(index),
+                                              child: ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  minWidth: 90.w,
+                                                ),
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 12.w,
+                                                    vertical: 6.h,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withOpacity(0.15),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          16.r,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: AppTheme
+                                                          .primaryTextColor,
+                                                      width: 1.5,
+                                                    ),
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits(iqamaMinutes[index].toString()) : iqamaMinutes[index]} ${LocaleKeys.min.tr()}',
+                                                      style: TextStyle(
+                                                        fontSize: 18.sp,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: AppTheme
+                                                            .primaryTextColor,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }),
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
-                        Table(
-                          columnWidths: {
-                            0: const FlexColumnWidth(3), // الصلاة
-                            1: FixedColumnWidth(2.w), // spacer
-                            2: const FlexColumnWidth(3), // الأذان
-                            3: FixedColumnWidth(4.w), // spacer
-                            4: const FlexColumnWidth(2), // الإقامة
-                          },
-                          defaultVerticalAlignment:
-                              TableCellVerticalAlignment.middle,
-                          children: [
-                            // Header
-                            // TableRow(
-                            //   children: [
-                            //     Padding(
-                            //       padding: EdgeInsets.only(
-                            //         right: 10.w,
-                            //         left: 10.w,
-                            //       ),
-                            //       child: Align(
-                            //         alignment: Alignment
-                            //             .center, // يخلي العنوان في النص
-                            //         child: AzanTitleTile(
-                            //           width: 30.w,
-                            //           title: LocaleKeys.prayer.tr(),
-                            //           fontSize: 14.sp,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //     const SizedBox(), // spacer col
 
-                            //     Padding(
-                            //       padding: EdgeInsets.only(
-                            //         right: 10.w,
-                            //         left: 10.w,
-                            //       ),
-                            //       child: Align(
-                            //         alignment: Alignment.center,
-                            //         child: AzanTitleTile(
-                            //           width: 30.w,
-                            //           title: LocaleKeys.adhan_time_label.tr(),
-                            //           fontSize: 14.sp,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //     const SizedBox(), // spacer col
-                            //     Padding(
-                            //       padding: EdgeInsets.only(
-                            //         right: 10.w,
-                            //         left: 10.w,
-                            //       ),
-                            //       child: Align(
-                            //         alignment: Alignment.center,
-                            //         child: SizedBox(
-                            //           width: 120.w,
-                            //           height: 50.h,
+                              VerticalSpace(height: 20.h),
 
-                            //           child: FittedBox(
-                            //             fit: BoxFit.fitWidth,
-                            //             child: AzanTitleTile(
-                            //               width: 30.w,
-                            //               title: LocaleKeys
-                            //                   .iqama_time_minutes_label
-                            //                   .tr(),
-                            //               fontSize: 14.sp,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ),
-                            //     ),
-
-                            //   ],
-                            // ),
-
-                            // Rows
-                            ...List.generate(prayers.length, (index) {
-                              return TableRow(
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.only(
-                                      top: 10.h,
-                                      bottom: 10.h,
-                                      end: 30.w,
-                                      // right: 10.w,
-                                    ),
-                                    child: Align(
-                                      alignment: Alignment
-                                          .center, // أو AlignmentDirectional.centerStart لو عايزها تبدأ من البداية
-                                      child: PrayerText(title: prayers[index]),
-                                    ),
-                                  ),
-                                  const SizedBox(),
-
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.only(
-                                      top: 10.h,
-                                      bottom: 10.h,
-                                      end: 30.w,
-                                      // right: 10.w,
-                                    ),
-                                    child: Align(
-                                      alignment: Alignment.center,
-                                      child: PrayerText(
-                                        title:
-                                            prayersData[index].time ?? '--:--',
+                              // Friday Sermon
+                              Padding(
+                                padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: AutoSizeText(
+                                        LocaleKeys.friday_sermon_time.tr(),
+                                        maxLines: 1,
+                                        minFontSize: 10,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: isLandscape ? 18.sp : 16.sp,
+                                          color: AppTheme.primaryTextColor,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(),
-
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 10.h,
-                                    ),
-                                    child: Align(
+                                    HorizontalSpace(width: 10.w),
+                                    Align(
                                       alignment: Alignment.center,
                                       child: InkWell(
-                                        onTap: () => _editIqamaMinutes(index),
+                                        onTap: _editFridaySermonMinutes,
                                         child: ConstrainedBox(
                                           constraints: BoxConstraints(
                                             minWidth: 90.w,
@@ -769,7 +675,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                             ),
                                             child: Center(
                                               child: Text(
-                                                '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits(iqamaMinutes[index].toString()) : iqamaMinutes[index]} ${LocaleKeys.min.tr()}',
+                                                '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits(friDaySermonMinutes.toString()) : friDaySermonMinutes} ${LocaleKeys.min.tr()}',
                                                 style: TextStyle(
                                                   fontSize: 18.sp,
                                                   fontWeight: FontWeight.bold,
@@ -782,100 +688,97 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              );
-                            }),
-                          ],
-                        ),
-
-                        VerticalSpace(height: 20.h),
-                        Padding(
-                          padding: EdgeInsets.only(left: 8.w, right: 8.w),
-                          child: Row(
-                            children: [
-                              Text(
-                                LocaleKeys.friday_sermon_time.tr(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16.sp,
-                                  color: AppTheme.primaryTextColor,
+                                  ],
                                 ),
                               ),
-                              HorizontalSpace(width: 10.w),
-                              Align(
-                                alignment: Alignment.center,
-                                child: InkWell(
-                                  onTap: () {
-                                    _editFridaySermonMinutes();
+
+                              VerticalSpace(height: 10.h),
+
+                              // Save Button
+                              Padding(
+                                padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                                child: AppButton(
+                                  color: AppTheme.primaryButtonBackground,
+                                  onPressed: () {
+                                    appCubit.saveIqamaTimes();
+                                    CacheHelper.setFridayTime(
+                                      friDaySermonMinutes,
+                                    );
                                   },
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(minWidth: 90.w),
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12.w,
-                                        vertical: 6.h,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(
-                                          16.r,
-                                        ),
-                                        border: Border.all(
-                                          color: AppTheme.primaryTextColor,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits(friDaySermonMinutes.toString()) : friDaySermonMinutes} ${LocaleKeys.min.tr()}',
+                                  child: state is saveIqamaTimesLoading
+                                      ? const Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : Text(
+                                          LocaleKeys.common_save.tr(),
                                           style: TextStyle(
-                                            fontSize: 18.sp,
                                             fontWeight: FontWeight.bold,
-                                            color: AppTheme.primaryTextColor,
+                                            fontSize: 16.sp,
+                                            color:
+                                                AppTheme.primaryButtonTextColor,
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                  ),
                                 ),
                               ),
+
+                              // ✅ Spacer بسيط علشان الـminHeight ما يعملش تكدس تحت
+                              SizedBox(height: 6.h),
                             ],
                           ),
                         ),
-                        VerticalSpace(height: 10.h),
-
-                        Padding(
-                          padding: EdgeInsets.only(left: 8.w, right: 8.w),
-                          child: AppButton(
-                            color: AppTheme.primaryButtonBackground,
-                            onPressed: () {
-                              appCubit.saveIqamaTimes();
-                              CacheHelper.setFridayTime(friDaySermonMinutes);
-                            },
-                            child: state is saveIqamaTimesLoading
-                                ? Center(
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : Text(
-                                    LocaleKeys.common_save.tr(),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.sp,
-                                      color: AppTheme.primaryButtonTextColor,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// ✅ Header block: AutoSizeText + line
+class _HeaderBlock extends StatelessWidget {
+  const _HeaderBlock({
+    required this.width,
+    required this.text,
+    required this.fontSize,
+  });
+
+  final double width;
+  final String text;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AutoSizeText(
+            text,
+            maxLines: 1,
+            minFontSize: 10,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTextColor,
+              fontFamily: CacheHelper.getTimesFontFamily(),
+              height: 1.1,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Container(
+            height: 2.h,
+            width: double.infinity,
+            color: AppTheme.primaryTextColor,
+          ),
+        ],
       ),
     );
   }

@@ -20,3 +20,9 @@ class saveIqamaTimesLoading extends AppState {}
 class saveIqamaTimesSuccess extends AppState {}
 
 class saveIqamaTimesFailure extends AppState {}
+
+class savePrayerDurationLoading extends AppState {}
+
+class savePrayerDurationSuccess extends AppState {}
+
+class savePrayerDurationFailure extends AppState {}

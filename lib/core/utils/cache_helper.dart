@@ -54,6 +54,19 @@ class CacheHelper {
   static const _enableCheckInternetConnection =
       "_enableCheckInternetConnection";
   static const _fridayTime = "_friDayTime";
+  static const _enableHidingScreenDuringPrayer =
+      "_enableHidingScreenDuringPrayer";
+  static const _showTimeOnBlackScreen = "_showTimeOnBlackScreen";
+  static const _showDateOnBlackScreen = "_showDateOnBlackScreen";
+
+  static const _hideScreenAfterSunriseEnabled =
+      "_hideScreenAfterSunriseEnabled";
+  static const _hideScreenAfterSunriseMinutes =
+      "_hideScreenAfterSunriseMinutes";
+
+  static const _hideScreenAfterIshaaEnabled = "_hideScreenAfterIshaaEnabled";
+  static const _hideScreenAfterIshaaMinutes = "_hideScreenAfterIshaaMinutes";
+
   /*************  ✨ Windsurf Command ⭐  *************/
   /// Initializes the SharedPreferences instance.
   ///
@@ -267,6 +280,66 @@ class CacheHelper {
 
   static bool getSliderOpened() {
     return sharedPreferences.getBool(_sliderOpened) ?? true;
+  }
+
+  // 1) Enable hiding during prayer
+  static Future<void> setEnableHidingScreenDuringPrayer(bool v) async {
+    await sharedPreferences.setBool(_enableHidingScreenDuringPrayer, v);
+  }
+
+  static bool getEnableHidingScreenDuringPrayer() {
+    return sharedPreferences.getBool(_enableHidingScreenDuringPrayer) ?? true;
+  }
+
+  // 2) Show time/date on black screen
+  static Future<void> setShowTimeOnBlackScreen(bool v) async {
+    await sharedPreferences.setBool(_showTimeOnBlackScreen, v);
+  }
+
+  static bool getShowTimeOnBlackScreen() {
+    return sharedPreferences.getBool(_showTimeOnBlackScreen) ?? true;
+  }
+
+  static Future<void> setShowDateOnBlackScreen(bool v) async {
+    await sharedPreferences.setBool(_showDateOnBlackScreen, v);
+  }
+
+  static bool getShowDateOnBlackScreen() {
+    return sharedPreferences.getBool(_showDateOnBlackScreen) ?? false;
+  }
+
+  // 3) Hide after sunrise
+  static Future<void> setHideScreenAfterSunriseEnabled(bool v) async {
+    await sharedPreferences.setBool(_hideScreenAfterSunriseEnabled, v);
+  }
+
+  static bool getHideScreenAfterSunriseEnabled() {
+    return sharedPreferences.getBool(_hideScreenAfterSunriseEnabled) ?? false;
+  }
+
+  static Future<void> setHideScreenAfterSunriseMinutes(int v) async {
+    await sharedPreferences.setInt(_hideScreenAfterSunriseMinutes, v);
+  }
+
+  static int getHideScreenAfterSunriseMinutes() {
+    return sharedPreferences.getInt(_hideScreenAfterSunriseMinutes) ?? 30;
+  }
+
+  // 4) Hide after ishaa
+  static Future<void> setHideScreenAfterIshaaEnabled(bool v) async {
+    await sharedPreferences.setBool(_hideScreenAfterIshaaEnabled, v);
+  }
+
+  static bool getHideScreenAfterIshaaEnabled() {
+    return sharedPreferences.getBool(_hideScreenAfterIshaaEnabled) ?? false;
+  }
+
+  static Future<void> setHideScreenAfterIshaaMinutes(int v) async {
+    await sharedPreferences.setInt(_hideScreenAfterIshaaMinutes, v);
+  }
+
+  static int getHideScreenAfterIshaaMinutes() {
+    return sharedPreferences.getInt(_hideScreenAfterIshaaMinutes) ?? 60;
   }
 
   static removeSliderOpened() async {

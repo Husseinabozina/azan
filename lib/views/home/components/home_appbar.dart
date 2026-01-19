@@ -15,59 +15,122 @@ class HomeAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.zero,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: EdgeInsetsDirectional.only(start: 10.w),
-            child: SvgPicture.asset(
-              Assets.svg.logosvg,
-              height: 31.71.h,
-              width: 30.22.w,
-            ),
-          ),
-          HorizontalSpace(width: 10),
-          Flexible(
-            // flex: 18,
-            child: Center(
-              child: Container(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 5.h),
-                  child: AdaptiveTextWidget(
-                    fontFamily: CacheHelper.getTextsFontFamily(),
-                    availableHeight: 35.h,
-                    text:
-                        CacheHelper.getMosqueName() ??
-                        LocaleKeys.mosque_name_label.tr(),
-                    maxFontSize: 20.sp,
-                    minFontSize: 16.sp,
+    return MediaQuery.of(context).orientation == Orientation.landscape
+        ? Padding(
+            padding: EdgeInsets.zero,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsetsDirectional.only(start: 10.w),
+                  child: SvgPicture.asset(
+                    Assets.svg.logosvg,
+                    height: 31.71.h,
+                    width: 30.22.w,
                   ),
-
-                  // Text(
-                  //   CacheHelper.getMosqueName() ??
-                  //       LocaleKeys.mosque_name_label.tr(),
-                  //   maxLines: 3,
-                  //   style: TextStyle(
-                  //     fontSize: 20.sp,
-                  //     fontWeight: FontWeight.bold,
-                  //     color: Colors.white,
-                  //   ),
-                  // ),
                 ),
-              ),
+                HorizontalSpace(width: 10),
+                Flexible(
+                  // flex: 18,
+                  child: Center(
+                    child: Container(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 5.h),
+                        child: AdaptiveTextWidget(
+                          fontFamily: CacheHelper.getTextsFontFamily(),
+                          availableHeight: 35.h,
+                          text:
+                              CacheHelper.getMosqueName() ??
+                              LocaleKeys.mosque_name_label.tr(),
+                          maxFontSize: 20.sp,
+                          minFontSize: 16.sp,
+                        ),
+
+                        // Text(
+                        //   CacheHelper.getMosqueName() ??
+                        //       LocaleKeys.mosque_name_label.tr(),
+                        //   maxLines: 3,
+                        //   style: TextStyle(
+                        //     fontSize: 20.sp,
+                        //     fontWeight: FontWeight.bold,
+                        //     color: Colors.white,
+                        //   ),
+                        // ),
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    onDrawerTap!();
+                  },
+                  icon: Icon(
+                    Icons.menu,
+                    color: AppTheme.accentColor,
+                    size: 30.r,
+                  ),
+                ),
+              ],
             ),
-          ),
-          IconButton(
-            onPressed: () {
-              onDrawerTap!();
-            },
-            icon: Icon(Icons.menu, color: AppTheme.accentColor, size: 30.r),
-          ),
-        ],
-      ),
-    );
+          )
+        : Padding(
+            padding: EdgeInsets.zero,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsetsDirectional.only(start: 10.w),
+                  child: SvgPicture.asset(
+                    Assets.svg.logosvg,
+                    height: 31.71.h,
+                    width: 30.22.w,
+                  ),
+                ),
+                HorizontalSpace(width: 10),
+                Flexible(
+                  // flex: 18,
+                  child: Center(
+                    child: Container(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 5.h),
+                        child: AdaptiveTextWidget(
+                          fontFamily: CacheHelper.getTextsFontFamily(),
+                          availableHeight: 35.h,
+                          text:
+                              CacheHelper.getMosqueName() ??
+                              LocaleKeys.mosque_name_label.tr(),
+                          maxFontSize: 20.sp,
+                          minFontSize: 16.sp,
+                        ),
+
+                        // Text(
+                        //   CacheHelper.getMosqueName() ??
+                        //       LocaleKeys.mosque_name_label.tr(),
+                        //   maxLines: 3,
+                        //   style: TextStyle(
+                        //     fontSize: 20.sp,
+                        //     fontWeight: FontWeight.bold,
+                        //     color: Colors.white,
+                        //   ),
+                        // ),
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    onDrawerTap!();
+                  },
+                  icon: Icon(
+                    Icons.menu,
+                    color: AppTheme.accentColor,
+                    size: 30.r,
+                  ),
+                ),
+              ],
+            ),
+          );
   }
 }

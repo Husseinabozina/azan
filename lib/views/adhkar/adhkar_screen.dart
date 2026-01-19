@@ -4,20 +4,15 @@ import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
-import 'package:azan/core/models/dhikr_schedule.dart';
-import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
-import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
-import 'package:azan/views/adhkar/components/dhikr_from_widget.dart';
 import 'package:azan/views/adhkar/components/dhikr_tile.dart';
-import 'package:azan/views/home/home_screen.dart';
+import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -36,17 +31,33 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
 
   @override
   void initState() {
+    super.initState();
     cubit = AppCubit.get(context);
     cubit.assignAdhkar();
-    super.initState();
+  }
+
+  bool _isLandscape(BuildContext context) =>
+      MediaQuery.of(context).orientation == Orientation.landscape;
+
+  void _goHome(BuildContext context) {
+    // يرجّع للشاشة الصح حسب الاتجاه الحالي
+    final Widget home = _isLandscape(context)
+        ? const HomeScreenLandscape()
+        : const HomeScreenMobile();
+
+    AppNavigator.pushAndRemoveUntil(context, home);
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isLandscape = _isLandscape(context);
+
     return Scaffold(
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {},
         builder: (context, state) {
+          final adhkar = cubit.adhkarList ?? [];
+
           return Stack(
             children: [
               Image.asset(
@@ -55,134 +66,91 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                 height: double.infinity,
                 fit: BoxFit.fill,
               ),
+
               SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.only(top: 5.h, left: 20.w, right: 20.w),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              // iconSize: 20.r,
-                              onPressed: () {
-                                AppNavigator.pushAndRemoveUntil(
-                                  context,
-                                  HomeScreenMobile(),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.close,
-                                color: AppTheme.accentColor,
-                                size: 35.r,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isLandscape ? 24.w : 20.w,
+                    vertical: 10.h,
+                  ),
+                  child: Column(
+                    children: [
+                      // =========================
+                      // Header
+                      // =========================
+                      _Header(
+                        onClose: () => _goHome(context),
+                        onMenu: () => Navigator.pop(context),
+                      ),
+                      SizedBox(height: isLandscape ? 10.h : 16.h),
+
+                      // =========================
+                      // Body
+                      // =========================
+                      Expanded(
+                        child: isLandscape
+                            ? Row(
+                                children: [
+                                  // LEFT PANEL: Settings + Add button
+                                  Expanded(
+                                    flex: 4,
+                                    child: _GlassPanel(
+                                      padding: EdgeInsets.all(16.r),
+                                      child: _SettingsPanel(
+                                        onAdd: () {
+                                          showAddDhikrDialog(
+                                            context,
+                                            onConfirm: (text, schedule) {
+                                              DhikrHiveHelper.addDhikr(
+                                                text,
+                                                schedule: schedule,
+                                              );
+                                              cubit.assignAdhkar();
+                                            },
+                                          );
+                                        },
+                                        sliderValue:
+                                            CacheHelper.getSliderOpened(),
+                                        onSliderToggle: (value) {
+                                          cubit.toggleSlider();
+                                        },
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(width: 14.w),
+
+                                  // RIGHT PANEL: List
+                                  Expanded(
+                                    flex: 8,
+                                    child: _GlassPanel(
+                                      padding: EdgeInsets.all(16.r),
+                                      child: _AdhkarList(adhkar: adhkar),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : _PortraitLayout(
+                                adhkar: adhkar,
+                                onAdd: () {
+                                  showAddDhikrDialog(
+                                    context,
+                                    onConfirm: (text, schedule) {
+                                      DhikrHiveHelper.addDhikr(
+                                        text,
+                                        schedule: schedule,
+                                      );
+                                      cubit.assignAdhkar();
+                                    },
+                                  );
+                                },
+                                sliderValue: CacheHelper.getSliderOpened(),
+                                onSliderToggle: (value) {
+                                  cubit.toggleSlider();
+                                },
                               ),
-                            ),
-
-                            IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: Icon(
-                                Icons.menu,
-                                color: AppTheme.primaryTextColor,
-                                size: 35.r,
-                              ),
-                            ),
-                          ],
-                        ),
-                        VerticalSpace(height: 30),
-                        Text(
-                          LocaleKeys.mosque_azkar.tr(),
-                          style: TextStyle(
-                            fontSize: 17.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                        VerticalSpace(height: 10),
-                        Text(
-                          LocaleKeys.azkar_note.tr(),
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            // fontWeight: FontWeight.bold,
-                            color: AppTheme.secondaryTextColor,
-                          ),
-                        ),
-
-                        Row(
-                          children: [
-                            CustomCheckbox(
-                              size: 25.r,
-                              activeColor: AppTheme.accentColor,
-                              value: CacheHelper.getSliderOpened(),
-                              onChanged: (value) {
-                                cubit.toggleSlider();
-                              },
-                            ),
-
-                            HorizontalSpace(width: 5),
-                            Text(
-                              LocaleKeys.enable_slider.tr(),
-                              style: TextStyle(
-                                fontSize: 15.sp,
-                                color: AppTheme.primaryTextColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        VerticalSpace(height: 8),
-                        AppButton(
-                          width: 115.w,
-                          color: AppTheme.primaryButtonBackground,
-                          // color: Colors.white,
-                          height: 45.h,
-                          radius: 25.r,
-                          onPressed: () {
-                            showAddDhikrDialog(
-                              context,
-                              onConfirm: (text, schedule) {
-                                DhikrHiveHelper.addDhikr(
-                                  text,
-                                  schedule: schedule,
-                                );
-                                cubit.assignAdhkar();
-                              },
-                            );
-                          },
-                          child: Text(
-                            LocaleKeys.add_message.tr(),
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.secondaryTextColor,
-                            ),
-                          ),
-                        ),
-                        VerticalSpace(height: 10),
-
-                        if (cubit.adhkarList != null)
-                          ...cubit.adhkarList!.map((dhikr) {
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: 10.h),
-                              child: DhikrTile(dhikr: dhikr),
-                            );
-                          }),
-
-                        // Text(
-                        //   // adhkarList != null ? adhkarList![0].text : '',
-                        //   cubit.adhkarList != null
-                        //       ? cubit.adhkarList![0].text
-                        //       : '',
-                        //   style: TextStyle(
-                        //     fontSize: 20.sp,
-                        //     fontWeight: FontWeight.bold,
-                        //     color: AppTheme.primaryTextColor,
-                        //   ),
-                        // ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -190,6 +158,221 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+/// =========================
+/// Header row
+/// =========================
+class _Header extends StatelessWidget {
+  const _Header({required this.onClose, required this.onMenu});
+
+  final VoidCallback onClose;
+  final VoidCallback onMenu;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          onPressed: onClose,
+          icon: Icon(Icons.close, color: AppTheme.accentColor, size: 34.r),
+        ),
+        IconButton(
+          onPressed: onMenu,
+          icon: Icon(Icons.menu, color: AppTheme.primaryTextColor, size: 34.r),
+        ),
+      ],
+    );
+  }
+}
+
+/// =========================
+/// Portrait layout (بدون overflow)
+/// بدل SingleChildScrollView نخليها ListView داخل Expanded
+/// =========================
+class _PortraitLayout extends StatelessWidget {
+  const _PortraitLayout({
+    required this.adhkar,
+    required this.onAdd,
+    required this.sliderValue,
+    required this.onSliderToggle,
+  });
+
+  final List<dynamic>
+  adhkar; // نفس نوع Dhikr عندك، سيبه dynamic لو مش مستورد Model هنا
+  final VoidCallback onAdd;
+  final bool sliderValue;
+  final ValueChanged<bool> onSliderToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return _GlassPanel(
+      padding: EdgeInsets.all(16.r),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          _SettingsPanel(
+            onAdd: onAdd,
+            sliderValue: sliderValue,
+            onSliderToggle: onSliderToggle,
+          ),
+          SizedBox(height: 14.h),
+          _AdhkarList(adhkar: adhkar),
+        ],
+      ),
+    );
+  }
+}
+
+/// =========================
+/// Settings panel (title + note + toggle + add button)
+/// =========================
+class _SettingsPanel extends StatelessWidget {
+  const _SettingsPanel({
+    required this.onAdd,
+    required this.sliderValue,
+    required this.onSliderToggle,
+  });
+
+  final VoidCallback onAdd;
+  final bool sliderValue;
+  final ValueChanged<bool> onSliderToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          LocaleKeys.mosque_azkar.tr(),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 8.h),
+        Text(
+          LocaleKeys.azkar_note.tr(),
+          style: TextStyle(fontSize: 14.sp, color: AppTheme.secondaryTextColor),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 12.h),
+
+        // Toggle
+        Row(
+          children: [
+            CustomCheckbox(
+              size: 24.r,
+              activeColor: AppTheme.accentColor,
+              value: sliderValue,
+              onChanged: (value) => onSliderToggle(value),
+            ),
+            HorizontalSpace(width: 8.w),
+            Expanded(
+              child: Text(
+                LocaleKeys.enable_slider.tr(),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: AppTheme.primaryTextColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 14.h),
+
+        // Add button
+        AppButton(
+          width: 160.w,
+          color: AppTheme.primaryButtonBackground,
+          height: 44.h,
+          radius: 22.r,
+          onPressed: onAdd,
+          child: Text(
+            LocaleKeys.add_message.tr(),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.secondaryTextColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// =========================
+/// Adhkar list: لازم تكون scroll داخل panel
+/// =========================
+class _AdhkarList extends StatelessWidget {
+  const _AdhkarList({required this.adhkar});
+
+  final List<dynamic> adhkar;
+
+  @override
+  Widget build(BuildContext context) {
+    if (adhkar.isEmpty) {
+      return Center(
+        child: Text(
+          '--',
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // مهم: لازم Expanded لما يكون داخل Column جوة panel
+        Expanded(
+          child: ListView.separated(
+            itemCount: adhkar.length,
+            separatorBuilder: (_, __) => SizedBox(height: 10.h),
+            itemBuilder: (context, index) {
+              final dhikr = adhkar[index];
+              return DhikrTile(dhikr: dhikr);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// =========================
+/// Glass panel بسيط (نفس ستايل الشاشات الكبيرة)
+/// =========================
+class _GlassPanel extends StatelessWidget {
+  const _GlassPanel({required this.child, required this.padding});
+
+  final Widget child;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.22),
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(color: Colors.white.withOpacity(0.18), width: 1.w),
+      ),
+      child: child,
     );
   }
 }

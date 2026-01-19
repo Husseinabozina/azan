@@ -13,12 +13,16 @@ class LiveClockRow extends StatefulWidget {
   final double timeFontSize;
   final double periodFontSize;
   final bool use24Format;
+  final Color? textColor;
+  final bool withIndicator;
 
   const LiveClockRow({
     super.key,
     required this.timeFontSize,
     required this.periodFontSize,
     this.use24Format = false,
+    this.textColor,
+    this.withIndicator = true,
   });
 
   @override
@@ -98,20 +102,21 @@ class _LiveClockRowState extends State<LiveClockRow> {
             fontFamily: CacheHelper.getTimeFontFamily(),
             fontSize: widget.timeFontSize,
             fontWeight: FontWeight.bold,
-            color: AppTheme.secondaryTextColor,
+            color: widget.textColor ?? AppTheme.secondaryTextColor,
           ),
         ),
-        HorizontalSpace(width: 10),
-        Text(
-          period ?? '',
-          style: TextStyle(
-            fontFamily: CacheHelper.getTimeFontFamily(),
-            fontWeight: FontWeight.bold,
+        if (widget.withIndicator) HorizontalSpace(width: 10),
+        if (widget.withIndicator)
+          Text(
+            period ?? '',
+            style: TextStyle(
+              fontFamily: CacheHelper.getTimeFontFamily(),
+              fontWeight: FontWeight.bold,
 
-            fontSize: widget.periodFontSize,
-            color: AppTheme.primaryTextColor,
+              fontSize: widget.periodFontSize,
+              color: widget.textColor ?? AppTheme.primaryTextColor,
+            ),
           ),
-        ),
       ],
     );
   }

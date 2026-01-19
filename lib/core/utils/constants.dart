@@ -4,6 +4,7 @@ import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
+import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -27,7 +28,7 @@ var kind;
 List<String> get prayers => [
   LocaleKeys.fajr.tr(),
   LocaleKeys.sunrise.tr(),
-  DateHelper.isFriday() ? LocaleKeys.dhuhr.tr() : LocaleKeys.friday.tr(),
+  DateHelper.isFriday() ? LocaleKeys.friday.tr() : LocaleKeys.dhuhr.tr(),
   LocaleKeys.asr.tr(),
   LocaleKeys.maghrib.tr(),
   LocaleKeys.isha.tr(),
@@ -41,8 +42,10 @@ List<String> prayerTimes = [
   "4:00 pm",
   "6:00 pm",
 ];
-Widget nextScreen = !CacheHelper.getFirstAppOpen()
+Widget nextScreen(BuildContext context) => !CacheHelper.getFirstAppOpen()
     ? SelectLocationScreen()
+    : MediaQuery.of(context).orientation == Orientation.landscape
+    ? HomeScreenLandscape()
     : HomeScreenMobile();
 const double prayerFactor = 3;
 final List<Dhikr> azkar = [
