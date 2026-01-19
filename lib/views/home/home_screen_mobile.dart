@@ -487,38 +487,18 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                       //   ),
                                       // ),
                                       Spacer(flex: 1),
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (cubit.nextPrayerVar == null)
-                                            return;
-                                          AppNavigator.push(
-                                            context,
-                                            AzanPrayerScreen(
-                                              currentPrayer: cubit
-                                                  .nextPrayerVar!
-                                                  .copywith(
-                                                    dateTime: DateTime.now(),
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                        child: SizedBox(
-                                          height: 25.h,
-                                          child: FittedBox(
-                                            child: Text(
-                                              LocalizationHelper.isArabic(
-                                                    context,
-                                                  )
-                                                  ? DateTime.now().weekdayNameAr
-                                                  : DateTime.now().weekday
-                                                        .toWeekDay(),
-                                              style: TextStyle(
-                                                fontSize:
-                                                    20.sp, // from height h
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    AppTheme.primaryTextColor,
-                                              ),
+                                      SizedBox(
+                                        height: 25.h,
+                                        child: FittedBox(
+                                          child: Text(
+                                            LocalizationHelper.isArabic(context)
+                                                ? DateTime.now().weekdayNameAr
+                                                : DateTime.now().weekday
+                                                      .toWeekDay(),
+                                            style: TextStyle(
+                                              fontSize: 20.sp, // from height h
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.primaryTextColor,
                                             ),
                                           ),
                                         ),

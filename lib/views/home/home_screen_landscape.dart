@@ -956,22 +956,7 @@ class _InfoBlock extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              if (cubit.nextPrayerVar == null) return;
-              AppNavigator.push(
-                context,
-                AzanPrayerScreen(
-                  currentPrayer: cubit.nextPrayerVar!.copywith(
-                    dateTime: DateTime.now(),
-                  ),
-                ),
-              );
-            },
-            child: _infoLine(LocaleKeys.day.tr(), weekday),
-          ),
-        ),
+        Expanded(child: _infoLine(LocaleKeys.day.tr(), weekday)),
         SizedBox(height: 6.h),
         Expanded(child: _infoLine(LocaleKeys.hijri_date.tr(), hijri)),
         SizedBox(height: 6.h),
