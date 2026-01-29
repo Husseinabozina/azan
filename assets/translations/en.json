@@ -140,7 +140,7 @@
 "check_your_internet_connection_the_star":"Check your internet connection (the star at the bottom of the screen)"
 ,"connected":"Connected",
 "disconnected":"Disconnected"
-,"copy_right_for_sadja":"All rights reserved for Sadja © 2025."
+,"copy_right_for_sadja":"All rights reserved for Sadja © 2025"
 ,"loading":"Loading"
 ,"date":"Date",
 "adhan_time":"Adhan time",
@@ -166,4 +166,8 @@
   "hijri_date": "Hijri Date",
   "gregorian_date": "Gregorian Date",
   "temp": "Temperature"
+  ,
+  "change_to":"Change to",
+  "landscape":"Landscape",
+  "portrait":"Portrait"
 }

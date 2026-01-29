@@ -58,10 +58,16 @@ class AzanTitleTile extends StatelessWidget {
 }
 
 class AzanTimeText extends StatelessWidget {
-  const AzanTimeText({super.key, required this.time, this.dimmed = false});
+  AzanTimeText({
+    super.key,
+    required this.time,
+    this.dimmed = false,
+    required this.color,
+  });
 
   final String time;
   final bool dimmed;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -69,13 +75,11 @@ class AzanTimeText extends StatelessWidget {
       time,
       style: TextStyle(
         fontFamily: CacheHelper.getTimesFontFamily(),
-        fontSize: 23.sp,
+        fontSize: 25.sp,
         fontWeight: FontWeight.bold,
         color: CacheHelper.getIsPreviousPrayersDimmed()
-            ? (dimmed
-                  ? AppTheme.primaryTextColor.withOpacity(0.4)
-                  : AppTheme.primaryTextColor)
-            : AppTheme.primaryTextColor, // عادي
+            ? (dimmed ? color.withOpacity(0.4) : color)
+            : color, // عادي
       ),
     );
   }

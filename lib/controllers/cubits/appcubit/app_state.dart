@@ -1,5 +1,10 @@
 class AppState {}
 
+class UiRotationChanged extends AppState {
+  final int quarterTurns;
+  UiRotationChanged(this.quarterTurns);
+}
+
 class AppInitial extends AppState {}
 
 class AppChanged extends AppState {}

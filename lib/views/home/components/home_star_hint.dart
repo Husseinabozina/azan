@@ -1,12 +1,13 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/core/theme/app_theme.dart';
+import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BottomStarHint extends StatefulWidget {
-  const BottomStarHint({super.key, required this.text, this.onTap});
+  BottomStarHint({super.key, required this.text, this.onTap});
 
   final String text;
   final VoidCallback? onTap;
@@ -20,6 +21,7 @@ class _BottomStarHintState extends State<BottomStarHint> {
   @override
   void initState() {
     cubit = AppCubit.get(context);
+
     cubit.checkConnectivity();
     super.initState();
   }

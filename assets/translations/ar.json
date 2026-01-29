@@ -5,7 +5,7 @@
     ,"second":"ثانية", 
      "time_left_for_fajr": "المتبقي للفجر",
   "am_label": "صباحاً",
-  "pm_label": "مساءاً",
+  "pm_label": "مساءً",
   "fajr": "الفجر",
   "sunrise": "الشروق",
   "dhuhr": "الظهر",
@@ -27,7 +27,6 @@
   "screen_shortcuts": "اختصارات على الشاشة",
   "weather_status": "حالة الطقس",
   "about_app": "معلومات عن البرنامج",
-
   "reset": "إعادة ضبط",
   "reload": "إعادة تحميل",
   "contact_us": "تواصل",
@@ -140,7 +139,7 @@
 "eid_al_adha":"عيد الأضحي",
 "connected":"متصل",
 "disconnected":"غير متصل",
-"copy_right_for_sadja":"جميع الحقوق محفوظة لتطبيق سجدة © 2025."
+"copy_right_for_sadja":"جميع الحقوق محفوظة لتطبيق سجدة © 2025"
 ,"loading":"جاري التحميل"
 ,
 "check_your_internet_connection_the_star":"تحقق من الاتصال بالانترنت (النجمة أسفل الشاشة)"
@@ -172,6 +171,9 @@
   "day": "اليوم",
   "hijri_date": "التاريخ الهجري",
   "gregorian_date": "التاريخ الميلادي",
-  "temp": "الحرارة"
+  "temp": "الحرارة",
+  "change_to":"تغيير إلي",
+   "landscape":"الوضع الأفقي",
+   "portrait":"الوضع الرأسي "
 
 }

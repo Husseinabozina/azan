@@ -10,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHelper {
   static late SharedPreferences sharedPreferences;
+  static const String _kCurrentPrayerKey = "_currentPrayerKey";
+
   static const _language = 'LANGUAGE';
   static const _coordinate = "coordinate";
   static const _prayerTimes = "prayerTimes";
@@ -67,13 +69,13 @@ class CacheHelper {
   static const _hideScreenAfterIshaaEnabled = "_hideScreenAfterIshaaEnabled";
   static const _hideScreenAfterIshaaMinutes = "_hideScreenAfterIshaaMinutes";
 
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /// Initializes the SharedPreferences instance.
-  ///
-  /// This function must be called before any other function in this class.
-  /// It is asynchronous because SharedPreferences.getInstance() is asynchronous.
-  /// It is called automatically when an instance of this class is created.
-  /*******  28592b22-df0a-4587-9ba5-2aacf474dd62  *******/
+  static const _isLandscape = "_isLandScape";
+  static const String _kBgMode = 'bg_mode';
+  static const String _kBgThemeIndex = 'bg_theme_index';
+  static const String _kBgPerPrayer = 'bg_per_prayer_map';
+  static const String _kBgPerDay = 'bg_per_day_map';
+  static const String _kBgRandomPool = 'bg_random_pool';
+
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
   }
@@ -363,7 +365,7 @@ class CacheHelper {
   }
 
   static String getFixedDhikr() {
-    return sharedPreferences.getString(_fixedDhikr) ?? '';
+    return sharedPreferences.getString(_fixedDhikr) ?? fixedDhikr;
   }
 
   static removeFixedDhikr() async {
@@ -398,9 +400,72 @@ class CacheHelper {
     await sharedPreferences.setString(_selectedBackground, value);
   }
 
+  static String _dayKey(int weekday) {
+    switch (weekday) {
+      case DateTime.sunday:
+        return "sun";
+      case DateTime.monday:
+        return "mon";
+      case DateTime.tuesday:
+        return "tue";
+      case DateTime.wednesday:
+        return "wed";
+      case DateTime.thursday:
+        return "thu";
+      case DateTime.friday:
+        return "fri";
+      case DateTime.saturday:
+        return "sat";
+      default:
+        return "sun";
+    }
+  }
+
   static String getSelectedBackground() {
-    return sharedPreferences.getString(_selectedBackground) ??
-        Assets.images.home.path;
+    final all = getAllBackgrounds();
+    if (all.isEmpty) return Assets.images.home.path;
+
+    int safeIndex(int i) {
+      if (i < 0) return 0;
+      if (i >= all.length) return all.length - 1;
+      return i;
+    }
+
+    final mode = getBackgroundChangeMode();
+    final now = DateTime.now();
+
+    // manual
+    if (mode == BackgroundChangeMode.manual) {
+      final idx = getBackgroundThemeIndex(fallback: 0);
+      return all[safeIndex(idx)];
+    }
+
+    // perPrayer
+    if (mode == BackgroundChangeMode.perPrayer) {
+      final map = getBackgroundPerPrayerMap();
+      final prayerKey = getCurrentPrayerKey();
+      final idx = map[prayerKey ?? ""] ?? getBackgroundThemeIndex(fallback: 0);
+      return all[safeIndex(idx)];
+    }
+
+    // perDay
+    if (mode == BackgroundChangeMode.perDay) {
+      final map = getBackgroundPerDayMap();
+      final key = _dayKey(now.weekday);
+      final idx = map[key] ?? getBackgroundThemeIndex(fallback: 0);
+      return all[safeIndex(idx)];
+    }
+
+    // randomPool
+    final pool = getBackgroundRandomPool();
+    if (pool.isEmpty) {
+      final idx = getBackgroundThemeIndex(fallback: 0);
+      return all[safeIndex(idx)];
+    }
+
+    final daySeed = now.year * 10000 + now.month * 100 + now.day;
+    final pick = pool[daySeed % pool.length];
+    return all[safeIndex(pick)];
   }
 
   static removeSelectedBackground() async {
@@ -419,7 +484,7 @@ class CacheHelper {
     await sharedPreferences.remove(_palestinianFlag);
   }
 
-  static setUse24HoursFormat(bool value) async {
+  static Future<void> setUse24HoursFormat(bool value) async {
     await sharedPreferences.setBool(_use24HourFormat, value);
   }
 
@@ -622,5 +687,190 @@ class CacheHelper {
 
   static removeFridayTime() {
     sharedPreferences.remove(_fridayTime);
+  }
+
+  static setIsLandscape(bool value) async {
+    await sharedPreferences.setBool(_isLandscape, value);
+  }
+
+  static getIsLandscape() {
+    return sharedPreferences.getBool(_isLandscape) ?? false;
+  }
+
+  static removeIsLandscape() {
+    sharedPreferences.remove(_isLandscape);
+  }
+
+  // =========================
+  // Background Advanced Settings
+  // =========================
+
+  static Future<void> setBackgroundChangeMode(BackgroundChangeMode mode) async {
+    await save(key: _kBgMode, value: mode.id);
+  }
+
+  static BackgroundChangeMode getBackgroundChangeMode() {
+    final id = get(key: _kBgMode) as int?;
+    return BackgroundChangeModeX.fromId(id);
+  }
+
+  static Future<void> setBackgroundThemeIndex(int index) async {
+    await save(key: _kBgThemeIndex, value: index);
+  }
+
+  static int getBackgroundThemeIndex({int fallback = 0}) {
+    return (get(key: _kBgThemeIndex) as int?) ?? fallback;
+  }
+
+  /// map: {"fajr":7,"sunrise":13,"dhuhr":0,"asr":16,"maghrib":33,"isha":4}
+  static Future<void> setBackgroundPerPrayerMap(Map<String, int> map) async {
+    await save(key: _kBgPerPrayer, value: jsonEncode(map));
+  }
+
+  static Map<String, int> getBackgroundPerPrayerMap({
+    Map<String, int>? fallback,
+  }) {
+    final raw = get(key: _kBgPerPrayer);
+    if (raw is! String || raw.isEmpty) return fallback ?? {};
+    try {
+      final m = (jsonDecode(raw) as Map).cast<String, dynamic>();
+      return m.map((k, v) => MapEntry(k, (v as num).toInt()));
+    } catch (_) {
+      return fallback ?? {};
+    }
+  }
+
+  /// map: {"sun":5,"mon":8,"tue":31,"wed":16,"thu":7,"fri":3,"sat":27}
+  static Future<void> setBackgroundPerDayMap(Map<String, int> map) async {
+    await save(key: _kBgPerDay, value: jsonEncode(map));
+  }
+
+  static Map<String, int> getBackgroundPerDayMap({Map<String, int>? fallback}) {
+    final raw = get(key: _kBgPerDay);
+    if (raw is! String || raw.isEmpty) return fallback ?? {};
+    try {
+      final m = (jsonDecode(raw) as Map).cast<String, dynamic>();
+      return m.map((k, v) => MapEntry(k, (v as num).toInt()));
+    } catch (_) {
+      return fallback ?? {};
+    }
+  }
+
+  /// list: [4,6,8,9,18]
+  static Future<void> setBackgroundRandomPool(List<int> list) async {
+    await save(key: _kBgRandomPool, value: jsonEncode(list));
+  }
+
+  static List<int> getBackgroundRandomPool({List<int>? fallback}) {
+    final raw = get(key: _kBgRandomPool);
+    if (raw is! String || raw.isEmpty) return fallback ?? [];
+    try {
+      final arr = (jsonDecode(raw) as List).cast<dynamic>();
+      return arr.map((e) => (e as num).toInt()).toList();
+    } catch (_) {
+      return fallback ?? [];
+    }
+  }
+
+  static Future<void> setCurrentPrayerKey(String key) async {
+    // key: "fajr" "sunrise" "dhuhr" "asr" "maghrib" "isha"
+    await save(key: _kCurrentPrayerKey, value: key);
+  }
+
+  static String? getCurrentPrayerKey() {
+    final v = get(key: _kCurrentPrayerKey);
+    return v is String ? v : null;
+  }
+
+  static List<String> getAllBackgrounds() {
+    return [
+      Assets.images.home.path,
+      Assets.images.backgroundBroundWithMosBird.path,
+      Assets.images.backgroundLight2.path,
+      Assets.images.backgroundOliveGreenWithMosq.path,
+      Assets.images.backgroundGreenWith.path,
+
+      Assets.images.awesomeBackground.path,
+      Assets.images.awesome2.path,
+      Assets.images.darkBrownBackground.path,
+      Assets.images.lightBackground1.path,
+      Assets.images.lightBrownBackground.path,
+      Assets.images.brownBackground.path,
+      Assets.images.background2.path,
+      Assets.images.whiteBackgroundWithNaqsh.path,
+      Assets.images.elegantTealArabesqueBackground.path,
+      Assets.images.elegantBurgundyArabesqueBackground.path,
+      Assets.images.convinentOliveGreenBackground.path,
+      Assets.images.convinentBeigeBackground.path,
+      Assets.images.tealBlueBackground.path,
+
+      Assets.images.hr0.path,
+      Assets.images.hr1.path,
+      Assets.images.hr2.path,
+      Assets.images.hr3.path,
+      Assets.images.hr4.path,
+      Assets.images.hr5.path,
+      Assets.images.hr6.path,
+      Assets.images.hr7.path,
+      Assets.images.hr8.path,
+      Assets.images.hr9.path,
+      Assets.images.hr10.path,
+      Assets.images.hr11.path,
+      Assets.images.hr12.path,
+      Assets.images.hr13.path,
+      Assets.images.hr14.path,
+      Assets.images.hr15.path,
+      Assets.images.hr16.path,
+      Assets.images.hr17.path,
+      Assets.images.hr18.path,
+      Assets.images.hr19.path,
+      Assets.images.hr20.path,
+      Assets.images.hr21.path,
+      Assets.images.hr22.path,
+      Assets.images.hr23.path,
+      Assets.images.hr24.path,
+      Assets.images.hr25.path,
+      Assets.images.hr26.path,
+      Assets.images.hr27.path,
+      Assets.images.hr28.path,
+      Assets.images.hr29.path,
+      Assets.images.hr30.path,
+      Assets.images.hr31.path,
+      Assets.images.hr32.path,
+      Assets.images.hr33.path,
+      Assets.images.hr34.path,
+      Assets.images.hr35.path,
+      Assets.images.hr36.path,
+      Assets.images.hr37.path,
+      Assets.images.hr38.path,
+
+      Assets.images.vr20.path,
+      Assets.images.vr21.path,
+      Assets.images.vr22.path,
+      Assets.images.vr23.path,
+      Assets.images.vr24.path,
+      Assets.images.vr25.path,
+      Assets.images.vr26.path,
+      Assets.images.vr27.path,
+    ];
+  }
+}
+
+enum BackgroundChangeMode {
+  manual, // تغيير يدوي
+  perPrayer, // عند كل صلاة
+  perDay, // كل يوم
+  randomPool, // عشوائي من قائمة
+}
+
+extension BackgroundChangeModeX on BackgroundChangeMode {
+  int get id => index;
+
+  static BackgroundChangeMode fromId(int? v) {
+    final i = v ?? 0;
+    if (i < 0 || i >= BackgroundChangeMode.values.length) {
+      return BackgroundChangeMode.manual;
+    }
+    return BackgroundChangeMode.values[i];
   }
 }

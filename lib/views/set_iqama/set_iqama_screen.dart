@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/horizontal_space.dart';
@@ -12,6 +13,7 @@ import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
@@ -332,8 +334,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
     final prayersData = appCubit.prayers(context);
     final bool hasTimes = prayersData.isNotEmpty && prayersData[0].time != null;
 
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape = UiRotationCubit().isLandscape();
     final screenW = MediaQuery.of(context).size.width;
 
     // ✅ width responsive بدل 100.w
@@ -384,10 +385,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                         onPressed: () {
                           AppNavigator.pushAndRemoveUntil(
                             context,
-                            MediaQuery.of(context).orientation ==
-                                    Orientation.landscape
-                                ? const HomeScreenLandscape()
-                                : HomeScreenMobile(),
+                            HomeScreen(),
                           );
                         },
                         icon: Icon(
@@ -475,10 +473,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                     onPressed: () {
                                       AppNavigator.pushAndRemoveUntil(
                                         context,
-                                        MediaQuery.of(context).orientation ==
-                                                Orientation.landscape
-                                            ? const HomeScreenLandscape()
-                                            : HomeScreenMobile(),
+                                        HomeScreen(),
                                       );
                                     },
                                     icon: Icon(

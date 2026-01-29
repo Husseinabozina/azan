@@ -32,7 +32,35 @@ import 'dart:typed_data';
 import 'dart:io' show gzip;
 
 class AppCubit extends Cubit<AppState> {
-  AppCubit(this._dio) : super(AppInitial());
+  AppCubit(this._dio) : super(AppInitial()) {
+    _loadUiRotation();
+  }
+  int uiQuarterTurns = 0; // 0..3
+
+  Future<void> _loadUiRotation() async {
+    final saved = CacheHelper.get(key: 'ui_qt');
+    final v = (saved is int) ? saved : 0;
+    uiQuarterTurns = ((v % 4) + 4) % 4;
+    emit(UiRotationChanged(uiQuarterTurns));
+  }
+
+  Future<void> setUiQuarterTurns(int qt) async {
+    final v = ((qt % 4) + 4) % 4;
+    uiQuarterTurns = v;
+    await CacheHelper.save(key: 'ui_qt', value: v);
+    emit(UiRotationChanged(v));
+  }
+
+  /// زر "Portrait / Landscape" اللي انت عايزه
+  Future<void> togglePortraitLandscapeUi() async {
+    final next = (uiQuarterTurns == 0) ? 1 : 0;
+    debugPrint('TOGGLE: before=$uiQuarterTurns next=$next');
+    await setUiQuarterTurns(next);
+    debugPrint('TOGGLE: after=$uiQuarterTurns');
+  }
+
+  Future<void> resetUiRotation() async => setUiQuarterTurns(0);
+
   static AppCubit get(context) => BlocProvider.of(context);
 
   final Dio _dio;
@@ -158,14 +186,17 @@ class AppCubit extends Cubit<AppState> {
 
   bool? connectivity;
   void checkConnectivity() {
+    'start  checkConnectivity'.log();
     _connectivity.onConnectivityChanged.listen((
       List<ConnectivityResult> result,
     ) {
       if (result.contains(ConnectivityResult.none)) {
+        'result.contains(ConnectivityResult.none)'.log();
         connectivity = false;
 
         emit(AppInitial());
       } else {
+        '} else {'.log();
         connectivity = true;
 
         emit(AppChanged());
@@ -328,7 +359,9 @@ class AppCubit extends Cubit<AppState> {
       ),
       Prayer(
         id: 3,
-        title: LocaleKeys.dhuhr.tr(),
+        title: DateHelper.isFriday()
+            ? LocaleKeys.friday.tr()
+            : LocaleKeys.dhuhr.tr(),
         time: times == null ? null : _time12(times.dhuhr, context),
         dateTime: times?.dhuhr,
         time24: times == null ? null : _time24(times.dhuhr, context),

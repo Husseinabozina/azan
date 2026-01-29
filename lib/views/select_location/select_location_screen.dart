@@ -15,7 +15,6 @@ import 'package:azan/core/utils/selection_dialoge.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -85,10 +84,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                       onPressed: () {
                                         AppNavigator.pushAndRemoveUntil(
                                           context,
-                                          MediaQuery.of(context).orientation ==
-                                                  Orientation.landscape
-                                              ? const HomeScreenLandscape()
-                                              : HomeScreenMobile(),
+                                          HomeScreen(),
                                         );
                                       },
                                       icon: Icon(
@@ -150,38 +146,17 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                     final city = item as CityOption;
                                     appCubit.setCity(city);
                                     appCubit.assignCityChanged(true);
-                                    // if (!CacheHelper.getFirstAppOpen()) {
-                                    //   await appCubit.initializePrayerTimes(
-                                    //     city: city.nameEn,
-                                    //   );
-                                    // } else {
-                                    // appCubit.homeScreenMobile!
-                                    //     .homeScreenWork();
-                                    // }
-
-                                    // appCubit.homeScreenMobile?.homeScreenWork(
-                                    //   city: appCubit.getCity()?.nameEn,
-                                    // );
 
                                     if (!CacheHelper.getFirstAppOpen()) {
                                       CacheHelper.setFirstAppOpen(true);
                                       AppNavigator.pop(context);
                                       AppNavigator.pushAndRemoveUntil(
                                         context,
-                                        MediaQuery.of(context).orientation ==
-                                                Orientation.landscape
-                                            ? const HomeScreenLandscape()
-                                            : HomeScreenMobile(),
+                                        HomeScreen(),
                                       );
                                     } else {
                                       AppNavigator.pop(context);
-                                      AppNavigator.push(
-                                        context,
-                                        MediaQuery.of(context).orientation ==
-                                                Orientation.landscape
-                                            ? const HomeScreenLandscape()
-                                            : HomeScreenMobile(),
-                                      );
+                                      AppNavigator.push(context, HomeScreen());
                                     }
                                   });
                                 },

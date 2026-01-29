@@ -166,7 +166,7 @@ class DateHelper {
   static bool isFriday() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    return today.weekday == 6;
+    return today.weekday == 5;
   }
 }
 

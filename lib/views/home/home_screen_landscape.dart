@@ -5,6 +5,7 @@ import 'package:adhan/adhan.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
@@ -178,6 +179,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
       if (_isSameMinute(adhanTime, DateTime.now())) {
         setState(() {
+          CacheHelper.setCurrentPrayerKey(prayer.title);
           cubit.currentPrayer = prayer;
           cubit.showPrayerAzanPage = true;
         });
@@ -312,6 +314,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
       );
       return iqamaTime.isBefore(now);
     }).toList();
+    final uiRotateCubit = UiRotationCubit();
 
     return Scaffold(
       key: scaffoldKey,
@@ -339,6 +342,9 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
               // Main fixed-grid layout
               SafeArea(
+                top: uiRotateCubit.isLandscape() ? false : true,
+                bottom: uiRotateCubit.isLandscape() ? false : true,
+                // left: true,
                 child: LayoutBuilder(
                   builder: (context, c) {
                     final safeH = c.maxHeight; // ده الحقيقي
@@ -743,19 +749,16 @@ class _PrayerRow extends StatelessWidget {
   final String iqama;
   final bool dimmed;
 
-  Color _color() {
+  Color _color(Color color) {
     if (!CacheHelper.getIsPreviousPrayersDimmed()) {
-      return AppTheme.primaryTextColor;
+      return color;
     }
-    return dimmed
-        ? AppTheme.primaryTextColor.withOpacity(0.4)
-        : AppTheme.primaryTextColor;
+
+    return dimmed ? color.withOpacity(0.4) : color;
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = _color();
-
     return Row(
       children: [
         Expanded(
@@ -768,7 +771,7 @@ class _PrayerRow extends StatelessWidget {
               fontFamily: CacheHelper.getTimesFontFamily(),
               fontSize: 22.sp,
               fontWeight: FontWeight.bold,
-              color: c,
+              color: _color(AppTheme.primaryTextColor),
             ),
           ),
         ),
@@ -784,7 +787,8 @@ class _PrayerRow extends StatelessWidget {
                 fontFamily: CacheHelper.getTimesFontFamily(),
                 fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
-                color: c,
+
+                color: _color(AppTheme.secondaryTextColor),
               ),
             ),
           ),
@@ -801,7 +805,7 @@ class _PrayerRow extends StatelessWidget {
                 fontFamily: CacheHelper.getTimesFontFamily(),
                 fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
-                color: c,
+                color: _color(AppTheme.primaryTextColor),
               ),
             ),
           ),
@@ -826,15 +830,21 @@ class _CenterClockFixed extends StatelessWidget {
 
         return Column(
           children: [
-            SizedBox(
-              height: clockH,
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: LiveClockRow(
-                    timeFontSize: 70.sp,
-                    periodFontSize: 22.sp,
-                    use24Format: CacheHelper.getUse24HoursFormat(),
+            GestureDetector(
+              onTap: () {
+                final UiRotationCubit cubit = context.read<UiRotationCubit>();
+                cubit.changeIsLandscape(cubit.isLandscape() ? false : true);
+              },
+              child: SizedBox(
+                height: clockH,
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: LiveClockRow(
+                      timeFontSize: 70.sp,
+                      periodFontSize: 22.sp,
+                      use24Format: CacheHelper.getUse24HoursFormat(),
+                    ),
                   ),
                 ),
               ),

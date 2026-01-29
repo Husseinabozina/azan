@@ -2,6 +2,7 @@ import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/device_kind_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
@@ -24,6 +25,14 @@ const List<String> timesFonts = [tajwalFont, freeSpansFont, sultanFont];
 const List<String> textsFonts = [tajwalFont, freeSpansFont, sultanFont];
 
 var kind;
+
+bool isLargeScreen(DeviceKind kind) {
+  return kind == DeviceKind.tv ||
+      kind == DeviceKind.desktop ||
+      kind == DeviceKind.web ||
+      kind == DeviceKind.tablet;
+}
+
 // const String
 List<String> get prayers => [
   LocaleKeys.fajr.tr(),
@@ -42,11 +51,8 @@ List<String> prayerTimes = [
   "4:00 pm",
   "6:00 pm",
 ];
-Widget nextScreen(BuildContext context) => !CacheHelper.getFirstAppOpen()
-    ? SelectLocationScreen()
-    : MediaQuery.of(context).orientation == Orientation.landscape
-    ? HomeScreenLandscape()
-    : HomeScreenMobile();
+const String kUiQuarterTurnsKey = 'ui_qt';
+Widget nextScreen(BuildContext context) => HomeScreen();
 const double prayerFactor = 3;
 final List<Dhikr> azkar = [
   // صلاة على النبي ﷺ - يوم الجمعة بس

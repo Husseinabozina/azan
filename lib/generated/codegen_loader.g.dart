@@ -138,7 +138,7 @@ class CodegenLoader extends AssetLoader{
   "check_your_internet_connection_the_star": "Check your internet connection (the star at the bottom of the screen)",
   "connected": "Connected",
   "disconnected": "Disconnected",
-  "copy_right_for_sadja": "All rights reserved for Sadja © 2025.",
+  "copy_right_for_sadja": "All rights reserved for Sadja © 2025",
   "loading": "Loading",
   "date": "Date",
   "adhan_time": "Adhan time",
@@ -161,7 +161,10 @@ class CodegenLoader extends AssetLoader{
   "day": "Day",
   "hijri_date": "Hijri Date",
   "gregorian_date": "Gregorian Date",
-  "temp": "Temperature"
+  "temp": "Temperature",
+  "change_to": "Change to",
+  "landscape": "Landscape",
+  "portrait": "Portrait"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -170,7 +173,7 @@ static const Map<String,dynamic> _ar = {
   "second": "ثانية",
   "time_left_for_fajr": "المتبقي للفجر",
   "am_label": "صباحاً",
-  "pm_label": "مساءاً",
+  "pm_label": "مساءً",
   "fajr": "الفجر",
   "sunrise": "الشروق",
   "dhuhr": "الظهر",
@@ -287,7 +290,7 @@ static const Map<String,dynamic> _ar = {
   "eid_al_adha": "عيد الأضحي",
   "connected": "متصل",
   "disconnected": "غير متصل",
-  "copy_right_for_sadja": "جميع الحقوق محفوظة لتطبيق سجدة © 2025.",
+  "copy_right_for_sadja": "جميع الحقوق محفوظة لتطبيق سجدة © 2025",
   "loading": "جاري التحميل",
   "check_your_internet_connection_the_star": "تحقق من الاتصال بالانترنت (النجمة أسفل الشاشة)",
   "date": "التاريخ",
@@ -311,7 +314,10 @@ static const Map<String,dynamic> _ar = {
   "day": "اليوم",
   "hijri_date": "التاريخ الهجري",
   "gregorian_date": "التاريخ الميلادي",
-  "temp": "الحرارة"
+  "temp": "الحرارة",
+  "change_to": "تغيير إلي",
+  "landscape": "الوضع الأفقي",
+  "portrait": "الوضع الرأسي "
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en": _en, "ar": _ar};
 }

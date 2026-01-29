@@ -37,7 +37,7 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
   late AppCubit appCubit;
 
   Duration? _timeBeforeIqama;
-  Duration _timeBeforeAzanTerminate = const Duration(minutes: 4);
+  Duration _timeBeforeAzanTerminate = const Duration(minutes: 2);
   Duration _timeBeforeDoaaTerminate = const Duration(minutes: 2);
 
   Timer? _azanTimer;

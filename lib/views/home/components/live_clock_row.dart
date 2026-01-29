@@ -8,6 +8,7 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LiveClockRow extends StatefulWidget {
   final double timeFontSize;
@@ -93,31 +94,34 @@ class _LiveClockRowState extends State<LiveClockRow> {
   @override
   Widget build(BuildContext context) {
     final period = _periodLabel(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          _formattedTime(),
-          style: TextStyle(
-            fontFamily: CacheHelper.getTimeFontFamily(),
-            fontSize: widget.timeFontSize,
-            fontWeight: FontWeight.bold,
-            color: widget.textColor ?? AppTheme.secondaryTextColor,
-          ),
-        ),
-        if (widget.withIndicator) HorizontalSpace(width: 10),
-        if (widget.withIndicator)
+    return Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           Text(
-            period ?? '',
+            _formattedTime(),
             style: TextStyle(
               fontFamily: CacheHelper.getTimeFontFamily(),
+              fontSize: widget.timeFontSize,
               fontWeight: FontWeight.bold,
-
-              fontSize: widget.periodFontSize,
-              color: widget.textColor ?? AppTheme.primaryTextColor,
+              color: widget.textColor ?? AppTheme.secondaryTextColor,
+              letterSpacing: 3.w,
             ),
           ),
-      ],
+          if (widget.withIndicator) HorizontalSpace(width: 10),
+          if (widget.withIndicator)
+            Text(
+              period ?? '',
+              style: TextStyle(
+                fontFamily: CacheHelper.getTimeFontFamily(),
+                fontWeight: FontWeight.bold,
+
+                fontSize: widget.periodFontSize,
+                color: widget.textColor ?? AppTheme.primaryTextColor,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

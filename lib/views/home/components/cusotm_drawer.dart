@@ -1,20 +1,27 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/constants.dart';
+import 'package:azan/core/utils/device_kind_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
+import 'package:azan/core/utils/native_orientation.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
+import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
 import 'package:azan/views/set_hide_screen/set_hide_screen.dart';
 import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// ===============================
@@ -36,8 +43,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final cubit = AppCubit.get(widget.context);
+
+    // ✅ 1) اقرأ وضع الـ UI مرة واحدة من Rotation Cubit
+    final int qt = 1; // 0 or 1
+
+    // ✅ 2) اشتقاق واضح
+
+    bool isLandscape = UiRotationCubit().isLandscape();
+    final double vPad = isLandscape ? 6.h : 10.h;
+
+    final String targetLabel = isLandscape
+        ? LocaleKeys.landscape.tr()
+        : LocaleKeys.portrait.tr();
 
     return Drawer(
       shape: const RoundedRectangleBorder(),
@@ -115,87 +133,102 @@ class _CustomDrawerState extends State<CustomDrawer> {
             _DrawerEntry(
               title: LocaleKeys.change_screen_background.tr(),
               onTap: () async {
-                await showChangeBackgroundDialog(
-                  context,
-                  backgrounds: [
-                    // ====== القديم ======
-                    Assets.images.home.path,
-                    Assets.images.backgroundBroundWithMosBird.path,
-                    Assets.images.backgroundLight2.path,
-                    Assets.images.backgroundOliveGreenWithMosq.path,
-                    Assets.images.backgroundGreenWith.path,
+                AppNavigator.push(context, ChangeBackgroundSettingsScreen());
 
-                    // ====== الجديد ======
-                    Assets.images.awesomeBackground.path,
-                    Assets.images.awesome2.path,
-                    Assets.images.darkBrownBackground.path,
-                    Assets.images.lightBackground1.path,
-                    Assets.images.lightBrownBackground.path,
-                    Assets.images.brownBackground.path,
-                    Assets.images.background2.path,
-                    Assets.images.whiteBackgroundWithNaqsh.path,
-                    Assets.images.elegantTealArabesqueBackground.path,
-                    Assets.images.elegantBurgundyArabesqueBackground.path,
-                    Assets.images.convinentOliveGreenBackground.path,
-                    Assets.images.convinentBeigeBackground.path,
-                    Assets.images.tealBlueBackground.path,
-                    Assets.images.hr0.path,
-                    Assets.images.hr1.path,
-                    Assets.images.hr2.path,
-                    Assets.images.hr3.path,
-                    Assets.images.hr4.path,
-                    Assets.images.hr5.path,
-                    Assets.images.hr6.path,
-                    Assets.images.hr7.path,
-                    Assets.images.hr8.path,
-                    Assets.images.hr9.path,
-                    Assets.images.hr10.path,
-                    Assets.images.hr11.path,
-                    Assets.images.hr12.path,
-                    Assets.images.hr13.path,
-                    Assets.images.hr14.path,
-                    Assets.images.hr15.path,
-                    Assets.images.hr16.path,
-                    Assets.images.hr17.path,
-                    Assets.images.hr18.path,
-                    Assets.images.hr19.path,
-                    Assets.images.hr20.path,
-                    Assets.images.hr21.path,
-                    Assets.images.hr22.path,
-                    Assets.images.hr23.path,
-                    Assets.images.hr24.path,
-                    Assets.images.hr25.path,
-                    Assets.images.hr26.path,
-                    Assets.images.hr27.path,
-                    Assets.images.hr28.path,
-                    Assets.images.hr29.path,
-                    Assets.images.hr30.path,
-                    Assets.images.hr31.path,
-                    // to hr38
-                    Assets.images.hr32.path,
-                    Assets.images.hr33.path,
-                    Assets.images.hr34.path,
-                    Assets.images.hr35.path,
-                    Assets.images.hr36.path,
-                    Assets.images.hr37.path,
-                    Assets.images.hr38.path,
-                    // vr20 to 27
-                    Assets.images.vr20.path,
-                    Assets.images.vr21.path,
-                    Assets.images.vr22.path,
-                    Assets.images.vr23.path,
-                    Assets.images.vr24.path,
-                    Assets.images.vr25.path,
-                    Assets.images.vr26.path,
-                    Assets.images.vr27.path,
-                  ],
-                  currentBackground: CacheHelper.getSelectedBackground(),
-                  onConfirm: (selectedPath) {
-                    setState(() {
-                      CacheHelper.setSelectedBackground(selectedPath);
-                    });
-                  },
-                );
+                // await showChangeBackgroundDialog(
+                //   context,
+                //   backgrounds: [
+                //     // ====== القديم ======
+                //     Assets.images.home.path,
+                //     Assets.images.backgroundBroundWithMosBird.path,
+                //     Assets.images.backgroundLight2.path,
+                //     Assets.images.backgroundOliveGreenWithMosq.path,
+                //     Assets.images.backgroundGreenWith.path,
+
+                //     // ====== الجديد ======
+                //     Assets.images.awesomeBackground.path,
+                //     Assets.images.awesome2.path,
+                //     Assets.images.darkBrownBackground.path,
+                //     Assets.images.lightBackground1.path,
+                //     Assets.images.lightBrownBackground.path,
+                //     Assets.images.brownBackground.path,
+                //     Assets.images.background2.path,
+                //     Assets.images.whiteBackgroundWithNaqsh.path,
+                //     Assets.images.elegantTealArabesqueBackground.path,
+                //     Assets.images.elegantBurgundyArabesqueBackground.path,
+                //     Assets.images.convinentOliveGreenBackground.path,
+                //     Assets.images.convinentBeigeBackground.path,
+                //     Assets.images.tealBlueBackground.path,
+                //     Assets.images.hr0.path,
+                //     Assets.images.hr1.path,
+                //     Assets.images.hr2.path,
+                //     Assets.images.hr3.path,
+                //     Assets.images.hr4.path,
+                //     Assets.images.hr5.path,
+                //     Assets.images.hr6.path,
+                //     Assets.images.hr7.path,
+                //     Assets.images.hr8.path,
+                //     Assets.images.hr9.path,
+                //     Assets.images.hr10.path,
+                //     Assets.images.hr11.path,
+                //     Assets.images.hr12.path,
+                //     Assets.images.hr13.path,
+                //     Assets.images.hr14.path,
+                //     Assets.images.hr15.path,
+                //     Assets.images.hr16.path,
+                //     Assets.images.hr17.path,
+                //     Assets.images.hr18.path,
+                //     Assets.images.hr19.path,
+                //     Assets.images.hr20.path,
+                //     Assets.images.hr21.path,
+                //     Assets.images.hr22.path,
+                //     Assets.images.hr23.path,
+                //     Assets.images.hr24.path,
+                //     Assets.images.hr25.path,
+                //     Assets.images.hr26.path,
+                //     Assets.images.hr27.path,
+                //     Assets.images.hr28.path,
+                //     Assets.images.hr29.path,
+                //     Assets.images.hr30.path,
+                //     Assets.images.hr31.path,
+                //     // to hr38
+                //     Assets.images.hr32.path,
+                //     Assets.images.hr33.path,
+                //     Assets.images.hr34.path,
+                //     Assets.images.hr35.path,
+                //     Assets.images.hr36.path,
+                //     Assets.images.hr37.path,
+                //     Assets.images.hr38.path,
+                //     // vr20 to 27
+                //     Assets.images.vr20.path,
+                //     Assets.images.vr21.path,
+                //     Assets.images.vr22.path,
+                //     Assets.images.vr23.path,
+                //     Assets.images.vr24.path,
+                //     Assets.images.vr25.path,
+                //     Assets.images.vr26.path,
+                //     Assets.images.vr27.path,
+                //   ],
+                //   currentBackground: CacheHelper.getSelectedBackground(),
+                //   onConfirm: (selectedPath) {
+                //     setState(() {
+                //       CacheHelper.setSelectedBackground(selectedPath);
+                //     });
+                //   },
+                // );
+              },
+            ),
+            _DrawerEntry(
+              title: '${LocaleKeys.change_to.tr()} $targetLabel',
+              onTap: () {
+                // Navigator.pop(context);
+
+                final cubit = context.read<UiRotationCubit>();
+                if (cubit.isLandscape()) {
+                  cubit.changeIsLandscape(false);
+                } else {
+                  cubit.changeIsLandscape(true);
+                }
               },
             ),
           ];
@@ -217,7 +250,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   setState(() {
                     CacheHelper.setLang(code);
                   });
-                  MediaQuery.of(context).orientation == Orientation.landscape
+                  isLandscape
                       ? AppCubit.get(
                           widget.context,
                         ).homeScreenLandscape?.homeScreenWork()
@@ -500,8 +533,7 @@ class LanguageDrawerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isLandscape = UiRotationCubit().isLandscape();
 
     final double vPad = isLandscape ? 6.h : 10.h;
 

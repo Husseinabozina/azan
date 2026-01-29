@@ -1,3 +1,4 @@
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
@@ -9,6 +10,7 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
+import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -24,6 +26,55 @@ class AdditionalSettingsScreen extends StatefulWidget {
 }
 
 class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
+  // ✅ UI state (علشان اللون يتغير فورًا)
+  late bool use24h;
+  late bool fullTime;
+  late bool dimPrev;
+  late bool changeCounter;
+  late bool arabicNumbers;
+  late bool checkInternet;
+
+  @override
+  void initState() {
+    super.initState();
+    use24h = CacheHelper.getUse24HoursFormat();
+    fullTime = CacheHelper.getIsFullTimeEnabled();
+    dimPrev = CacheHelper.getIsPreviousPrayersDimmed();
+    changeCounter = CacheHelper.getIsChangeCounterEnabled();
+    arabicNumbers = CacheHelper.getIsArabicNumbersEnabled();
+    checkInternet = CacheHelper.getEnableCheckInternetConnection();
+  }
+
+  Future<void> _setUse24h(bool v) async {
+    setState(() => use24h = v);
+    await CacheHelper.setUse24HoursFormat(v);
+  }
+
+  void _setFullTime(bool v) {
+    setState(() => fullTime = v);
+    CacheHelper.setIsFullTimeEnabled(v);
+  }
+
+  void _setDimPrev(bool v) {
+    setState(() => dimPrev = v);
+    CacheHelper.setIsPreviousPrayersDimmed(v);
+  }
+
+  void _setChangeCounter(bool v) {
+    setState(() => changeCounter = v);
+    CacheHelper.setIsChangeCounterEnabled(v);
+  }
+
+  void _setArabicNumbers(bool v) {
+    setState(() => arabicNumbers = v);
+    CacheHelper.setIsArabicNumbersEnabled(v);
+  }
+
+  void _setCheckInternet(bool v) {
+    setState(() => checkInternet = v);
+    CacheHelper.setEnableCheckInternetConnection(v);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,43 +86,53 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
             height: double.infinity,
             fit: BoxFit.fill,
           ),
-          SafeArea(
-            child: OrientationBuilder(
-              builder: (context, o) {
-                final isLandscape = o == Orientation.landscape;
 
-                if (!isLandscape) {
-                  // ✅ Portrait: scroll طبيعي
-                  return SingleChildScrollView(
-                    child: SizedBox(
-                      width: 1.sw,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _TopBar(),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 10.h,
-                              left: 10.w,
-                              right: 10.w,
-                              bottom: 14.h,
-                            ),
-                            child: _PortraitContent(),
+          !UiRotationCubit().isLandscape()
+              ?
+                // ✅ Portrait: scroll طبيعي
+                SingleChildScrollView(
+                  child: SizedBox(
+                    width: 1.sw,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _TopBar(context: context),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: 10.h,
+                            left: 10.w,
+                            right: 10.w,
+                            bottom: 14.h,
                           ),
-                        ],
-                      ),
+                          child: _PortraitContent(
+                            use24h: use24h,
+                            fullTime: fullTime,
+                            dimPrev: dimPrev,
+                            changeCounter: changeCounter,
+                            arabicNumbers: arabicNumbers,
+                            checkInternet: checkInternet,
+                            onUse24h: _setUse24h,
+                            onFullTime: _setFullTime,
+                            onDimPrev: _setDimPrev,
+                            onChangeCounter: _setChangeCounter,
+                            onArabicNumbers: _setArabicNumbers,
+                            onCheckInternet: _setCheckInternet,
+                            onRefresh: () => setState(() {}),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                }
-
-                // ✅ Landscape: Row من عمودين (وكل عمود سكرول رأسي لوحده)
-                return SizedBox(
-                  width: 1.sw,
-                  child: Column(
-                    children: [
-                      _TopBar(),
-                      Expanded(
-                        child: Padding(
+                  ),
+                )
+              :
+                // ✅ Landscape: عمودين - كل عمود سكرول لوحده
+                SingleChildScrollView(
+                  child: SizedBox(
+                    width: 1.sw,
+                    child: Column(
+                      children: [
+                        _TopBar(context: context),
+                        Padding(
                           padding: EdgeInsets.only(
                             top: 10.h,
                             left: 10.w,
@@ -80,49 +141,62 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                           ),
                           child: Row(
                             children: [
-                              // LEFT PANEL
                               Expanded(
                                 flex: 52,
                                 child: _PanelScroll(
-                                  child: _LandscapeLeftPanel(),
+                                  child: _LandscapeLeftPanel(
+                                    use24h: use24h,
+                                    fullTime: fullTime,
+                                    dimPrev: dimPrev,
+                                    changeCounter: changeCounter,
+                                    arabicNumbers: arabicNumbers,
+                                    checkInternet: checkInternet,
+                                    onUse24h: _setUse24h,
+                                    onFullTime: _setFullTime,
+                                    onDimPrev: _setDimPrev,
+                                    onChangeCounter: _setChangeCounter,
+                                    onArabicNumbers: _setArabicNumbers,
+                                    onCheckInternet: _setCheckInternet,
+                                    onRefresh: () => setState(() {}),
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 12.w),
-                              // RIGHT PANEL
                               Expanded(
                                 flex: 48,
                                 child: _PanelScroll(
-                                  child: _LandscapeRightPanel(),
+                                  child: _LandscapeRightPanel(
+                                    onRefresh: () => setState(() {}),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
+                ),
         ],
       ),
     );
   }
+}
 
-  // ===================== TOP BAR =====================
-  Widget _TopBar() {
+// ===================== TOP BAR =====================
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.context});
+  final BuildContext context;
+
+  @override
+  Widget build(BuildContext context2) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           onPressed: () {
-            AppNavigator.pushAndRemoveUntil(
-              context,
-              MediaQuery.of(context).orientation == Orientation.landscape
-                  ? const HomeScreenLandscape()
-                  : const HomeScreenMobile(),
-            );
+            AppNavigator.pushAndRemoveUntil(context, HomeScreen());
           },
           icon: Icon(Icons.close, color: AppTheme.accentColor, size: 35.r),
         ),
@@ -157,85 +231,98 @@ class _PanelScroll extends StatelessWidget {
   }
 }
 
-// ===================== PORTRAIT CONTENT (زي بتاعك لكن مرتب) =====================
+// ===================== PORTRAIT CONTENT =====================
 
-class _PortraitContent extends StatefulWidget {
-  @override
-  State<_PortraitContent> createState() => _PortraitContentState();
-}
+class _PortraitContent extends StatelessWidget {
+  const _PortraitContent({
+    required this.use24h,
+    required this.fullTime,
+    required this.dimPrev,
+    required this.changeCounter,
+    required this.arabicNumbers,
+    required this.checkInternet,
+    required this.onUse24h,
+    required this.onFullTime,
+    required this.onDimPrev,
+    required this.onChangeCounter,
+    required this.onArabicNumbers,
+    required this.onCheckInternet,
+    required this.onRefresh,
+  });
 
-class _PortraitContentState extends State<_PortraitContent> {
+  final bool use24h;
+  final bool fullTime;
+  final bool dimPrev;
+  final bool changeCounter;
+  final bool arabicNumbers;
+  final bool checkInternet;
+
+  final Future<void> Function(bool) onUse24h;
+  final void Function(bool) onFullTime;
+  final void Function(bool) onDimPrev;
+  final void Function(bool) onChangeCounter;
+  final void Function(bool) onArabicNumbers;
+  final void Function(bool) onCheckInternet;
+
+  final VoidCallback onRefresh;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomCheckTile(
-          onChanged: (value) {
-            setState(() => CacheHelper.setUse24HoursFormat(value));
-          },
+          onChanged: (v) => onUse24h(v),
           title: LocaleKeys.enable_24_hours.tr(),
-          value: CacheHelper.getUse24HoursFormat(),
+          value: use24h,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) {
-            setState(() => CacheHelper.setIsFullTimeEnabled(value));
-          },
+          onChanged: onFullTime,
           title: "${LocaleKeys.enable_full_time.tr()} 00:00:00",
-          value: CacheHelper.getIsFullTimeEnabled(),
+          value: fullTime,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) {
-            setState(() => CacheHelper.setIsPreviousPrayersDimmed(value));
-          },
+          onChanged: onDimPrev,
           title: LocaleKeys.dim_previous_prayers.tr(),
-          value: CacheHelper.getIsPreviousPrayersDimmed(),
+          value: dimPrev,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) {
-            setState(() => CacheHelper.setIsChangeCounterEnabled(value));
-          },
+          onChanged: onChangeCounter,
           title: LocaleKeys.change_counter_color.tr(),
-          value: CacheHelper.getIsChangeCounterEnabled(),
+          value: changeCounter,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) {
-            setState(() => CacheHelper.setIsArabicNumbersEnabled(value));
-          },
+          onChanged: onArabicNumbers,
           title: LocaleKeys.enable_arabic_numbers.tr(),
-          value: CacheHelper.getIsArabicNumbersEnabled(),
+          value: arabicNumbers,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) {
-            setState(() {
-              CacheHelper.setEnableCheckInternetConnection(value);
-            });
-          },
+          onChanged: onCheckInternet,
           title: LocaleKeys.check_your_internet_connection_the_star.tr(),
-          value: CacheHelper.getEnableCheckInternetConnection(),
+          value: checkInternet,
         ),
 
         VerticalSpace(height: 14.h),
-        _DividerLine(),
+        const _DividerLine(),
         VerticalSpace(height: 14.h),
 
-        _EidSection(onChanged: () => setState(() {})),
+        _EidSection(onChanged: onRefresh),
 
         VerticalSpace(height: 14.h),
-        _DividerLine(),
+        const _DividerLine(),
         VerticalSpace(height: 14.h),
 
-        _FontsSection(onChanged: () => setState(() {})),
+        _FontsSection(onChanged: onRefresh),
       ],
     );
   }
@@ -243,71 +330,90 @@ class _PortraitContentState extends State<_PortraitContent> {
 
 // ===================== LANDSCAPE LEFT PANEL =====================
 
-class _LandscapeLeftPanel extends StatefulWidget {
-  @override
-  State<_LandscapeLeftPanel> createState() => _LandscapeLeftPanelState();
-}
+class _LandscapeLeftPanel extends StatelessWidget {
+  const _LandscapeLeftPanel({
+    required this.use24h,
+    required this.fullTime,
+    required this.dimPrev,
+    required this.changeCounter,
+    required this.arabicNumbers,
+    required this.checkInternet,
+    required this.onUse24h,
+    required this.onFullTime,
+    required this.onDimPrev,
+    required this.onChangeCounter,
+    required this.onArabicNumbers,
+    required this.onCheckInternet,
+    required this.onRefresh,
+  });
 
-class _LandscapeLeftPanelState extends State<_LandscapeLeftPanel> {
+  final bool use24h;
+  final bool fullTime;
+  final bool dimPrev;
+  final bool changeCounter;
+  final bool arabicNumbers;
+  final bool checkInternet;
+
+  final Future<void> Function(bool) onUse24h;
+  final void Function(bool) onFullTime;
+  final void Function(bool) onDimPrev;
+  final void Function(bool) onChangeCounter;
+  final void Function(bool) onArabicNumbers;
+  final void Function(bool) onCheckInternet;
+
+  final VoidCallback onRefresh;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // toggles
         CustomCheckTile(
-          onChanged: (value) =>
-              setState(() => CacheHelper.setUse24HoursFormat(value)),
+          onChanged: (v) => onUse24h(v),
           title: LocaleKeys.enable_24_hours.tr(),
-          value: CacheHelper.getUse24HoursFormat(),
+          value: use24h,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) =>
-              setState(() => CacheHelper.setIsFullTimeEnabled(value)),
+          onChanged: onFullTime,
           title: "${LocaleKeys.enable_full_time.tr()} 00:00:00",
-          value: CacheHelper.getIsFullTimeEnabled(),
+          value: fullTime,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) =>
-              setState(() => CacheHelper.setIsPreviousPrayersDimmed(value)),
+          onChanged: onDimPrev,
           title: LocaleKeys.dim_previous_prayers.tr(),
-          value: CacheHelper.getIsPreviousPrayersDimmed(),
+          value: dimPrev,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) =>
-              setState(() => CacheHelper.setIsChangeCounterEnabled(value)),
+          onChanged: onChangeCounter,
           title: LocaleKeys.change_counter_color.tr(),
-          value: CacheHelper.getIsChangeCounterEnabled(),
+          value: changeCounter,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) =>
-              setState(() => CacheHelper.setIsArabicNumbersEnabled(value)),
+          onChanged: onArabicNumbers,
           title: LocaleKeys.enable_arabic_numbers.tr(),
-          value: CacheHelper.getIsArabicNumbersEnabled(),
+          value: arabicNumbers,
         ),
         VerticalSpace(height: 10.h),
 
         CustomCheckTile(
-          onChanged: (value) => setState(() {
-            CacheHelper.setEnableCheckInternetConnection(value);
-          }),
+          onChanged: onCheckInternet,
           title: LocaleKeys.check_your_internet_connection_the_star.tr(),
-          value: CacheHelper.getEnableCheckInternetConnection(),
+          value: checkInternet,
         ),
 
         VerticalSpace(height: 14.h),
-        _DividerLine(),
+        const _DividerLine(),
         VerticalSpace(height: 14.h),
 
-        _EidSection(onChanged: () => setState(() {})),
+        _EidSection(onChanged: onRefresh),
       ],
     );
   }
@@ -315,21 +421,21 @@ class _LandscapeLeftPanelState extends State<_LandscapeLeftPanel> {
 
 // ===================== LANDSCAPE RIGHT PANEL =====================
 
-class _LandscapeRightPanel extends StatefulWidget {
-  @override
-  State<_LandscapeRightPanel> createState() => _LandscapeRightPanelState();
-}
+class _LandscapeRightPanel extends StatelessWidget {
+  const _LandscapeRightPanel({required this.onRefresh});
+  final VoidCallback onRefresh;
 
-class _LandscapeRightPanelState extends State<_LandscapeRightPanel> {
   @override
   Widget build(BuildContext context) {
-    return _FontsSection(onChanged: () => setState(() {}));
+    return _FontsSection(onChanged: onRefresh);
   }
 }
 
 // ===================== SECTIONS =====================
 
 class _DividerLine extends StatelessWidget {
+  const _DividerLine();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -353,7 +459,6 @@ class _EidSection extends StatelessWidget {
     return Column(
       children: [
         Row(
-          // crossAxisAlignment:  ,
           children: [
             Expanded(
               child: InkWell(
@@ -381,7 +486,6 @@ class _EidSection extends StatelessWidget {
                 ),
               ),
             ),
-
             Expanded(
               child: CustomTimeCheckTile(
                 titleValue: CacheHelper.getFitrEid() != null
@@ -395,12 +499,9 @@ class _EidSection extends StatelessWidget {
                 },
               ),
             ),
-
-            // VerticalSpace(height: 6.h),
           ],
         ),
         VerticalSpace(height: 10.h),
-
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -430,7 +531,6 @@ class _EidSection extends StatelessWidget {
                 ),
               ),
             ),
-            // Spacer(),
             Expanded(
               child: CustomTimeCheckTile(
                 titleValue: CacheHelper.getAdhaEid() != null
@@ -459,12 +559,12 @@ class _FontsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        // عدد الأعمدة حسب العرض المتاح (بدون overflow)
         int cols = 4;
-        if (c.maxWidth < 520)
+        if (c.maxWidth < 520) {
           cols = 2;
-        else if (c.maxWidth < 760)
+        } else if (c.maxWidth < 760) {
           cols = 3;
+        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -481,7 +581,6 @@ class _FontsSection extends StatelessWidget {
               ),
             ),
             VerticalSpace(height: 10.h),
-
             _FontsGrid(columns: cols, onChanged: onChanged),
           ],
         );
@@ -557,19 +656,19 @@ class _FontsGrid extends StatelessWidget {
       ),
     ];
 
-    // لو columns أقل من 4، هنرتبهم في GridView
-    return GridView.builder(
-      itemCount: groups.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        crossAxisSpacing: 12.w,
-        mainAxisSpacing: 12.h,
-        // ارتفاع مرن حسب المحتوى (نجرب امتداد ثابت مناسب)
-        mainAxisExtent: 100.h,
-      ),
-      itemBuilder: (context, i) => _FontGroupCard(data: groups[i]),
+    return Wrap(
+      // direction: Axis.horizontal,
+      // spacing: 5.w,
+      // runSpacing: 12.h,
+      children: groups
+          .map(
+            (e) => SizedBox(
+              width: UiRotationCubit().isLandscape() ? .14.sw : .23.sw,
+
+              child: _FontGroupCard(data: e),
+            ),
+          )
+          .toList(),
     );
   }
 }
@@ -609,6 +708,7 @@ class _FontGroupCard extends StatelessWidget {
           return Padding(
             padding: EdgeInsets.only(bottom: 6.h),
             child: CustomCheckTile(
+              withoutExpand: true,
               checkBoxSize: 18.r,
               fontSize: 12.sp,
               title: name,
@@ -632,6 +732,7 @@ class CustomCheckTile extends StatelessWidget {
     required this.value,
     this.fontSize,
     this.checkBoxSize,
+    this.withoutExpand,
   });
 
   final Function(bool value) onChanged;
@@ -639,10 +740,12 @@ class CustomCheckTile extends StatelessWidget {
   final bool value;
   final double? fontSize;
   final double? checkBoxSize;
+  final bool? withoutExpand;
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         CustomCheckbox(
           size: checkBoxSize ?? 20.r,
@@ -651,17 +754,27 @@ class CustomCheckTile extends StatelessWidget {
           onChanged: onChanged,
         ),
         HorizontalSpace(width: 6.w),
-        Expanded(
-          child: Text(
-            title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: fontSize ?? 15.sp,
-              color: AppTheme.primaryTextColor,
-            ),
-          ),
-        ),
+        (withoutExpand == true)
+            ? Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: fontSize ?? 15.sp,
+                  color: AppTheme.primaryTextColor,
+                ),
+              )
+            : Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: fontSize ?? 15.sp,
+                    color: AppTheme.primaryTextColor,
+                  ),
+                ),
+              ),
       ],
     );
   }
@@ -688,6 +801,7 @@ class CustomTimeCheckTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         CustomCheckbox(
           size: checkBoxSize ?? 20.r,
@@ -696,8 +810,6 @@ class CustomTimeCheckTile extends StatelessWidget {
           onChanged: onChanged,
         ),
         HorizontalSpace(width: 6.w),
-
-        // ✅ ده كان سبب overflow عندك: لازم Expanded + RichText بحدود
         Expanded(
           child: RichText(
             maxLines: 2,

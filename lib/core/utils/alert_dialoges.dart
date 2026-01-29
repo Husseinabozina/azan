@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/custom_text_field.dart';
 import 'package:azan/core/components/vertical_space.dart';
@@ -17,8 +18,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// ✅ Shared helpers (PRIVATE) — لا تغيّر أي calls في ملفات تانية.
 /// ============================================================================
 
-bool _isLandscape(BuildContext context) =>
-    MediaQuery.of(context).orientation == Orientation.landscape;
+bool _isLandscape(BuildContext context) => UiRotationCubit().isLandscape();
 
 /// عرض الديالوج: cap محترم للشاشات الكبيرة (خصوصًا لاندسكيب)
 double _dialogMaxWidth(BuildContext context) {

@@ -150,5 +150,8 @@ abstract class  LocaleKeys {
   static const hijri_date = 'hijri_date';
   static const gregorian_date = 'gregorian_date';
   static const temp = 'temp';
+  static const change_to = 'change_to';
+  static const landscape = 'landscape';
+  static const portrait = 'portrait';
 
 }

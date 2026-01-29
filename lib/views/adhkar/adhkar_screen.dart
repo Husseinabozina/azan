@@ -1,5 +1,6 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
@@ -12,6 +13,7 @@ import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:azan/views/adhkar/components/dhikr_tile.dart';
+import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -36,14 +38,11 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
     cubit.assignAdhkar();
   }
 
-  bool _isLandscape(BuildContext context) =>
-      MediaQuery.of(context).orientation == Orientation.landscape;
+  bool _isLandscape(BuildContext context) => UiRotationCubit().isLandscape();
 
   void _goHome(BuildContext context) {
     // يرجّع للشاشة الصح حسب الاتجاه الحالي
-    final Widget home = _isLandscape(context)
-        ? const HomeScreenLandscape()
-        : const HomeScreenMobile();
+    final Widget home = HomeScreen();
 
     AppNavigator.pushAndRemoveUntil(context, home);
   }
@@ -201,8 +200,7 @@ class _PortraitLayout extends StatelessWidget {
     required this.onSliderToggle,
   });
 
-  final List<dynamic>
-  adhkar; // نفس نوع Dhikr عندك، سيبه dynamic لو مش مستورد Model هنا
+  final List<dynamic> adhkar;
   final VoidCallback onAdd;
   final bool sliderValue;
   final ValueChanged<bool> onSliderToggle;
@@ -211,8 +209,8 @@ class _PortraitLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return _GlassPanel(
       padding: EdgeInsets.all(16.r),
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SettingsPanel(
             onAdd: onAdd,
@@ -220,7 +218,9 @@ class _PortraitLayout extends StatelessWidget {
             onSliderToggle: onSliderToggle,
           ),
           SizedBox(height: 14.h),
-          _AdhkarList(adhkar: adhkar),
+
+          // ✅ هنا بقى الليست هي اللي تعمل Scroll
+          Expanded(child: _AdhkarList(adhkar: adhkar)),
         ],
       ),
     );
@@ -335,21 +335,14 @@ class _AdhkarList extends StatelessWidget {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // مهم: لازم Expanded لما يكون داخل Column جوة panel
-        Expanded(
-          child: ListView.separated(
-            itemCount: adhkar.length,
-            separatorBuilder: (_, __) => SizedBox(height: 10.h),
-            itemBuilder: (context, index) {
-              final dhikr = adhkar[index];
-              return DhikrTile(dhikr: dhikr);
-            },
-          ),
-        ),
-      ],
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: adhkar.length,
+      separatorBuilder: (_, __) => SizedBox(height: 10.h),
+      itemBuilder: (context, index) {
+        final dhikr = adhkar[index];
+        return DhikrTile(dhikr: dhikr);
+      },
     );
   }
 }
