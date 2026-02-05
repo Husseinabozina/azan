@@ -140,7 +140,7 @@
 "check_your_internet_connection_the_star":"Check your internet connection (the star at the bottom of the screen)"
 ,"connected":"Connected",
 "disconnected":"Disconnected"
-,"copy_right_for_sadja":"All rights reserved for Sadja © 2025"
+,"copy_right_for_sadja":"Sadja © 2025"
 ,"loading":"Loading"
 ,"date":"Date",
 "adhan_time":"Adhan time",
@@ -169,5 +169,29 @@
   ,
   "change_to":"Change to",
   "landscape":"Landscape",
-  "portrait":"Portrait"
+  "portrait":"Portrait",
+    "azan_sound_use_mp3": "Use Adhan sound (MP3)",
+  "azan_sound_short_azan": "Use short Adhan sound",
+  "azan_sound_short_iqama": "Use short Iqama sound",
+  "zekr_appear_duration":"Zekr appear duration"
+  ,"enable_shadow_around_prayers":"Enable shadow around prayers"
+  ,"iqama_azan_settings":"Iqama & Adhan settings",
+  "azan_adjust_title": "Settings",
+  "azan_adjust_subtitle": "Adjust prayer times and iqama",
+  "azan_adjust_section_prayer_times": "Prayer Times Adjustments",
+  "azan_adjust_ramadan_isha_plus_30": "Add 30 minutes to Isha during Ramadan",
+  "azan_adjust_summer_plus_hour": "Add 1 hour to all prayer times in summer",
+  "azan_adjust_global_shift_title": "Global Shift (All Prayers)",
+  "azan_adjust_global_shift_hint": "Applies one adjustment to all prayers at once",
+  "azan_adjust_global_shift_plus_hour": "Add 1 hour to each prayer",
+  "azan_adjust_global_shift_none": "No change",
+  "azan_adjust_global_shift_minus_hour": "Subtract 1 hour from each prayer",
+  "azan_adjust_per_prayer_title": "Per-Prayer Adjustment",
+  "azan_adjust_per_prayer_hint": "Range: -180 to +180 minutes",
+  "azan_adjust_reset": "Reset",
+  "azan_adjust_iqama_section_title": "Iqama Settings",
+  "azan_adjust_iqama_hint": "Tap minutes to edit iqama time after adhan",
+  "azan_adjust_hijri_section_title": "Hijri Date Adjustment",
+  "azan_adjust_hijri_section_hint": "Tap Hijri date to edit Hijri date +2 / -2"
+
 }

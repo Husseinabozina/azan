@@ -15,17 +15,22 @@ import 'package:azan/core/models/next_Iqama.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/extenstions.dart';
+import 'package:azan/core/utils/selection_dialoge.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/azan_prayer_screen.dart';
+import 'package:azan/views/home/components/RotatingAyahBanner.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
+import 'package:azan/views/home/components/prayer_row_data.dart';
+import 'package:azan/views/home/components/prayer_times_table.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:azan/core/models/prayer.dart' as prayerModel;
 
 class HomeScreenLandscape extends StatefulWidget {
@@ -142,6 +147,9 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
     _lastDate = DateTime.now();
     final city = cubit.getCity()?.nameEn ?? '';
+    await _assignHijriDate();
+
+    '_assignHijriDate _assignHijriDate _assignHijriDate'.log();
 
     await Future.wait([
       cubit.getIqamaTime(),
@@ -150,8 +158,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
     if (!mounted) return;
     setState(() => isloading = false);
-
-    unawaited(_assignHijriDate());
+    // unawaited(_assignHijriDate());
     unawaited(cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city));
     unawaited(cubit.assignAdhkar());
 
@@ -163,7 +170,10 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     super.initState();
     AppCubit.get(context).homeScreenLandscape = this;
 
-    homeScreenWork();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      homeScreenWork();
+    });
   }
 
   // =========================
@@ -299,6 +309,8 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
   @override
   Widget build(BuildContext context) {
+    // 'setHeight test = ${ScreenUtil().setHeight(100)}'.log();
+
     final now = DateTime.now();
     final prayers = cubit.prayers(context);
 
@@ -330,6 +342,62 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
           }
         },
         builder: (context, state) {
+          final enableGlass =
+              CacheHelper.getEnableGlassEffect(); // 👈 لو عايزه “true = glass شغال”
+
+          final headerStyle = TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+            fontFamily: CacheHelper.getTextsFontFamily(),
+          );
+
+          final prayerStyle = TextStyle(
+            fontFamily: CacheHelper.getTimesFontFamily(),
+            fontSize: 24.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+          );
+
+          final adhanStyle = TextStyle(
+            fontFamily: CacheHelper.getTimesFontFamily(),
+            fontSize: 22.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.secondaryTextColor,
+          );
+
+          final iqamaStyle = TextStyle(
+            fontFamily: CacheHelper.getTimesFontFamily(),
+            fontSize: 22.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+          );
+
+          final rows = List.generate(cubit.prayers(context).length, (index) {
+            final p = cubit.prayers(context)[index];
+
+            final dimmed =
+                index < pastIqamaFlags.length && pastIqamaFlags[index];
+
+            final adhanStr = CacheHelper.getUse24HoursFormat()
+                ? (p.time24 ?? '--:--')
+                : (p.time ?? '--:--');
+
+            final iqamaStr = (p.time != null && cubit.iqamaMinutes != null)
+                ? DateHelper.addMinutesToTimeStringWithSettings(
+                    p.time!,
+                    cubit.iqamaMinutes![p.id - 1],
+                    context,
+                  )
+                : '--:--';
+
+            return PrayerRowData(
+              prayerName: p.title,
+              adhanTime: adhanStr,
+              iqamaTime: iqamaStr,
+              dimmed: dimmed,
+            );
+          });
           return Stack(
             children: [
               // Background
@@ -341,176 +409,185 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
               ),
 
               // Main fixed-grid layout
-              SafeArea(
-                top: uiRotateCubit.isLandscape() ? false : true,
-                bottom: uiRotateCubit.isLandscape() ? false : true,
-                // left: true,
-                child: LayoutBuilder(
-                  builder: (context, c) {
-                    final safeH = c.maxHeight; // ده الحقيقي
-                    final safeW = c.maxWidth;
+              LayoutBuilder(
+                builder: (context, c) {
+                  final safeH = c.maxHeight; // ده الحقيقي
+                  final safeW = c.maxWidth;
 
-                    // نسب من تصميم 960x540
-                    final topH = safeH * (62.0 / 540.0);
-                    // final sliderH = safeH * (78.0 / 540.0);
-                    final footerH = safeH * (20.0 / 540.0);
-                    // final mainH = safeH - topH - sliderH - footerH;
+                  // نسب من تصميم 960x540
+                  final topH = safeH * (62.0 / 540.0);
+                  // final sliderH = safeH * (78.0 / 540.0);
+                  final footerH = safeH * (20.0 / 540.0);
+                  // final mainH = safeH - topH - sliderH - footerH;
 
-                    // Padding برضه يكون آمن (مش يكبر زيادة)
-                    final padX = (safeW * 0.012).toDouble(); // ~12px على 960
-                    final padY = (safeH * 0.012);
+                  // Padding برضه يكون آمن (مش يكبر زيادة)
+                  final padX = (safeW * 0.012).toDouble(); // ~12px على 960
+                  final padY = (safeH * 0.012);
 
-                    final sliderH = safeH * (92.0 / 540.0); // كان 78
-                    final mainH =
-                        safeH - topH - sliderH - footerH; // هيتقل تلقائي
+                  final sliderH = safeH * (92.0 / 540.0); // كان 78
+                  final mainH =
+                      safeH - topH - sliderH - footerH; // هيتقل تلقائي
 
-                    return Column(
-                      children: [
-                        // SLOT 1: TopBar (fixed)
-                        SizedBox(
-                          height: topH,
-                          child: HomeAppBar(
-                            onDrawerTap: () =>
-                                scaffoldKey.currentState?.openDrawer(),
-                          ),
+                  return Column(
+                    children: [
+                      // SLOT 1: TopBar (fixed)
+                      SizedBox(
+                        height: topH,
+                        child: HomeAppBar(
+                          onDrawerTap: () =>
+                              scaffoldKey.currentState?.openDrawer(),
                         ),
+                      ),
 
-                        // SLOT 2: Main (fixed)
-                        SizedBox(
-                          height: mainH,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            child: isloading
-                                ? Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CircularProgressIndicator(
-                                          color: AppTheme.primaryTextColor,
-                                        ),
-                                        SizedBox(height: 8.h),
-                                        Text(
-                                          LocaleKeys.loading.tr(),
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppTheme.primaryTextColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
+                      // SLOT 2: Main (fixed)
+                      SizedBox(
+                        height: mainH,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          child: isloading
+                              ? Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      // LEFT (58)
-                                      Expanded(
-                                        flex: 50,
-                                        child: GlassPanel(
-                                          padding: EdgeInsets.all(10.w),
-                                          child: _PrayerTableFixed(
-                                            prayers: prayers,
-                                            pastIqamaFlags: pastIqamaFlags,
-                                            iqamaMinutes: cubit.iqamaMinutes,
-                                          ),
-                                        ),
+                                      CircularProgressIndicator(
+                                        color: AppTheme.primaryTextColor,
                                       ),
-
-                                      SizedBox(width: 12.w),
-
-                                      // CENTER (24)
-                                      Expanded(
-                                        flex: 24,
-                                        child: GlassPanel(
-                                          padding: EdgeInsets.all(10.w),
-                                          child: _CenterClockFixed(
-                                            fixedDhikr:
-                                                CacheHelper.getFixedDhikr(),
-                                          ),
-                                        ),
-                                      ),
-
-                                      SizedBox(width: 12.w),
-
-                                      // RIGHT (18)
-                                      Expanded(
-                                        flex: 24,
-                                        child: GlassPanel(
-                                          padding: EdgeInsets.all(10.w),
-                                          child: _RightInfoFixed(
-                                            cubit: cubit,
-                                            nextPrayerFuture: _nextPrayerFuture,
-                                          ),
+                                      SizedBox(height: 8.h),
+                                      Text(
+                                        LocaleKeys.loading.tr(),
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.primaryTextColor,
                                         ),
                                       ),
                                     ],
                                   ),
-                          ),
-                        ),
+                                )
+                              : Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    // LEFT (58)
+                                    Expanded(
+                                      flex: 50,
+                                      child: GlassPanel(
+                                        padding: EdgeInsets.all(10.w),
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 23.w,
+                                            right: 23.w,
+                                          ),
+                                          child: PrayerTimesTable(
+                                            rows: rows,
+                                            enableGlass: enableGlass,
+                                            headerStyle: headerStyle,
+                                            prayerStyle: prayerStyle,
+                                            adhanStyle: adhanStyle,
+                                            iqamaStyle: iqamaStyle,
+                                          ),
+                                        ),
+                                        //  _PrayerTableFixed(
+                                        //   prayers: prayers,
+                                        //   pastIqamaFlags: pastIqamaFlags,
+                                        //   iqamaMinutes: cubit.iqamaMinutes,
+                                        // ),
+                                      ),
+                                    ),
 
-                        // SLOT 3: Slider reserved (fixed even if hidden)
-                        SizedBox(
-                          height: sliderH,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: padX,
-                              vertical: padY,
-                            ),
-                            child: (!isloading && CacheHelper.getSliderOpened())
-                                ? LandscapeAzkarSlider(
-                                    adhkar: cubit.todaysAdkar != null
-                                        ? cubit.todaysAdkar!
-                                              .map((e) => e.text)
-                                              .toList()
-                                        : [],
-                                    height: (sliderH - (padY * 2)).toDouble(),
-                                    maxFontSize: 18.sp,
-                                    minFontSize: 11.sp,
-                                  )
-                                : const SizedBox.expand(), // reserved empty space
-                          ),
-                        ),
+                                    SizedBox(width: 12.w),
 
-                        // SLOT 4: Footer (fixed)
-                        SizedBox(
-                          height: footerH,
-                          child: Center(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AutoSizeText(
-                                  LocaleKeys.copy_right_for_sadja.tr(),
-                                  maxLines: 1,
-                                  minFontSize: 8,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: AppTheme.primaryTextColor,
-                                  ),
+                                    // CENTER (24)
+                                    Expanded(
+                                      flex: 24,
+                                      child: GlassPanel(
+                                        padding: EdgeInsets.all(10.w),
+                                        child: _CenterClockFixed(
+                                          fixedDhikr:
+                                              CacheHelper.getFixedDhikr(),
+                                        ),
+                                      ),
+                                    ),
+
+                                    SizedBox(width: 12.w),
+
+                                    // RIGHT (18)
+                                    Expanded(
+                                      flex: 24,
+                                      child: GlassPanel(
+                                        padding: EdgeInsets.all(10.w),
+                                        child: _RightInfoFixed(
+                                          cubit: cubit,
+                                          nextPrayerFuture: _nextPrayerFuture,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                HorizontalSpace(width: 8),
-                                AutoSizeText(
-                                  AppCubit.get(context).getCity() != null
-                                      ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
-                                      : "",
-                                  maxLines: 1,
-                                  minFontSize: 8, // ✅ raw
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: AppTheme.primaryTextColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        ),
+                      ),
+
+                      // SLOT 3: Slider reserved (fixed even if hidden)
+                      SizedBox(
+                        height: sliderH,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: padX,
+                            vertical: padY,
+                          ),
+                          child: (!isloading && CacheHelper.getSliderOpened())
+                              ? LandscapeAzkarSlider(
+                                  adhkar: cubit.todaysAdkar != null
+                                      ? cubit.todaysAdkar!
+                                            .map((e) => e.text)
+                                            .toList()
+                                      : [],
+                                  height: (sliderH - (padY * 2)).toDouble(),
+                                  maxFontSize: 18.sp,
+                                  minFontSize: 11.sp,
+                                )
+                              : const SizedBox.expand(), // reserved empty space
+                        ),
+                      ),
+
+                      // SLOT 4: Footer (fixed)
+                      SizedBox(
+                        height: footerH,
+                        child: Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AutoSizeText(
+                                LocaleKeys.copy_right_for_sadja.tr(),
+                                maxLines: 1,
+                                minFontSize: 8,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: AppTheme.primaryTextColor,
                                 ),
-                              ],
-                            ),
+                              ),
+                              HorizontalSpace(width: 8),
+                              AutoSizeText(
+                                AppCubit.get(context).getCity() != null
+                                    ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
+                                    : "",
+                                maxLines: 1,
+                                minFontSize: 8, // ✅ raw
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: AppTheme.primaryTextColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    );
-                  },
-                ),
+                      ),
+                    ],
+                  );
+                },
               ),
 
               // ✅ Overlay: AzanPrayerScreen (unchanged)
@@ -828,41 +905,47 @@ class _CenterClockFixed extends StatelessWidget {
         final double gap = 8.h;
         final double clockH = (constraints.maxHeight - dhikrH - gap);
 
-        return Column(
-          children: [
-            GestureDetector(
-              onTap: () {
-                final UiRotationCubit cubit = context.read<UiRotationCubit>();
-                cubit.changeIsLandscape(cubit.isLandscape() ? false : true);
-              },
-              child: SizedBox(
-                height: clockH,
-                child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: LiveClockRow(
-                      timeFontSize: 70.sp,
-                      periodFontSize: 22.sp,
-                      use24Format: CacheHelper.getUse24HoursFormat(),
+        return Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  final UiRotationCubit cubit = context.read<UiRotationCubit>();
+                  cubit.changeIsLandscape(cubit.isLandscape() ? false : true);
+                },
+                child: SizedBox(
+                  // height: clockH,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: LiveClockRow(
+                        timeFontSize: 70.sp,
+                        periodFontSize: 22.sp,
+                        use24Format: CacheHelper.getUse24HoursFormat(),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: gap),
-            SizedBox(
-              height: dhikrH,
-              child: Center(
-                child: AdaptiveTextWidget(
+              // SizedBox(height: gap),
+              Container(
+                child: RotatingAyahBanner(
+                  maxLines: 3,
+                  ayat: ayat, // ✅ اللي انت جايبه
+                  height: 140.h,
+                  // availableHeight: 90.h, // لو عايز نفس منطقك القديم
+                  maxFontSize: 22.sp,
+                  minFontSize: 12.sp,
+                  interval: const Duration(
+                    seconds: 20,
+                  ), // أو CacheHelper.getSliderTime()
                   fontFamily: CacheHelper.getTextsFontFamily(),
-                  availableHeight: dhikrH,
-                  text: fixedDhikr,
-                  maxFontSize: 18.sp,
-                  minFontSize: 11.sp,
+                  textColor: AppTheme.primaryTextColor,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -899,27 +982,22 @@ class _RightInfoFixed extends StatelessWidget {
 
         return Column(
           children: [
-            SizedBox(
-              height: infoH,
-              child: _InfoBlock(cubit: cubit),
-            ),
-            SizedBox(height: gap),
-            Expanded(
-              child: _BigCountdownPanel(nextPrayerFuture: nextPrayerFuture),
-            ),
+            _InfoBlock(cubit: cubit),
+            SizedBox(height: 10.h),
 
-            if (eidCount > 0) SizedBox(height: gap),
+            // SizedBox(height: gap),
+            _BigCountdownPanel(nextPrayerFuture: nextPrayerFuture),
+            SizedBox(height: 10.h),
 
+            // SizedBox(height: 20),
             if (showFitr)
-              SizedBox(
-                height: singleEidH,
-                child: _EidMiniBlock(
-                  title: LocaleKeys.eid_al_fitr.tr(),
-                  date: CacheHelper.getFitrEid()?[0] ?? '--/--/--',
-                  time: CacheHelper.getFitrEid()?[1] ?? '--:--',
-                ),
+              _EidMiniBlock(
+                title: LocaleKeys.eid_al_fitr.tr(),
+                date: CacheHelper.getFitrEid()?[0] ?? '--/--/--',
+                time: CacheHelper.getFitrEid()?[1] ?? '--:--',
               ),
-            if (showFitr && showAdha) SizedBox(height: gap),
+
+            // SizedBox(height: 10.h),
             if (showAdha)
               SizedBox(
                 height: singleEidH,
@@ -942,13 +1020,13 @@ class _InfoBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final weekday = LocalizationHelper.isArabic(context)
+    final weekday = LocalizationHelper.isArabic()
         ? DateTime.now().weekdayNameAr
         : DateTime.now().weekday.toWeekDay();
 
     final hijri = cubit.hijriDate ?? "--:--";
 
-    final greg = LocalizationHelper.isArAndArNumberEnable(context)
+    final greg = LocalizationHelper.isArAndArNumberEnable()
         ? DateHelper.toArabicDigits(
             DateFormat('dd/MM/yyyy').format(DateTime.now()),
           )
@@ -959,20 +1037,30 @@ class _InfoBlock extends StatelessWidget {
     final temp = cubit.maxTemp?.toInt();
     final tempStr = temp == null
         ? "--"
-        : (LocalizationHelper.isArAndArNumberEnable(context)
+        : (LocalizationHelper.isArAndArNumberEnable()
               ? DateHelper.toArabicDigits(temp.toString())
               : temp.toString());
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(child: _infoLine(LocaleKeys.day.tr(), weekday)),
+        GestureDetector(
+          onTap: () {},
+          child: _infoLine(LocaleKeys.day.tr(), weekday),
+        ),
         SizedBox(height: 6.h),
-        Expanded(child: _infoLine(LocaleKeys.hijri_date.tr(), hijri)),
+        GestureDetector(
+          onTap: () async {
+            'dfjkl'.log();
+            await CacheHelper.stepHijriOffsetCycle();
+            await AppCubit.get(context).getTodayHijriDate(context);
+          },
+          child: _infoLine(LocaleKeys.hijri_date.tr(), hijri),
+        ),
         SizedBox(height: 6.h),
-        Expanded(child: _infoLine(LocaleKeys.gregorian_date.tr(), greg)),
+        _infoLine(LocaleKeys.gregorian_date.tr(), greg),
         SizedBox(height: 6.h),
-        Expanded(child: _infoLine(LocaleKeys.temp.tr(), '$tempStr°')),
+        _infoLine(LocaleKeys.temp.tr(), '$tempStr°'),
       ],
     );
   }
@@ -985,7 +1073,7 @@ class _InfoBlock extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
       style: TextStyle(
-        fontSize: 15.sp,
+        fontSize: 20.sp,
         fontWeight: FontWeight.bold,
         color: AppTheme.secondaryTextColor,
       ),
@@ -1009,13 +1097,13 @@ class _BigCountdownPanel extends StatelessWidget {
 
           final durationStr = (dt == null)
               ? "--:--"
-              : (LocalizationHelper.isArAndArNumberEnable(context)
+              : (LocalizationHelper.isArAndArNumberEnable()
                     ? DateHelper.toArabicDigits(
                         dt.difference(DateTime.now()).formatDuration(),
                       )
                     : dt.difference(DateTime.now()).formatDuration());
 
-          final leftForText = LocalizationHelper.isArabic(context)
+          final leftForText = LocalizationHelper.isArabic()
               ? (LocaleKeys.left_for.tr() + (p?.title.substring(1) ?? ""))
               : (LocaleKeys.left_for.tr() + " " + (p?.title ?? ""));
 
@@ -1034,7 +1122,7 @@ class _BigCountdownPanel extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontFamily: CacheHelper.getTimesFontFamily(),
-                  fontSize: 28.sp,
+                  fontSize: 40.sp,
                   fontWeight: FontWeight.w900,
                   color: isRed ? Colors.red : AppTheme.secondaryTextColor,
                 ),
@@ -1073,48 +1161,45 @@ class _EidMiniBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassPanel(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AutoSizeText(
-            title,
-            maxLines: 1,
-            minFontSize: 10, // ✅ raw
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryTextColor,
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AutoSizeText(
+          title,
+          maxLines: 1,
+          minFontSize: 10, // ✅ raw
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
           ),
-          SizedBox(height: 6.h),
-          AutoSizeText(
-            date,
-            maxLines: 1,
-            minFontSize: 9, // ✅ raw
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.secondaryTextColor,
-            ),
+        ),
+        SizedBox(height: 6.h),
+        AutoSizeText(
+          date,
+          maxLines: 1,
+          minFontSize: 9, // ✅ raw
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.secondaryTextColor,
           ),
-          SizedBox(height: 4.h),
-          AutoSizeText(
-            time,
-            maxLines: 1,
-            minFontSize: 9, // ✅ raw
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.secondaryTextColor,
-            ),
+        ),
+        SizedBox(height: 4.h),
+        AutoSizeText(
+          time,
+          maxLines: 1,
+          minFontSize: 9, // ✅ raw
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.secondaryTextColor,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -1146,13 +1231,25 @@ class _LandscapeAzkarSliderState extends State<LandscapeAzkarSlider> {
   Timer? _timer;
   int _currentPage = 0;
 
+  Timer? _ticker;
+  DateTime _nextFlip = DateTime.now();
+
+  void _scheduleNext() {
+    _nextFlip = DateTime.now().add(
+      Duration(seconds: CacheHelper.getSliderTime()),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _scheduleNext();
 
-    _timer = Timer.periodic(const Duration(seconds: 7), (timer) {
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted || widget.adhkar.isEmpty) return;
+
+      if (DateTime.now().isBefore(_nextFlip)) return;
 
       _currentPage = (_currentPage + 1) % widget.adhkar.length;
       _pageController.animateToPage(
@@ -1160,12 +1257,14 @@ class _LandscapeAzkarSliderState extends State<LandscapeAzkarSlider> {
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
+
+      _scheduleNext(); // 👈 بياخد القيمة الجديدة فورًا
     });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _ticker?.cancel();
     _pageController.dispose();
     super.dispose();
   }

@@ -11,7 +11,7 @@ class UiRotationCubit extends Cubit<bool> {
   // singleton
   static final UiRotationCubit _instance = UiRotationCubit._internal();
   factory UiRotationCubit() => _instance;
-  UiRotationCubit._internal() : super(false);
+  UiRotationCubit._internal() : super(CacheHelper.getIsLandscape());
 
   void changeIsLandscape(bool v) {
     CacheHelper.setIsLandscape(v);

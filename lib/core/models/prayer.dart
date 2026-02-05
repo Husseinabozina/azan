@@ -24,7 +24,12 @@ class Prayer {
     );
   }
 
-  Prayer copywith({String? title, String? time, DateTime? dateTime}) {
+  Prayer copywith({
+    String? title,
+    String? time,
+    DateTime? dateTime,
+    String? time24,
+  }) {
     return Prayer(
       id: id,
       title: title ?? this.title,

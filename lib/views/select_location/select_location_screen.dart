@@ -19,7 +19,7 @@ import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SelectLocationScreen extends StatefulWidget {
@@ -165,7 +165,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                 child: Row(
                                   children: [
                                     Text(
-                                      (LocalizationHelper.isArabic(context)
+                                      (LocalizationHelper.isArabic()
                                               ? appCubit.getCity()?.nameAr
                                               : appCubit.getCity()?.nameEn) ??
                                           LocaleKeys.mosque_city_select_title

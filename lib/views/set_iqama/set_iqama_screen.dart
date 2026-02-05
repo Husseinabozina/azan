@@ -20,7 +20,7 @@ import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 
 class SetIqamaScreen extends StatefulWidget {
   const SetIqamaScreen({super.key});
@@ -112,7 +112,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           color: Colors.white,
                         ),
                         child: Text(
-                          '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
+                          '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
@@ -139,7 +139,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                               AppTheme.primaryButtonBackground,
                             ),
                             label: Text(
-                              '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
+                              '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
                               style: TextStyle(
                                 color: AppTheme.primaryButtonTextColor,
                                 fontSize: 15.sp,
@@ -251,7 +251,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                           color: Colors.white,
                         ),
                         child: Text(
-                          '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
+                          '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
@@ -278,7 +278,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                               AppTheme.primaryButtonBackground,
                             ),
                             label: Text(
-                              '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
+                              '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
                               style: TextStyle(
                                 color: AppTheme.primaryButtonTextColor,
                                 fontSize: 15.sp,
@@ -601,7 +601,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                                   ),
                                                   child: Center(
                                                     child: Text(
-                                                      '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits(iqamaMinutes[index].toString()) : iqamaMinutes[index]} ${LocaleKeys.min.tr()}',
+                                                      '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits(iqamaMinutes[index].toString()) : iqamaMinutes[index]} ${LocaleKeys.min.tr()}',
                                                       style: TextStyle(
                                                         fontSize: 18.sp,
                                                         fontWeight:
@@ -670,7 +670,7 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                             ),
                                             child: Center(
                                               child: Text(
-                                                '${LocalizationHelper.isArAndArNumberEnable(context) ? DateHelper.toArabicDigits(friDaySermonMinutes.toString()) : friDaySermonMinutes} ${LocaleKeys.min.tr()}',
+                                                '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits(friDaySermonMinutes.toString()) : friDaySermonMinutes} ${LocaleKeys.min.tr()}',
                                                 style: TextStyle(
                                                   fontSize: 18.sp,
                                                   fontWeight: FontWeight.bold,

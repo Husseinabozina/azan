@@ -8,7 +8,7 @@ import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 
 class DhikrTile extends StatefulWidget {
   DhikrTile({super.key, required this.dhikr});

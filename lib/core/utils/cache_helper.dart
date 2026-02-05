@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:azan/core/helpers/azan_adjust_model.dart';
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/latlng.dart';
 import 'package:azan/core/utils/constants.dart';
+import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -10,6 +12,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHelper {
   static late SharedPreferences sharedPreferences;
+
+  static const String _useMp3Azan = "_useMp3Azan"; // (1)
+  static const String _useShortAzan = "_useShortAzan"; // (2)
+  static const String _useShortIqama = "_useShortIqama"; // (3)
+
   static const String _kCurrentPrayerKey = "_currentPrayerKey";
 
   static const _language = 'LANGUAGE';
@@ -68,6 +75,7 @@ class CacheHelper {
 
   static const _hideScreenAfterIshaaEnabled = "_hideScreenAfterIshaaEnabled";
   static const _hideScreenAfterIshaaMinutes = "_hideScreenAfterIshaaMinutes";
+  static const _add30MinutesToIshaaInRamdan = "_add30MinutesToIshaaInRamdan";
 
   static const _isLandscape = "_isLandScape";
   static const String _kBgMode = 'bg_mode';
@@ -75,6 +83,12 @@ class CacheHelper {
   static const String _kBgPerPrayer = 'bg_per_prayer_map';
   static const String _kBgPerDay = 'bg_per_day_map';
   static const String _kBgRandomPool = 'bg_random_pool';
+  static const String _sliderTime = "sliderTime";
+  static const String _hijriOffsetDays = "_hijriOffsetDays"; // int: -2..+2
+
+  static const String _hijriOffsetDir = "_hijriOffsetDir"; // int: 1 or -1
+  static const String _enableGlassPrayerRows = "_enableGlassPrayerRows";
+  static const String _kAzanAdjustV1 = "_azanAdjustV1"; // json
 
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -135,6 +149,51 @@ class CacheHelper {
       return LatLng(double.parse(data[0]), double.parse(data[1]));
     }
     return null;
+  }
+  // =========================
+  // Azan Adjustments (NEW)
+  // =========================
+
+  static Future<void> setAzanAdjustSettings(AzanAdjustSettings s) async {
+    final fixed = s.normalized();
+    await save(key: _kAzanAdjustV1, value: jsonEncode(fixed.toJson()));
+
+    // ✅ compatibility مع المفتاح القديم
+    await setAdd30MinutesToIshaaInRamdan(fixed.ramadanIshaPlus30);
+  }
+
+  static AzanAdjustSettings getAzanAdjustSettings({
+    AzanAdjustSettings? fallback,
+  }) {
+    final raw = get(key: _kAzanAdjustV1);
+
+    // ✅ لو موجود JSON جديد
+    if (raw is String && raw.isNotEmpty) {
+      try {
+        final map = (jsonDecode(raw) as Map).cast<String, dynamic>();
+        return AzanAdjustSettings.fromJson(map);
+      } catch (_) {
+        // لو JSON بايظ لأي سبب
+        return fallback ?? _migrateOldToNewDefaults();
+      }
+    }
+
+    // ✅ لو مش موجود (أول مرة) -> migrate من القديم
+    return fallback ?? _migrateOldToNewDefaults();
+  }
+
+  static AzanAdjustSettings _migrateOldToNewDefaults() {
+    // عندك مفتاح قديم لرمضان: _add30MinutesToIshaaInRamdan
+    final ramadan = getAdd30MinutesToIshaaInRamdan();
+
+    return AzanAdjustSettings.defaults().copyWith(
+      ramadanIshaPlus30: ramadan,
+      // باقي القيم default
+    );
+  }
+
+  static Future<void> removeAzanAdjustSettings() async {
+    await sharedPreferences.remove(_kAzanAdjustV1);
   }
 
   static setPrayerTimesNotificationEnabled(bool value) async {
@@ -516,6 +575,8 @@ class CacheHelper {
     return sharedPreferences.getBool(_isPreviousPrayersDimmed) ?? false;
   }
 
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /*******  6b227387-2993-445b-a510-0b17204e3508  *******/
   static removeIsPreviousPrayersDimmed() async {
     await sharedPreferences.remove(_isPreviousPrayersDimmed);
   }
@@ -853,6 +914,129 @@ class CacheHelper {
       Assets.images.vr26.path,
       Assets.images.vr27.path,
     ];
+  }
+
+  // =========================
+  // Azan/Iqama Sound Options (NEW)
+
+  static Future<void> setUseMp3Azan(bool v) async {
+    await sharedPreferences.setBool(_useMp3Azan, v);
+
+    // لو اتقفل الأساس -> اقفل الباقي تلقائي
+    if (!v) {
+      await sharedPreferences.setBool(_useShortAzan, false);
+      await sharedPreferences.setBool(_useShortIqama, false);
+    }
+  }
+
+  static bool getUseMp3Azan({bool fallback = false}) {
+    return sharedPreferences.getBool(_useMp3Azan) ?? fallback;
+  }
+
+  /// (2) أذان قصير - لا يعمل إلا لو (1) true
+  static Future<void> setUseShortAzan(bool v) async {
+    final base = getUseMp3Azan();
+    await sharedPreferences.setBool(_useShortAzan, base ? v : false);
+  }
+
+  static bool getUseShortAzan({bool fallback = false}) {
+    final base = getUseMp3Azan();
+    final val = sharedPreferences.getBool(_useShortAzan) ?? fallback;
+    return base ? val : false;
+  }
+
+  /// (3) إقامة قصيرة - لا يعمل إلا لو (1) true
+  static Future<void> setUseShortIqama(bool v) async {
+    final base = getUseMp3Azan();
+    await sharedPreferences.setBool(_useShortIqama, base ? v : false);
+  }
+
+  static bool getUseShortIqama({bool fallback = false}) {
+    final base = getUseMp3Azan();
+    final val = sharedPreferences.getBool(_useShortIqama) ?? fallback;
+    return base ? val : false;
+  }
+
+  // اختياري: remove لو محتاج
+  static Future<void> removeAzanSoundOptions() async {
+    await sharedPreferences.remove(_useMp3Azan);
+    await sharedPreferences.remove(_useShortAzan);
+    await sharedPreferences.remove(_useShortIqama);
+  }
+
+  static Future<void> setSliderTime(int seconds) async {
+    await sharedPreferences.setInt(_sliderTime, seconds);
+  }
+
+  static Future<void> setHijriOffsetDays(int v) async {
+    // clamp -2..+2
+    final clamped = v.clamp(-2, 2);
+    await sharedPreferences.setInt(_hijriOffsetDays, clamped);
+  }
+
+  static int getHijriOffsetDays() {
+    final v = sharedPreferences.getInt(_hijriOffsetDays) ?? 0;
+    return v.clamp(-2, 2);
+  }
+
+  static Future<void> removeHijriOffsetDays() async {
+    await sharedPreferences.remove(_hijriOffsetDays);
+  }
+
+  static Future<void> setHijriOffsetDir(int v) async {
+    await sharedPreferences.setInt(_hijriOffsetDir, v == -1 ? -1 : 1);
+  }
+
+  static int getHijriOffsetDir() {
+    final v = sharedPreferences.getInt(_hijriOffsetDir) ?? 1;
+    return (v == -1) ? -1 : 1;
+  }
+
+  /// Cycle: 0 → 1 → 2 → 1 → 0 → -1 → -2 → -1 → 0 ...
+  static Future<int> stepHijriOffsetCycle() async {
+    var offset = getHijriOffsetDays(); // -2..2
+    var dir = getHijriOffsetDir(); // 1 or -1
+
+    // لو وصلنا للأطراف نعكس الاتجاه
+    if (offset == 2) dir = -1;
+    if (offset == -2) dir = 1;
+
+    offset += dir;
+
+    // ✅ لو عدّينا 0 وهو راجع من + أو - هنكمل طبيعي
+    // clamp للأمان
+    offset = offset.clamp(-2, 2);
+
+    await setHijriOffsetDir(dir);
+    await setHijriOffsetDays(offset);
+    offset.toString().log();
+    return offset;
+  }
+
+  static bool getEnableGlassEffect() =>
+      sharedPreferences.getBool(_enableGlassPrayerRows) ?? false;
+  static Future<void> setEnableGlassEffect(bool v) =>
+      sharedPreferences.setBool(_enableGlassPrayerRows, v);
+
+  // get slidertime
+  static int getSliderTime() {
+    return sharedPreferences.getInt(_sliderTime) ?? 25;
+  }
+
+  static Future<void> removeSliderTime() async {
+    await sharedPreferences.remove(_sliderTime);
+  }
+
+  static Future<void> setAdd30MinutesToIshaaInRamdan(bool v) async {
+    await sharedPreferences.setBool(_add30MinutesToIshaaInRamdan, v);
+  }
+
+  static bool getAdd30MinutesToIshaaInRamdan() {
+    return sharedPreferences.getBool(_add30MinutesToIshaaInRamdan) ?? true;
+  }
+
+  static Future<void> removeAdd30MinutesToIshaaInRamdan() async {
+    await sharedPreferences.remove(_add30MinutesToIshaaInRamdan);
   }
 }
 

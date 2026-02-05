@@ -139,7 +139,7 @@
 "eid_al_adha":"عيد الأضحي",
 "connected":"متصل",
 "disconnected":"غير متصل",
-"copy_right_for_sadja":"جميع الحقوق محفوظة لتطبيق سجدة © 2025"
+"copy_right_for_sadja":"تطبيق سجدة © 2026"
 ,"loading":"جاري التحميل"
 ,
 "check_your_internet_connection_the_star":"تحقق من الاتصال بالانترنت (النجمة أسفل الشاشة)"
@@ -174,6 +174,30 @@
   "temp": "الحرارة",
   "change_to":"تغيير إلي",
    "landscape":"الوضع الأفقي",
-   "portrait":"الوضع الرأسي "
+   "portrait":"الوضع الرأسي ",
+  "azan_sound_use_mp3": "استخدم الصوت للأذان (MP3)",
+  "azan_sound_short_azan": "استخدم صوت أذان قصير",
+  "azan_sound_short_iqama": "استخدم صوت إقامة قصير",
+  "zekr_appear_duration":"مدة ظهور الذكر",
+  "enable_shadow_around_prayers":"تفعيل الظل حول الصلوات"
+  ,"iqama_azan_settings":"ضبط الأذان والإقامة",
+  "azan_adjust_title": "الإعدادات",
+  "azan_adjust_subtitle": "ضبط مواقيت الصلاة والإقامة",
+  "azan_adjust_section_prayer_times": "تعديل مواقيت الصلاة",
+  "azan_adjust_ramadan_isha_plus_30": "أضف 30 دقيقة إلى العشاء في رمضان",
+  "azan_adjust_summer_plus_hour": "إضافة ساعة واحدة لأوقات الصلاة في الصيف",
+  "azan_adjust_global_shift_title": "تعديل عام لكل الصلوات",
+  "azan_adjust_global_shift_hint": "هذا التعديل يطبق على جميع الصلوات مرة واحدة",
+  "azan_adjust_global_shift_plus_hour": "إضافة ساعة لكل صلاة",
+  "azan_adjust_global_shift_none": "بدون تغيير",
+  "azan_adjust_global_shift_minus_hour": "إنقاص ساعة لكل صلاة",
+  "azan_adjust_per_prayer_title": "تعديل لكل صلاة",
+  "azan_adjust_per_prayer_hint": "المدى من -180 إلى +180 دقيقة",
+  "azan_adjust_reset": "إعادة ضبط",
+  "azan_adjust_iqama_section_title": "إقامة الصلاة",
+  "azan_adjust_iqama_hint": "اضغط على الدقائق لتعديل وقت الإقامة بعد الأذان",
+  "azan_adjust_hijri_section_title": "ضبط التاريخ الهجري",
+  "azan_adjust_hijri_section_hint": "اضغط علي التاريخ الهجري لتعديل التاريخ +2 / -2"
 
+  
 }

@@ -8,14 +8,16 @@ import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
+import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/additional_settings/components/azan_iqam_sound.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 
 class AdditionalSettingsScreen extends StatefulWidget {
   const AdditionalSettingsScreen({super.key});
@@ -33,7 +35,7 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
   late bool changeCounter;
   late bool arabicNumbers;
   late bool checkInternet;
-
+  late int sliderTime;
   @override
   void initState() {
     super.initState();
@@ -43,6 +45,7 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     changeCounter = CacheHelper.getIsChangeCounterEnabled();
     arabicNumbers = CacheHelper.getIsArabicNumbersEnabled();
     checkInternet = CacheHelper.getEnableCheckInternetConnection();
+    sliderTime = CacheHelper.getSliderTime();
   }
 
   Future<void> _setUse24h(bool v) async {
@@ -75,8 +78,15 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     CacheHelper.setEnableCheckInternetConnection(v);
   }
 
+  void _setSliderTime(int v) {
+    setState(() => sliderTime = v);
+    CacheHelper.setSliderTime(v);
+  }
+
   @override
   Widget build(BuildContext context) {
+    'widthoooo ${1.sw} && heightoooooo ${1.sh}'.log();
+
     return Scaffold(
       body: Stack(
         children: [
@@ -105,6 +115,12 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                             bottom: 14.h,
                           ),
                           child: _PortraitContent(
+                            enableShadow: CacheHelper.getEnableGlassEffect(),
+                            onEnableShadow: (value) => setState(() {
+                              CacheHelper.setEnableGlassEffect(value);
+                            }),
+                            sliderTime: sliderTime,
+                            onSliderTime: _setSliderTime,
                             use24h: use24h,
                             fullTime: fullTime,
                             dimPrev: dimPrev,
@@ -145,6 +161,14 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                                 flex: 52,
                                 child: _PanelScroll(
                                   child: _LandscapeLeftPanel(
+                                    onEnableShadow: (value) => setState(() {
+                                      CacheHelper.setEnableGlassEffect(value);
+                                    }),
+                                    enableShadow:
+                                        CacheHelper.getEnableGlassEffect(),
+                                    onSliderTime: _setSliderTime,
+                                    sliderTime: sliderTime,
+
                                     use24h: use24h,
                                     fullTime: fullTime,
                                     dimPrev: dimPrev,
@@ -248,6 +272,10 @@ class _PortraitContent extends StatelessWidget {
     required this.onArabicNumbers,
     required this.onCheckInternet,
     required this.onRefresh,
+    required this.sliderTime,
+    required this.onSliderTime,
+    required this.enableShadow,
+    required this.onEnableShadow,
   });
 
   final bool use24h;
@@ -256,6 +284,11 @@ class _PortraitContent extends StatelessWidget {
   final bool changeCounter;
   final bool arabicNumbers;
   final bool checkInternet;
+  final bool enableShadow;
+
+  final int sliderTime;
+
+  final void Function(int) onSliderTime;
 
   final Future<void> Function(bool) onUse24h;
   final void Function(bool) onFullTime;
@@ -263,6 +296,7 @@ class _PortraitContent extends StatelessWidget {
   final void Function(bool) onChangeCounter;
   final void Function(bool) onArabicNumbers;
   final void Function(bool) onCheckInternet;
+  final void Function(bool) onEnableShadow;
 
   final VoidCallback onRefresh;
 
@@ -311,16 +345,37 @@ class _PortraitContent extends StatelessWidget {
           title: LocaleKeys.check_your_internet_connection_the_star.tr(),
           value: checkInternet,
         ),
+        VerticalSpace(height: 12),
+        CustomCheckTile(
+          onChanged: onEnableShadow,
+          title: LocaleKeys.enable_shadow_around_prayers.tr(),
+          value: enableShadow,
+        ),
+        VerticalSpace(height: 12),
+        _zekrAppearDurationWidget(
+          onSliderTime: onSliderTime,
+          sliderTime: sliderTime,
+        ),
 
-        VerticalSpace(height: 14.h),
+        VerticalSpace(height: 12),
         const _DividerLine(),
-        VerticalSpace(height: 14.h),
+        VerticalSpace(height: 12),
 
         _EidSection(onChanged: onRefresh),
 
-        VerticalSpace(height: 14.h),
+        VerticalSpace(height: 12),
+
         const _DividerLine(),
-        VerticalSpace(height: 14.h),
+        VerticalSpace(height: 12),
+        AzanIqamaSoundOptions(
+          initialUseMp3: CacheHelper.getUseMp3Azan(), // انت اعمل getter
+          initialShortAzan: CacheHelper.getUseShortAzan(), // انت اعمل getter
+          initialShortIqama: CacheHelper.getUseShortIqama(), // انت اعمل getter
+          onUseMp3Changed: (v) => CacheHelper.setUseMp3Azan(v),
+          onShortAzanChanged: (v) => CacheHelper.setUseShortAzan(v),
+          onShortIqamaChanged: (v) => CacheHelper.setUseShortIqama(v),
+        ),
+        VerticalSpace(height: 12),
 
         _FontsSection(onChanged: onRefresh),
       ],
@@ -345,6 +400,11 @@ class _LandscapeLeftPanel extends StatelessWidget {
     required this.onArabicNumbers,
     required this.onCheckInternet,
     required this.onRefresh,
+
+    required this.sliderTime,
+    required this.onSliderTime,
+    required this.enableShadow,
+    required this.onEnableShadow,
   });
 
   final bool use24h;
@@ -353,6 +413,10 @@ class _LandscapeLeftPanel extends StatelessWidget {
   final bool changeCounter;
   final bool arabicNumbers;
   final bool checkInternet;
+  final int sliderTime;
+  final bool enableShadow;
+  final void Function(int) onSliderTime;
+  final void Function(bool) onEnableShadow;
 
   final Future<void> Function(bool) onUse24h;
   final void Function(bool) onFullTime;
@@ -408,12 +472,71 @@ class _LandscapeLeftPanel extends StatelessWidget {
           title: LocaleKeys.check_your_internet_connection_the_star.tr(),
           value: checkInternet,
         ),
+        VerticalSpace(height: 8),
+        VerticalSpace(height: 12),
+        CustomCheckTile(
+          onChanged: onEnableShadow,
+          title: LocaleKeys.enable_shadow_around_prayers.tr(),
+          value: enableShadow,
+        ),
 
-        VerticalSpace(height: 14.h),
+        _zekrAppearDurationWidget(
+          onSliderTime: onSliderTime,
+          sliderTime: sliderTime,
+        ),
+        VerticalSpace(height: 8),
         const _DividerLine(),
-        VerticalSpace(height: 14.h),
+
+        VerticalSpace(height: 8),
 
         _EidSection(onChanged: onRefresh),
+      ],
+    );
+  }
+}
+
+class _zekrAppearDurationWidget extends StatelessWidget {
+  const _zekrAppearDurationWidget({
+    super.key,
+    required this.onSliderTime,
+    required this.sliderTime,
+  });
+
+  final void Function(int) onSliderTime;
+  final int sliderTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          LocaleKeys.zekr_appear_duration.tr(),
+          style: TextStyle(fontSize: 20.sp, color: AppTheme.primaryTextColor),
+        ),
+        Text(
+          "  (${LocaleKeys.second.tr()})",
+          style: TextStyle(
+            fontSize: 16.sp,
+            color: AppTheme.primaryTextColor.withOpacity(0.7),
+          ),
+        ),
+        HorizontalSpace(width: 10),
+        IconButton(
+          onPressed: () {
+            onSliderTime(sliderTime + 1);
+          },
+          icon: Icon(Icons.add, color: AppTheme.accentColor, size: 26.r),
+        ),
+        Text(
+          sliderTime.toString(),
+          style: TextStyle(fontSize: 20.sp, color: AppTheme.secondaryTextColor),
+        ),
+        IconButton(
+          onPressed: () {
+            onSliderTime(sliderTime - 1);
+          },
+          icon: Icon(Icons.remove, color: AppTheme.accentColor, size: 26.r),
+        ),
       ],
     );
   }
@@ -427,7 +550,7 @@ class _LandscapeRightPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _FontsSection(onChanged: onRefresh);
+    return Column(children: [_FontsSection(onChanged: onRefresh)]);
   }
 }
 
@@ -452,7 +575,7 @@ class _EidSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lang = LocalizationHelper.isArAndArNumberEnable(context)
+    final lang = LocalizationHelper.isArAndArNumberEnable()
         ? CacheHelper.getLang()
         : 'en';
 

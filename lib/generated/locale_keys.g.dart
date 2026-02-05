@@ -153,5 +153,28 @@ abstract class  LocaleKeys {
   static const change_to = 'change_to';
   static const landscape = 'landscape';
   static const portrait = 'portrait';
+  static const azan_sound_use_mp3 = 'azan_sound_use_mp3';
+  static const azan_sound_short_azan = 'azan_sound_short_azan';
+  static const azan_sound_short_iqama = 'azan_sound_short_iqama';
+  static const zekr_appear_duration = 'zekr_appear_duration';
+  static const enable_shadow_around_prayers = 'enable_shadow_around_prayers';
+  static const iqama_azan_settings = 'iqama_azan_settings';
+  static const azan_adjust_title = 'azan_adjust_title';
+  static const azan_adjust_subtitle = 'azan_adjust_subtitle';
+  static const azan_adjust_section_prayer_times = 'azan_adjust_section_prayer_times';
+  static const azan_adjust_ramadan_isha_plus_30 = 'azan_adjust_ramadan_isha_plus_30';
+  static const azan_adjust_summer_plus_hour = 'azan_adjust_summer_plus_hour';
+  static const azan_adjust_global_shift_title = 'azan_adjust_global_shift_title';
+  static const azan_adjust_global_shift_hint = 'azan_adjust_global_shift_hint';
+  static const azan_adjust_global_shift_plus_hour = 'azan_adjust_global_shift_plus_hour';
+  static const azan_adjust_global_shift_none = 'azan_adjust_global_shift_none';
+  static const azan_adjust_global_shift_minus_hour = 'azan_adjust_global_shift_minus_hour';
+  static const azan_adjust_per_prayer_title = 'azan_adjust_per_prayer_title';
+  static const azan_adjust_per_prayer_hint = 'azan_adjust_per_prayer_hint';
+  static const azan_adjust_reset = 'azan_adjust_reset';
+  static const azan_adjust_iqama_section_title = 'azan_adjust_iqama_section_title';
+  static const azan_adjust_iqama_hint = 'azan_adjust_iqama_hint';
+  static const azan_adjust_hijri_section_title = 'azan_adjust_hijri_section_title';
+  static const azan_adjust_hijri_section_hint = 'azan_adjust_hijri_section_hint';
 
 }

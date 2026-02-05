@@ -11,61 +11,62 @@ const kCountries = <CountryOption>[
   CountryOption(code: 'TN', nameAr: 'تونس', nameEn: 'Tunisia'),
 ];
 const kSaudiCities = <CityOption>[
+  // المدن الرئيسية - محدثة بإحداثيات دقيقة
   CityOption(
     countryCode: 'SA',
     nameAr: 'مكة المكرمة',
     nameEn: 'Makkah',
-    lat: 21.3891,
-    lon: 39.8579,
+    lat: 21.4266, // من مصادر متعددة
+    lon: 39.8256,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'المدينة المنورة',
     nameEn: 'Madinah',
-    lat: 24.5247,
-    lon: 39.5692,
+    lat: 24.4686, // من مصادر متعددة
+    lon: 39.6142,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الرياض',
     nameEn: 'Riyadh',
-    lat: 24.7136,
-    lon: 46.6753,
+    lat: 24.7743, // من مصادر متعددة
+    lon: 46.7386,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'جدة',
     nameEn: 'Jeddah',
-    lat: 21.4858,
-    lon: 39.1925,
+    lat: 21.4925, // من مصادر متعددة
+    lon: 39.1776,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الدمام',
     nameEn: 'Dammam',
-    lat: 26.4344,
-    lon: 50.1033,
+    lat: 26.4207, // صحيح كما ذكرت
+    lon: 50.0888,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الخبر',
     nameEn: 'Khobar',
-    lat: 26.2794,
-    lon: 50.2083,
+    lat: 26.2172, // محدّث من البحث
+    lon: 50.1971,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الطائف',
     nameEn: 'Taif',
-    lat: 21.4373,
-    lon: 40.5127,
+    lat: 21.4858,
+    lon: 40.5210,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'أبها',
     nameEn: 'Abha',
-    lat: 18.2465,
-    lon: 42.5117,
+    lat: 18.2164,
+    lon: 42.5053,
   ),
 
   // مدن إضافية مشهورة
@@ -73,8 +74,8 @@ const kSaudiCities = <CityOption>[
     countryCode: 'SA',
     nameAr: 'بريدة',
     nameEn: 'Buraydah',
-    lat: 26.3594,
-    lon: 43.9810,
+    lat: 26.3592, // محدّث من البحث
+    lon: 43.9818,
   ),
   CityOption(
     countryCode: 'SA',
@@ -88,28 +89,28 @@ const kSaudiCities = <CityOption>[
     nameAr: 'تبوك',
     nameEn: 'Tabuk',
     lat: 28.3838,
-    lon: 36.5662,
+    lon: 36.5770,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'جازان',
     nameEn: 'Jazan',
     lat: 16.8892,
-    lon: 42.5706,
+    lon: 42.5679,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'نجران',
     nameEn: 'Najran',
-    lat: 17.5650,
-    lon: 44.2289,
+    lat: 17.5449,
+    lon: 44.1340,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'خميس مشيط',
     nameEn: 'Khamis Mushait',
-    lat: 18.3053,
-    lon: 42.7360,
+    lat: 18.3000,
+    lon: 42.7333,
   ),
   CityOption(
     countryCode: 'SA',
@@ -129,15 +130,15 @@ const kSaudiCities = <CityOption>[
     countryCode: 'SA',
     nameAr: 'الجبيل',
     nameEn: 'Jubail',
-    lat: 27.0046,
-    lon: 49.6460,
+    lat: 27.0174,
+    lon: 49.5926,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الأحساء',
     nameEn: 'Al Ahsa',
-    lat: 25.3830,
-    lon: 49.5860,
+    lat: 25.4295,
+    lon: 49.6179,
   ),
   CityOption(
     countryCode: 'SA',

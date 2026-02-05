@@ -7,13 +7,14 @@ import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/additional_settings/components/azan_iqam_sound.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 
 class SetIqamaAzanSoundScreen extends StatefulWidget {
   const SetIqamaAzanSoundScreen({super.key});
@@ -59,167 +60,16 @@ class _SetIqamaAzanSoundScreenState extends State<SetIqamaAzanSoundScreen> {
               SafeArea(
                 child: Padding(
                   padding: EdgeInsets.only(top: 5.h, left: 20.w, right: 20.w),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ====== App Bar Row ======
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                AppNavigator.pushAndRemoveUntil(
-                                  context,
-                                  HomeScreen(),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.close,
-                                color: AppTheme.accentColor,
-                                size: 35.r,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: Icon(
-                                Icons.menu,
-                                color: AppTheme.primaryTextColor,
-                                size: 35.r,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        VerticalSpace(height: 30),
-
-                        // ====== Title ======
-                        Text(
-                          LocaleKeys.set_iqama_azan_sound.tr(),
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-
-                        VerticalSpace(height: 20),
-
-                        // ================== أذان ==================
-                        Text(
-                          LocaleKeys.set_adhan_sound.tr(),
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.accentColor,
-                          ),
-                        ),
-
-                        VerticalSpace(height: 10),
-
-                        // App Theme (أذان)
-                        CustomRadioTile(
-                          value: true,
-                          groupValue: _isAdhanAppTheme,
-                          title: LocaleKeys.app_theme.tr(),
-                          onChanged: (value) async {
-                            if (value == null) return;
-
-                            setState(() {
-                              _isAdhanAppTheme = value;
-                            });
-
-                            // خزّن في الكاش
-                            CacheHelper.setIsAzanAppTheme(value);
-
-                            // جرّب الصوت الجديد
-                            await _soundPlayer.playAdhanPing(
-                              cubit.getAzanSoundSource,
-                            );
-                          },
-                        ),
-
-                        VerticalSpace(height: 10),
-
-                        // Short Azan
-                        CustomRadioTile(
-                          value: false,
-                          groupValue: _isAdhanAppTheme,
-                          title: LocaleKeys.short_azan_sound.tr(),
-                          onChanged: (value) async {
-                            if (value == null) return;
-
-                            setState(() {
-                              _isAdhanAppTheme = value;
-                            });
-
-                            CacheHelper.setIsAzanAppTheme(value);
-
-                            await _soundPlayer.playAdhanPing(
-                              cubit.getAzanSoundSource,
-                            );
-                          },
-                        ),
-
-                        VerticalSpace(height: 20),
-
-                        // ================== إقامة ==================
-                        Text(
-                          LocaleKeys.set_iqama_sound.tr(),
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.accentColor,
-                          ),
-                        ),
-
-                        VerticalSpace(height: 10),
-
-                        // App Theme (إقامة)
-                        CustomRadioTile(
-                          value: true,
-                          groupValue: _isIqamaAppTheme,
-                          title: LocaleKeys.app_theme.tr(),
-                          onChanged: (value) async {
-                            if (value == null) return;
-
-                            setState(() {
-                              _isIqamaAppTheme = value;
-                            });
-
-                            CacheHelper.setIsIqamaAppTheme(value);
-
-                            await _soundPlayer.playIqamaPing(
-                              cubit.getIqamaSoundSource,
-                            );
-                          },
-                        ),
-
-                        VerticalSpace(height: 10),
-
-                        // Short Iqama
-                        CustomRadioTile(
-                          value: false,
-                          groupValue: _isIqamaAppTheme,
-                          title: LocaleKeys.short_iqama_sound.tr(),
-                          onChanged: (value) async {
-                            if (value == null) return;
-
-                            setState(() {
-                              _isIqamaAppTheme = value;
-                            });
-
-                            CacheHelper.setIsIqamaAppTheme(value);
-
-                            await _soundPlayer.playIqamaPing(
-                              cubit.getIqamaSoundSource,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                  child: AzanIqamaSoundOptions(
+                    initialUseMp3:
+                        CacheHelper.getUseMp3Azan(), // انت اعمل getter
+                    initialShortAzan:
+                        CacheHelper.getUseShortAzan(), // انت اعمل getter
+                    initialShortIqama:
+                        CacheHelper.getUseShortIqama(), // انت اعمل getter
+                    onUseMp3Changed: (v) => CacheHelper.setUseMp3Azan(v),
+                    onShortAzanChanged: (v) => CacheHelper.setUseShortAzan(v),
+                    onShortIqamaChanged: (v) => CacheHelper.setUseShortIqama(v),
                   ),
                 ),
               ),

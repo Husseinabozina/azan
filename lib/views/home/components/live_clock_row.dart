@@ -8,7 +8,7 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 
 class LiveClockRow extends StatefulWidget {
   final double timeFontSize;
@@ -78,7 +78,7 @@ class _LiveClockRowState extends State<LiveClockRow> {
     // ⏱ لو full time → hh:mm:ss / لو مش مفعّل → hh:mm
     final rawTime = showSeconds ? '$hStr:$mStr:$sStr' : '$hStr:$mStr';
 
-    return LocalizationHelper.isArAndArNumberEnable(context)
+    return LocalizationHelper.isArAndArNumberEnable()
         ? DateHelper.toArabicDigits(rawTime)
         : DateHelper.toWesternDigits(rawTime);
   }

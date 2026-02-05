@@ -9,7 +9,7 @@ import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:flutter/widgets.dart' as widgets;
 
 class DhikrFormWidget extends StatefulWidget {

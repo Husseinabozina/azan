@@ -4,6 +4,8 @@ import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:azan/core/helpers/simple_sound_player.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 extension ColoredPrint on String {
   void log() => print('\x1B[33m$this\x1B[0m');
@@ -132,5 +134,13 @@ extension DurationFormate on Duration {
     final minutes = (inMinutes % 60).toString().padLeft(2, '0');
     final seconds = (inSeconds % 60).toString().padLeft(2, '0');
     return '$hours:$minutes:$seconds';
+  }
+}
+
+extension SimpleSoundPlayerX on SimpleSoundPlayer {
+  Future<void> playAsset(String assetPath) async {
+    final player = AudioPlayer();
+    await player.play(AssetSource(assetPath.replaceFirst('assets/', '')));
+    // audioplayers بيحتاج path بدون "assets/" في AssetSource
   }
 }

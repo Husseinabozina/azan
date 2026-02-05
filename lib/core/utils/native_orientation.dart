@@ -27,3 +27,17 @@ class NativeOrientation {
     await _ch.invokeMethod('system');
   }
 }
+
+class OrientationController {
+  static Future<void> setPortrait() async {
+    await NativeOrientation.system();
+    await Future.delayed(const Duration(milliseconds: 100));
+    await NativeOrientation.portrait();
+  }
+
+  static Future<void> setLandscape() async {
+    await NativeOrientation.system();
+    await Future.delayed(const Duration(milliseconds: 100));
+    await NativeOrientation.landscape();
+  }
+}

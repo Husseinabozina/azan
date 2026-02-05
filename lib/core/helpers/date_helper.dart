@@ -97,16 +97,16 @@ class DateHelper {
     final String hourStr = hour12.toString().padLeft(2, '0');
     final String minuteStr = time.minute.toString().padLeft(2, '0');
     final String periodStr = time.period == DayPeriod.am
-        ? LocalizationHelper.isArAndArNumberEnable(context)
+        ? LocalizationHelper.isArAndArNumberEnable()
               ? LocaleKeys.am.tr()
               : 'AM'
-        : LocalizationHelper.isArAndArNumberEnable(context)
+        : LocalizationHelper.isArAndArNumberEnable()
         ? LocaleKeys.pm.tr()
         : 'PM';
 
     final raw = '$hourStr:$minuteStr $periodStr';
 
-    return LocalizationHelper.isArAndArNumberEnable(context)
+    return LocalizationHelper.isArAndArNumberEnable()
         ? toArabicDigits(raw)
         : raw;
   }
@@ -117,7 +117,7 @@ class DateHelper {
     final String minuteStr = time.minute.toString().padLeft(2, '0');
     final String raw = '$hourStr:$minuteStr';
 
-    return LocalizationHelper.isArAndArNumberEnable(context)
+    return LocalizationHelper.isArAndArNumberEnable()
         ? toArabicDigits(raw)
         : raw;
   }

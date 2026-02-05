@@ -7,7 +7,7 @@ import 'package:azan/data/data/city_country_data.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 
 typedef ItemLabel<T> = String Function(T item);
 
@@ -46,7 +46,9 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
       backgroundColor: AppTheme.dialogBackgroundColor,
       insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Container(
-        width: 1.sw - 70.w,
+        width:
+            // MediaQuery.of(context).size.width * 0.8,
+            1.sw - 70.w,
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: AppTheme.dialogBackgroundColor,

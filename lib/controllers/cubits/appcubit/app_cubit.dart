@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:adhan/adhan.dart' as adhan;
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
+import 'package:azan/core/helpers/azan_adjust_model.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/helpers/iqama_hive_helper.dart';
@@ -31,8 +32,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:typed_data';
 import 'dart:io' show gzip;
 
+import 'package:jhijri/_src/_jHijri.dart';
+
 class AppCubit extends Cubit<AppState> {
   AppCubit(this._dio) : super(AppInitial()) {
+    loadAzanAdjustSettingsOnce(); // ✅ مرة واحدة
     _loadUiRotation();
   }
   int uiQuarterTurns = 0; // 0..3
@@ -68,90 +72,46 @@ class AppCubit extends Cubit<AppState> {
 
   HomeScreenMobileState? homeScreenMobile;
   HomeScreenLandscapeState? homeScreenLandscape;
+
   String? hijriDate;
+  bool isRamadan = false;
 
   Future<String?> getTodayHijriDate(BuildContext context) async {
     emit(AppInitial());
 
     try {
-      final now = DateTime.now();
+      final offsetDays = CacheHelper.getHijriOffsetDays();
 
-      final dateParam =
-          '${now.day.toString().padLeft(2, '0')}-${now.month.toString().padLeft(2, '0')}-${now.year}';
+      // ✅ التاريخ الميلادي بعد الـ offset
+      final g = DateTime.now().add(Duration(days: offsetDays));
 
-      debugPrint('getTodayHijriDate -> dateParam = $dateParam');
+      // ✅ لازم تمرر g مش DateTime.now()
+      final h = JHijri(fDate: g);
+      final day = h.day.toString();
+      final year = h.year.toString();
+      final month = h.month.toString();
 
-      final response = await _dio.get(
-        'https://api.aladhan.com/v1/gToH',
-
-        queryParameters: {'date': dateParam},
-
-        options: Options(
-          responseType: ResponseType.json,
-          headers: {
-            'Accept': 'application/json',
-
-            'Accept-Encoding': 'gzip, deflate',
-          },
-        ),
-      );
-      debugPrint('sssss');
-      debugPrint(
-        'Hijri status = ${response.statusCode}, data type = ${response.data.runtimeType}',
-      );
-
-      if (response.statusCode != 200 || response.data == null) {
-        return null;
-      }
-
-      Map<String, dynamic> decoded;
-
-      final raw = response.data;
-
-      if (raw is Map<String, dynamic>) {
-        decoded = raw;
-      } else if (raw is String) {
-        // لو لأي سبب رجع String
-        decoded = jsonDecode(raw) as Map<String, dynamic>;
-      } else {
-        debugPrint('Unexpected hijri response type: ${raw.runtimeType}');
-        return null;
-      }
-
-      final data = decoded['data'] as Map<String, dynamic>;
-      final hijri = data['hijri'] as Map<String, dynamic>;
-
-      final String day = hijri['day']; // "20"
-      final String year = hijri['year']; // "1447"
-
-      final String monthName = context.locale.languageCode == 'ar'
-          ? hijri['month']['ar']
-          : hijri['month']['en'];
+      // ✅ jhijri غالبًا monthName واحدة (عربي)
+      // لو عايز إنجليزي لازم mapping منك أو lib تاني
+      final monthName = CacheHelper.getLang() == 'en'
+          ? englishHMonth(h.month)
+          : h.monthName;
 
       final rawText = '$day $monthName $year';
 
-      final formatted = LocalizationHelper.isArAndArNumberEnable(context)
+      final formatted = LocalizationHelper.isArAndArNumberEnable()
           ? DateHelper.toArabicDigits(rawText)
           : DateHelper.toWesternDigits(rawText);
+      isRamadan = month == '9' ? true : false;
 
-      debugPrint('Hijri final formatted = $formatted');
+      hijriDate = formatted;
 
       emit(AppChanged());
-      hijriDate = formatted;
+      'formatted formatted'.log();
       return formatted;
-    } on DioException catch (e, st) {
-      debugPrint('DioException in getTodayHijriDate: $e');
-      debugPrint('Response status: ${e.response?.statusCode}');
-      debugPrint('Raw data: ${e.response?.data}');
-      debugPrint('Stack: $st');
-      return null;
-    } on FormatException catch (e, st) {
-      debugPrint('JSON FormatException in getTodayHijriDate: $e');
-      debugPrint('Stack: $st');
-      return null;
     } catch (e, st) {
-      debugPrint('Unknown error in getTodayHijriDate: $e');
-      debugPrint('Stack: $st');
+      debugPrint('Hijri offline error: $e');
+      debugPrint('$st');
       return null;
     }
   }
@@ -159,6 +119,89 @@ class AppCubit extends Cubit<AppState> {
   final weatherService = OpenMeteoWeatherService();
 
   double? maxTemp;
+  // =========================
+  // Azan Adjust Settings (CORRECT)
+  // =========================
+
+  AzanAdjustSettings _azanAdjust = CacheHelper.getAzanAdjustSettings();
+  AzanAdjustSettings get azanAdjust => _azanAdjust;
+
+  /// load once
+  void loadAzanAdjustSettingsOnce() {
+    _azanAdjust = CacheHelper.getAzanAdjustSettings();
+  }
+
+  /// update + persist + refresh UI
+  Future<void> updateAzanAdjustSettings(AzanAdjustSettings s) async {
+    final fixed = s.normalized();
+    _azanAdjust = fixed;
+    await CacheHelper.setAzanAdjustSettings(fixed);
+    emit(AppChanged());
+  }
+
+  static const List<String> _prayerKeysOrder = [
+    "fajr",
+    "sunrise",
+    "dhuhr",
+    "asr",
+    "maghrib",
+    "isha",
+  ];
+
+  int _prayerIndex(String key) {
+    final i = _prayerKeysOrder.indexOf(key);
+    return i < 0 ? 0 : i;
+  }
+
+  int _extraMinutesForPrayer(String key) {
+    var minutes = 0;
+
+    // +1 hour summer
+    if (_azanAdjust.summerPlusHour) minutes += 60;
+
+    // manual all shift: -60 / 0 / +60
+    minutes += _azanAdjust.manualAllShiftMinutes;
+
+    // per prayer minutes
+    final idx = _prayerIndex(key);
+    if (idx >= 0 && idx < _azanAdjust.perPrayerMinutes.length) {
+      minutes += _azanAdjust.perPrayerMinutes[idx];
+    }
+
+    // رمضان: على العشاء فقط (وبشرط رمضان)
+    if (key == "isha" && isRamadan && _azanAdjust.ramadanIshaPlus30) {
+      minutes += 30;
+    }
+
+    return minutes;
+  }
+
+  DateTime _applyAzanAdjust(String key, DateTime base) {
+    return base.add(Duration(minutes: _extraMinutesForPrayer(key)));
+  }
+
+  List<MapEntry<String, DateTime>> _adjustedEntriesFromTimes(
+    adhan.PrayerTimes t,
+  ) {
+    return <MapEntry<String, DateTime>>[
+      MapEntry("fajr", _applyAzanAdjust("fajr", t.fajr)),
+      MapEntry("sunrise", _applyAzanAdjust("sunrise", t.sunrise)),
+      MapEntry("dhuhr", _applyAzanAdjust("dhuhr", t.dhuhr)),
+      MapEntry("asr", _applyAzanAdjust("asr", t.asr)),
+      MapEntry("maghrib", _applyAzanAdjust("maghrib", t.maghrib)),
+      MapEntry("isha", _applyAzanAdjust("isha", t.isha)),
+    ]..sort((a, b) => a.value.compareTo(b.value));
+  }
+
+  /// null => مفيش صلاة جاية في نفس اليوم (يعني لازم بكرة)
+  String? _nextPrayerKeyFromTimes(adhan.PrayerTimes t, {DateTime? now}) {
+    final n = now ?? DateTime.now();
+    final list = _adjustedEntriesFromTimes(t);
+    for (final e in list) {
+      if (e.value.isAfter(n)) return e.key;
+    }
+    return null;
+  }
 
   Future<void> loadTodayMaxTemp({
     required String country,
@@ -222,6 +265,7 @@ class AppCubit extends Cubit<AppState> {
         lon: latLng.longitude,
       ),
     );
+    'latLng: latlng: latlng; $latLng'.log();
     return latLng;
   }
 
@@ -235,7 +279,8 @@ class AppCubit extends Cubit<AppState> {
       final result = await azanDataSource.fetchPrayerTimes(latLng, time);
 
       if (result != null) {
-        if (result.nextPrayer() == adhan.Prayer.none) {
+        final nextKey = _nextPrayerKeyFromTimes(result, now: DateTime.now());
+        if (nextKey == null) {
           if (retryCount < 3) {
             return fetchPrayerTimesNew(
               latLng,
@@ -326,14 +371,14 @@ class AppCubit extends Cubit<AppState> {
   /// The [Prayer] objects in the returned list will contain the title
   /// of the prayer, its time, and the corresponding [DateTime] object.
   /*******  51c0fe4a-49d1-4cf4-972d-0db43860890e  *******/
-  String _time12(DateTime prayerTime, BuildContext context) {
-    return LocalizationHelper.isArAndArNumberEnable(context)
+  String _time12(DateTime prayerTime) {
+    return LocalizationHelper.isArAndArNumberEnable()
         ? DateFormat.jm(CacheHelper.getLang()).format(prayerTime)
         : DateFormat.jm('en').format(prayerTime);
   }
 
-  String _time24(DateTime prayerTime, BuildContext context) {
-    return LocalizationHelper.isArAndArNumberEnable(context)
+  String _time24(DateTime prayerTime) {
+    return LocalizationHelper.isArAndArNumberEnable()
         ? DateFormat('HH:mm', CacheHelper.getLang()).format(prayerTime)
         : DateFormat('HH:mm', 'en').format(prayerTime);
   }
@@ -342,50 +387,108 @@ class AppCubit extends Cubit<AppState> {
     adhan.PrayerTimes? times, {
     required BuildContext context,
   }) {
+    // ✅ لو مفيش times رجّع prayers كلها null من غير أي ! ولا copywith
+    if (times == null) {
+      return [
+        Prayer(
+          id: 1,
+          title: LocaleKeys.fajr.tr(),
+          time: null,
+          dateTime: null,
+          time24: null,
+        ),
+        Prayer(
+          id: 2,
+          title: LocaleKeys.sunrise.tr(),
+          time: null,
+          dateTime: null,
+          time24: null,
+        ),
+        Prayer(
+          id: 3,
+          title: DateHelper.isFriday()
+              ? LocaleKeys.friday.tr()
+              : LocaleKeys.dhuhr.tr(),
+          time: null,
+          dateTime: null,
+          time24: null,
+        ),
+        Prayer(
+          id: 4,
+          title: LocaleKeys.asr.tr(),
+          time: null,
+          dateTime: null,
+          time24: null,
+        ),
+        Prayer(
+          id: 5,
+          title: LocaleKeys.maghrib.tr(),
+          time: null,
+          dateTime: null,
+          time24: null,
+        ),
+        Prayer(
+          id: 6,
+          title: LocaleKeys.isha.tr(),
+          time: null,
+          dateTime: null,
+          time24: null,
+        ),
+      ];
+    }
+
+    // ✅ هنا times guaranteed مش null
+    final fajr = _applyAzanAdjust("fajr", times.fajr);
+    final sunrise = _applyAzanAdjust("sunrise", times.sunrise);
+    final dhuhr = _applyAzanAdjust("dhuhr", times.dhuhr);
+    final asr = _applyAzanAdjust("asr", times.asr);
+    final maghrib = _applyAzanAdjust("maghrib", times.maghrib);
+    final isha = _applyAzanAdjust("isha", times.isha);
+
     return [
       Prayer(
         id: 1,
         title: LocaleKeys.fajr.tr(),
-        time: times == null ? null : _time12(times.fajr, context),
-        dateTime: times?.fajr,
-        time24: times == null ? null : _time24(times.fajr, context),
+        time: _time12(fajr),
+        dateTime: fajr,
+        time24: _time24(fajr),
       ),
       Prayer(
         id: 2,
         title: LocaleKeys.sunrise.tr(),
-        time: times == null ? null : _time12(times.sunrise, context),
-        dateTime: times?.sunrise,
-        time24: times == null ? null : _time24(times.sunrise, context),
+        time: _time12(sunrise),
+        dateTime: sunrise,
+        time24: _time24(sunrise),
       ),
       Prayer(
         id: 3,
         title: DateHelper.isFriday()
             ? LocaleKeys.friday.tr()
             : LocaleKeys.dhuhr.tr(),
-        time: times == null ? null : _time12(times.dhuhr, context),
-        dateTime: times?.dhuhr,
-        time24: times == null ? null : _time24(times.dhuhr, context),
+        time: _time12(dhuhr),
+        dateTime: dhuhr,
+        time24: _time24(dhuhr),
       ),
       Prayer(
         id: 4,
         title: LocaleKeys.asr.tr(),
-        time: times == null ? null : _time12(times.asr, context),
-        dateTime: times?.asr,
-        time24: times == null ? null : _time24(times.asr, context),
+        time: _time12(asr),
+        dateTime: asr,
+        time24: _time24(asr),
       ),
       Prayer(
         id: 5,
         title: LocaleKeys.maghrib.tr(),
-        time: times == null ? null : _time12(times.maghrib, context),
-        dateTime: times?.maghrib,
-        time24: times == null ? null : _time24(times.maghrib, context),
+        time: _time12(maghrib),
+        dateTime: maghrib,
+        time24: _time24(maghrib),
       ),
       Prayer(
         id: 6,
         title: LocaleKeys.isha.tr(),
-        time: times == null ? null : _time12(times.isha, context),
-        dateTime: times?.isha,
-        time24: times == null ? null : _time24(times.isha, context),
+        time: _time12(isha),
+        dateTime: isha,
+        time24: _time24(isha),
       ),
     ];
   }
@@ -394,30 +497,22 @@ class AppCubit extends Cubit<AppState> {
       _mapToPrayers(prayerTimes, context: context);
 
   Future<Prayer?> nextPrayer(context) async {
-    // fetchPrayerTimesNew(latLng, time)
-    switch (prayerTimes?.nextPrayer()) {
-      case adhan.Prayer.fajr:
-        return prayers(context)[0];
-      case adhan.Prayer.sunrise:
-        return prayers(context)[1];
-      case adhan.Prayer.dhuhr:
-        return prayers(context)[2];
-      case adhan.Prayer.asr:
-        return prayers(context)[3];
-      case adhan.Prayer.maghrib:
-        return prayers(context)[4];
-      case adhan.Prayer.isha:
-        return prayers(context)[5];
-      case adhan.Prayer.none:
-        await initializePrayerTimes(
-          city: CacheHelper.getCity()!.nameEn,
-          context: context,
-        );
-        return prayers(context)[0];
+    final list = prayers(context); // ✅ already adjusted
+    final now = DateTime.now();
 
-      default:
-        return null;
+    for (final p in list) {
+      final dt = p.dateTime;
+      if (dt != null && dt.isAfter(now)) return p;
     }
+
+    // ✅ لو خلصنا صلوات اليوم -> هات بكرة
+    await initializePrayerTimes(
+      city: CacheHelper.getCity()!.nameEn,
+      context: context,
+    );
+
+    final afterReload = prayers(context);
+    return afterReload.isNotEmpty ? afterReload.first : null;
   }
 
   List<Dhikr>? adhkarList;

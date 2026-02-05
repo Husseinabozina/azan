@@ -6,21 +6,22 @@ class LocalizationHelper {
   static const String ar = 'ar';
   static const String en = 'en';
 
-  static String localCode(BuildContext context) {
-    String code = context.locale.languageCode;
+  static String localCode() {
+    String code = CacheHelper.getLang();
     return code;
   }
 
-  static bool isArabic(BuildContext context) {
-    if (localCode(context) == 'ar') {
+  static bool isArabic() {
+    if (localCode() == 'ar') {
       return true;
     } else {
       return false;
     }
   }
 
-  static bool isArAndArNumberEnable(BuildContext context) {
-    if (localCode(context) == 'ar' && CacheHelper.getIsArabicNumbersEnabled()) {
+  static bool isArAndArNumberEnable() {
+    if (CacheHelper.getLang() == 'ar' &&
+        CacheHelper.getIsArabicNumbersEnabled()) {
       return true;
     } else {
       return false;

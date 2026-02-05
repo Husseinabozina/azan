@@ -317,11 +317,14 @@ class $AssetsSoundsGen {
   /// File path: assets/sounds/azan.mp3
   String get azan => 'assets/sounds/azan.mp3';
 
+  /// File path: assets/sounds/azan_long.mp3
+  String get azanLong => 'assets/sounds/azan_long.mp3';
+
   /// File path: assets/sounds/iqama.mp3
   String get iqama => 'assets/sounds/iqama.mp3';
 
   /// List of all assets
-  List<String> get values => [alarmSound, azan, iqama];
+  List<String> get values => [alarmSound, azan, azanLong, iqama];
 }
 
 class $AssetsSvgGen {

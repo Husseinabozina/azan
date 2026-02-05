@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:azan/core/helpers/location_helper.dart';
 import 'package:azan/core/models/daily_weather.dart';
 import 'package:azan/core/models/geo_location.dart';
+import 'package:azan/core/utils/extenstions.dart';
+import 'package:azan/data/data/city_country_data.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -75,34 +77,48 @@ class OpenMeteoWeatherService {
     String? country,
   }) async {
     try {
-      final response = await _dio.get(
-        'https://geocoding-api.open-meteo.com/v1/search',
-        queryParameters: {
-          'name': city,
-          'count': 1, // أول نتيجة بس
-          'language': 'ar', // يرجع أسماء بالعربي لو متاحة
-          'format': 'json',
-        },
-      );
+      // final response = await _dio.get(
+      //   'https://geocoding-api.open-meteo.com/v1/search',
+      //   queryParameters: {
+      //     'name': city,
+      //     'count': 1, // أول نتيجة بس
+      //     'language': 'ar', // يرجع أسماء بالعربي لو متاحة
+      //     'format': 'json',
+      //   },
+      // );
 
-      if (response.statusCode != 200) {
-        debugPrint(
-          'Geocoding error: ${response.data}. statusCode: ${response.statusCode}',
-        );
+      // if (response.statusCode != 200) {
+      //   debugPrint(
+      //     'Geocoding error: ${response.data}. statusCode: ${response.statusCode}',
+      //   );
+      //   return null;
+      // }
+
+      // final data = response.data is Map<String, dynamic>
+      //     ? response.data as Map<String, dynamic>
+      //     : jsonDecode(response.data as String) as Map<String, dynamic>;
+
+      // final results = data['results'] as List<dynamic>?;
+
+      // if (results == null || results.isEmpty) {
+      //   return null;
+      // }
+      var cityModel = LocationHelper.findSaudiCityByName(city);
+      "${cityModel?.lat.toString()}".log();
+      if (cityModel == null) {
         return null;
       }
 
-      final data = response.data is Map<String, dynamic>
-          ? response.data as Map<String, dynamic>
-          : jsonDecode(response.data as String) as Map<String, dynamic>;
+      final results = {
+        'latitude': cityModel.lat,
+        'longitude': cityModel.lon,
+        'name': cityModel.nameAr,
+        'country': country,
+      };
 
-      final results = data['results'] as List<dynamic>?;
-
-      if (results == null || results.isEmpty) {
-        return null;
-      }
-
-      final first = results.first as Map<String, dynamic>;
+      final first = results as Map<String, dynamic>;
+      first.toString().log();
+      GeoLocation.fromJson(first).longitude.toString().log();
       return GeoLocation.fromJson(first);
     } on DioException catch (e) {
       debugPrint(

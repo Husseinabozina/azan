@@ -1,7 +1,7 @@
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AzanTitleTile extends StatelessWidget {

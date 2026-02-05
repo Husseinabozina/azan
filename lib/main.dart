@@ -1,51 +1,25 @@
-import 'dart:async';
-
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
-import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
-import 'package:azan/controllers/cubits/rotation_cubit/rotation_state.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
-import 'package:azan/core/models/dhikr_schedule.dart';
-import 'package:azan/core/models/diker.dart';
-import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/device_kind_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart' as flip;
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:azan/generated/codegen_loader.g.dart';
-import 'package:azan/generated/locale_keys.g.dart';
-import 'package:azan/views/adhkar/adhkar_screen.dart';
-import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/home_screen_mobile.dart';
-import 'package:azan/views/select_location/select_location_screen.dart';
-import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
-import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   kind = await DeviceKindHelper.detectBeforeRunApp();
-  // if (isLargeScreen(kind)) {
-  // await SystemChrome.setPreferredOrientations([
-  //   DeviceOrientation.landscapeLeft,
-  //   DeviceOrientation.landscapeRight,
-  // ]);
-  // } else {
-  // await SystemChrome.setPreferredOrientations([
-  //   DeviceOrientation.portraitUp,
-  //   DeviceOrientation.portraitDown,
-  //   // DeviceOrientation.landscapeLeft,
-  //   // DeviceOrientation.landscapeRight,
-  // ]);
-  // }
 
   await CacheHelper.init();
   if (!CacheHelper.getFirstAppOpen()) {
@@ -53,8 +27,6 @@ void main() async {
   }
   await EasyLocalization.ensureInitialized();
   await Hive.initFlutter();
-  ;
-  // افتح بوكس الأذكار
   await DhikrHiveHelper.ensureInitialAzkar(azkar);
 
   runApp(
@@ -66,7 +38,6 @@ void main() async {
       assetLoader: const CodegenLoader(),
       startLocale: Locale(CacheHelper.getLang()),
       fallbackLocale: Locale(CacheHelper.getLang()),
-
       child: const MyApp(),
     ),
   );
@@ -84,29 +55,18 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   UiRotationCubit cubit = UiRotationCubit();
-
-  bool isStarted = false;
-
   @override
   void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    if (!isStarted) {
-      if (isLargeScreen(kind) &&
-          MediaQuery.of(context).orientation == Orientation.landscape) {
-        '(isLargeScreen(kind) && MediaQuery.of(context).orientation == Orientation.landscape) ${(isLargeScreen(kind) && MediaQuery.of(context).orientation == Orientation.landscape)}'
-            .log();
+    cubit = UiRotationCubit();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isLargeScreen(kind) && !CacheHelper.getFirstAppOpen()) {
         cubit.changeIsLandscape(true);
       }
-      setState(() {
-        isStarted = true;
-      });
-    }
+    });
 
-    super.didChangeDependencies();
+    // widget ensure initialized
+
+    super.initState();
   }
 
   @override
@@ -124,34 +84,75 @@ class _MyAppState extends State<MyApp> {
         bloc: cubit,
         listener: (context, state) {},
         builder: (context, state) {
-          Size designSize = const Size(540, 960);
+          'state  state $state'.log();
+          int quarter = 0;
+          // Size(960, 540);
+          // Size(393, 852);
+          //  Size(852, 393);
+          Size designSize = state ? const Size(960, 540) : const Size(393, 852);
+          "designSize designSize ${designSize.toString()}".log();
 
-          if (!isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.landscape) {
+          if (MediaQuery.of(context).orientation == Orientation.portrait &&
+              !state) {
+            designSize = const Size(393, 852);
+            quarter = 0;
+            '1'.log();
+          } else if (MediaQuery.of(context).orientation ==
+                  Orientation.portrait &&
+              state) {
             designSize = const Size(960, 540);
-          } else if (!isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.portrait) {
-            designSize = const Size(393, 852);
-          } else if (isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.portrait &&
-              !cubit.isLandscape()) {
-            '111111'.log();
-            designSize = const Size(393, 852);
-          } else if (isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.portrait &&
-              cubit.isLandscape()) {
-            designSize = const Size(540, 960);
-          } else if (isLargeScreen(kind) && state == false) {
-            // on 2
-            designSize = const Size(852, 393);
-          } else if (isLargeScreen(kind) && state) {
-            // on
+            quarter = 1;
+            '2'.log();
+          } else if (MediaQuery.of(context).orientation ==
+                  Orientation.landscape &&
+              state) {
             designSize = const Size(960, 540);
-          } else if (!isLargeScreen(kind) && state) {
-            designSize = const Size(540, 960);
-          } else if (!isLargeScreen(kind) && state == false) {
+            quarter = 0;
+            '3'.log();
+          } else if (MediaQuery.of(context).orientation ==
+                  Orientation.landscape &&
+              !state) {
             designSize = const Size(393, 852);
+            quarter = 1;
+            '4'.log();
           }
+          // if (!isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.landscape &&
+          //     state == true) {
+          //   '1'.log();
+          // designSize = const Size(960, 540);
+          //   cubit.changeIsLandscape(true);
+          // } else if (!isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.portrait &&
+          //     !state) {
+          //   '2'.log();
+          //   designSize = const Size(393, 852);
+          //   cubit.changeIsLandscape(false);
+          // } else if (isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.portrait &&
+          //     !state) {
+          //   '3'.log();
+          //   designSize = const Size(393, 852);
+          // } else if (isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.portrait &&
+          //     cubit.isLandscape()) {
+          //   '4'.log();
+          //   designSize = const Size(540, 960);
+          // } else if (isLargeScreen(kind) && state == false) {
+          //   '5'.log();
+          //   // on 2
+          //   designSize = const Size(852, 393);
+          // } else if (isLargeScreen(kind) && state) {
+          //   '6'.log();
+          //   // on
+          //   designSize = const Size(960, 540);
+          // } else if (!isLargeScreen(kind) && state) {
+          //   '7'.log();
+          //   designSize = const Size(540, 960);
+          // } else if (!isLargeScreen(kind) && state == false) {
+          //   '8'.log();
+          //   designSize = const Size(393, 852);
+          // }
 
           // else if (isLargeScreen&& )
           // else if (!isLargeScreen(kind))
@@ -167,21 +168,44 @@ class _MyAppState extends State<MyApp> {
           // } else {
           //   designSize = const Size(393, 852);
           // }
+          // if (!isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.landscape &&
+          //     !cubit.isLandscape()) {
+          //   'nnn'.log();
+          //   quarter = 3;
+          //   // cubit.changeIsLandscape(true);
+          // } else if (!isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.portrait) {
+          //   quarter = 0;
+          //   // cubit.changeIsLandscape(false);
+          // } else if (isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.portrait &&
+          //     !cubit.isLandscape()) {
+          //   quarter = 0;
+          //   // cubit.changeIsLandscape(false);
+          // } else if (isLargeScreen(kind) &&
+          //     MediaQuery.of(context).orientation == Orientation.portrait &&
+          //     cubit.isLandscape()) {
+          //   quarter = 3;
+          // } else if ((isLargeScreen(kind) && !cubit.isLandscape())) {
+          //   quarter = 3;
+          // } else if ((!isLargeScreen(kind) && cubit.isLandscape())) {
+          //   quarter = 3;
+          // }
+          // final bool portraitDesign = designSize.height > designSize.width;
+          // final bool rotated90 = false;
+          // flip.SUFlip.enabled = rotated90 && portraitDesign;
+          final widget = RotatedMediaQueryX(
+            quarterTurns: quarter,
+            child: MQScaleInit(
+              key: ValueKey('${designSize.width}x${designSize.height}'),
+              designSize: designSize,
 
-          final widget = ScreenUtilInit(
-            key: ValueKey('${designSize.width}x${designSize.height}'),
-            designSize: designSize,
+              minTextAdapt: true,
+              // useInheritedMediaQuery: true,
 
-            minTextAdapt: true,
-            useInheritedMediaQuery: true,
-            splitScreenMode: true,
-
-            builder: (context, child) {
-              designSize.toString().log();
-              MediaQuery.of(context).size.toString().log();
-              cubit.isLandscape().toString().log();
-
-              return MaterialApp(
+              // splitScreenMode: true,
+              child: MaterialApp(
                 debugShowCheckedModeBanner: false,
                 localizationsDelegates: context.localizationDelegates,
                 supportedLocales: context.supportedLocales,
@@ -204,31 +228,9 @@ class _MyAppState extends State<MyApp> {
                 },
                 home: HomeScreen(),
                 // home: SetIqamaAzanSoundScreen(),
-              );
-            },
+              ),
+            ),
           );
-          if (!isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.landscape) {
-            cubit.changeIsLandscape(true);
-            return RotatedBox(quarterTurns: 0, child: widget);
-          } else if (!isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.portrait) {
-            cubit.changeIsLandscape(false);
-            return RotatedBox(quarterTurns: 0, child: widget);
-          } else if (isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.portrait &&
-              !cubit.isLandscape()) {
-            // cubit.changeIsLandscape(false);
-            return RotatedBox(quarterTurns: 0, child: widget);
-          } else if (isLargeScreen(kind) &&
-              MediaQuery.of(context).orientation == Orientation.portrait &&
-              cubit.isLandscape()) {
-            return RotatedBox(quarterTurns: 3, child: widget);
-          } else if ((isLargeScreen(kind) && !cubit.isLandscape())) {
-            return RotatedBox(quarterTurns: 3, child: widget);
-          } else if ((!isLargeScreen(kind) && cubit.isLandscape())) {
-            return RotatedBox(quarterTurns: 3, child: widget);
-          }
 
           return widget;
         },
@@ -248,5 +250,53 @@ class _MyAppState extends State<MyApp> {
     // } else {
     //   return widget;
     // }
+  }
+}
+
+class RotatedMediaQueryX extends StatelessWidget {
+  const RotatedMediaQueryX({
+    super.key,
+    required this.quarterTurns,
+    required this.child,
+  });
+
+  final int quarterTurns; // 0,1,2,3
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final q = quarterTurns % 4;
+    if (q == 0) return child;
+
+    final baseMq =
+        MediaQuery.maybeOf(context) ??
+        MediaQueryData.fromView(
+          View.maybeOf(context) ??
+              WidgetsBinding.instance.platformDispatcher.implicitView!,
+        );
+
+    EdgeInsets rotateInsets(EdgeInsets e) {
+      final t = e.top, r = e.right, b = e.bottom, l = e.left;
+      // RotatedBox rotates CLOCKWISE
+      if (q == 1) return EdgeInsets.fromLTRB(b, l, t, r);
+      if (q == 2) return EdgeInsets.fromLTRB(r, b, l, t);
+      if (q == 3) return EdgeInsets.fromLTRB(t, r, b, l);
+      return e;
+    }
+
+    final s = baseMq.size;
+
+    final rotatedMq = baseMq.copyWith(
+      size: q.isOdd ? Size(s.height, s.width) : s,
+      padding: rotateInsets(baseMq.padding),
+      viewPadding: rotateInsets(baseMq.viewPadding),
+      viewInsets: rotateInsets(baseMq.viewInsets),
+      systemGestureInsets: rotateInsets(baseMq.systemGestureInsets),
+    );
+
+    return MediaQuery(
+      data: rotatedMq,
+      child: RotatedBox(quarterTurns: q, child: child),
+    );
   }
 }

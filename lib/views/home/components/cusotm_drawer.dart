@@ -16,13 +16,14 @@ import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
+import 'package:azan/views/set_azan_iqama/set_azan_iqama_screen.dart';
 import 'package:azan/views/set_hide_screen/set_hide_screen.dart';
 import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:azan/core/utils/screenutil_flip_ext.dart';
 
 /// ===============================
 /// CustomDrawer
@@ -54,8 +55,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
     final double vPad = isLandscape ? 6.h : 10.h;
 
     final String targetLabel = isLandscape
-        ? LocaleKeys.landscape.tr()
-        : LocaleKeys.portrait.tr();
+        ? LocaleKeys.portrait.tr()
+        : LocaleKeys.landscape.tr();
 
     return Drawer(
       shape: const RoundedRectangleBorder(),
@@ -94,18 +95,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 AppNavigator.push(context, AdhkarScreen());
               },
             ),
-            _DrawerEntry(
-              title: LocaleKeys.change_fixed_zekr.tr(),
-              onTap: () {
-                showEditDhikrDialog(
-                  context,
-                  initialText: CacheHelper.getFixedDhikr(),
-                  onConfirm: (text) {
-                    CacheHelper.setFixedDhikr(text);
-                  },
-                );
-              },
-            ),
+
             _DrawerEntry(
               title: LocaleKeys.set_screen_hide.tr(),
               onTap: () {
@@ -118,16 +108,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 AppNavigator.push(context, SetIqamaScreen());
               },
             ),
-            _DrawerEntry(
-              title: LocaleKeys.set_iqama_azan_sound.tr(),
-              onTap: () {
-                AppNavigator.push(context, SetIqamaAzanSoundScreen());
-              },
-            ),
+
             _DrawerEntry(
               title: LocaleKeys.additional_settings.tr(),
               onTap: () {
                 AppNavigator.push(context, AdditionalSettingsScreen());
+              },
+            ),
+            _DrawerEntry(
+              title: LocaleKeys.iqama_azan_settings.tr(),
+              onTap: () {
+                AppNavigator.push(context, AzanAdjustScreen());
               },
             ),
             _DrawerEntry(
@@ -236,15 +227,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
           // Entry إضافي للغة (شكل خاص)
           final languageTile = LanguageDrawerTile(
             r: r,
-            currentLanguage: LocalizationHelper.isArabic(context)
+            currentLanguage: LocalizationHelper.isArabic()
                 ? LocaleKeys.arabic.tr()
                 : LocaleKeys.english.tr(),
             onTap: () {
               showChangeLanguageDialog(
                 context,
-                currentLanguageCode: LocalizationHelper.localCode(
-                  widget.context,
-                ),
+                currentLanguageCode: LocalizationHelper.localCode(),
                 onConfirm: (String code) async {
                   await widget.context.setLocale(Locale(code));
                   setState(() {
