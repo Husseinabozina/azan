@@ -68,7 +68,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                   SafeArea(
                     child: Padding(
                       padding: EdgeInsets.only(
-                        top: 20.r,
+                        top: 5.h,
                         left: 15.w,
                         right: 15.w,
                       ),
@@ -91,6 +91,15 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                         Icons.close,
                                         color: AppTheme.accentColor,
                                         size: 35.r,
+                                      ),
+                                    ),
+
+                                    Text(
+                                      LocaleKeys.select_mosque_location.tr(),
+                                      style: TextStyle(
+                                        fontSize: 20.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryTextColor,
                                       ),
                                     ),
 

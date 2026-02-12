@@ -1,30 +1,30 @@
 import 'dart:ui';
-
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/theme/app_theme.dart';
-import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:flutter/widgets.dart' as widgets;
 
-class DhikrFormWidget extends StatefulWidget {
+class ImprovedDhikrFormWidget extends StatefulWidget {
   final void Function(String text, DhikrSchedule? schedule) onSubmit;
 
-  const DhikrFormWidget({super.key, required this.onSubmit});
+  const ImprovedDhikrFormWidget({Key? key, required this.onSubmit})
+    : super(key: key);
 
   @override
-  State<DhikrFormWidget> createState() => _DhikrFormWidgetState();
+  State<ImprovedDhikrFormWidget> createState() =>
+      _ImprovedDhikrFormWidgetState();
 }
 
-class _DhikrFormWidgetState extends State<DhikrFormWidget> {
+class _ImprovedDhikrFormWidgetState extends State<ImprovedDhikrFormWidget> {
   final _textController = TextEditingController();
   DhikrScheduleType _selectedType = DhikrScheduleType.none;
-  final Set<int> _selectedWeekdays = {}; // DateTime.weekday values (1..7)
+  final Set<int> _selectedWeekdays = {};
   DateTime? _selectedDate;
 
   final _formKey = GlobalKey<FormState>();
@@ -57,11 +57,10 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
-
-    // دالة مساعدة لحساب الحجم responsive
-
-    final picked = await showCustomDatePicker(now, context);
+    final picked = await showUniversalDatePicker(
+      context,
+      initialDate: DateTime.now(),
+    );
 
     if (picked != null) {
       setState(() {
@@ -78,8 +77,13 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final sizing = DialogConfig.getSizing(context);
+
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.symmetric(
+        // horizontal: sizing.screenWidth * 0.04,
+        // vertical: sizing.screenHeight * 0.02,
+      ),
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -90,72 +94,57 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
               Text(
                 LocaleKeys.dhikr_add_new_title.tr(),
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: sizing.bodyFontSize * 1.2,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.secondaryTextColor,
                 ),
               ),
-              VerticalSpace(height: 16),
+
+              SizedBox(height: sizing.verticalGap * 0.8),
+
+              // TextField للنص
               TextFormField(
                 controller: _textController,
                 maxLines: 3,
                 textDirection: widgets.TextDirection.rtl,
-                style: TextStyle(color: Colors.black87, fontSize: 12.sp),
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: sizing.bodyFontSize,
+                ),
                 selectionWidthStyle: BoxWidthStyle.max,
                 selectionHeightStyle: BoxHeightStyle.max,
-
                 decoration: InputDecoration(
-                  // labelText: 'نص الذكر',
-                  // نخلي الليبل دايمًا فوق
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  // مهم عشان multiline
                   alignLabelWithHint: true,
-
-                  // شكل الليبل
-                  labelStyle: const TextStyle(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-
-                  // لو حابب تضيف هينت جوا
                   hintText: LocaleKeys.dhikr_add_new_title.tr(),
                   hintStyle: TextStyle(color: Colors.grey.shade500),
-
-                  // نخليها بوكس أبيض جوه الديالوج الأزرق
                   filled: true,
                   fillColor: Colors.white,
-
-                  // البوردر العادي
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.r),
+                    borderRadius: BorderRadius.circular(sizing.borderRadius),
                     borderSide: BorderSide(
                       color: Colors.grey.shade400,
-                      width: 1.5.w,
+                      width: 1.5,
                     ),
                   ),
-
-                  // البوردر وقت الـ focus
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.r),
-                    borderSide: BorderSide(
-                      color: Color(0xFFF4C66A), // نفس الذهبي بتاع الحوار
-                      width: 2.w,
+                    borderRadius: BorderRadius.circular(sizing.borderRadius),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFF4C66A),
+                      width: 2,
                     ),
                   ),
-
-                  // بوردر الـ error
                   errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(sizing.borderRadius),
                     borderSide: const BorderSide(color: Colors.red, width: 1.5),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(sizing.borderRadius),
                     borderSide: const BorderSide(color: Colors.red, width: 2),
                   ),
-
                   contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 14.h,
+                    horizontal: sizing.screenWidth * 0.04,
+                    vertical: sizing.screenHeight * 0.015,
                   ),
                 ),
                 validator: (v) {
@@ -165,115 +154,107 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                   return null;
                 },
               ),
-              VerticalSpace(height: 16),
+
+              SizedBox(height: sizing.verticalGap * 0.8),
 
               Text(
                 LocaleKeys.schedule_type_label.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: AppTheme.secondaryTextColor,
-                  fontSize: 14.sp,
+                  fontSize: sizing.bodyFontSize * 1.05,
                 ),
               ),
 
-              // VerticalSpace(height: 8),
-              SizedBox(
-                // height: 52, // عشا
-                //ن يبقى نفس ارتفاع التكست فيلد تقريبًا
-                child: DropdownButtonFormField<DhikrScheduleType>(
-                  iconSize: 25.r,
-                  value: _selectedType,
-                  isExpanded: true,
-                  icon: const Icon(
-                    Icons.arrow_drop_down_rounded,
-                    color: Colors.black87,
-                  ),
-
-                  // دي أهم حاجة عشان الشكل يبقى زي التكست فيلد
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 8.h,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none, // مفيش خط زيادة
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: Color(0xFFF4C66A), // نفس الدهبى بتاعك
-                        width: 2.w,
-                      ),
-                    ),
-                  ),
-
-                  borderRadius: BorderRadius.circular(16),
-                  dropdownColor: Colors.white,
-
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 16.sp,
-                    height: 1.3, // يفتح الكلام شوية بدل ما يبقى لازق في بعضه
-                  ),
-
-                  items: [
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.none,
-                      child: Text(LocaleKeys.schedule_type_none.tr()),
-                    ),
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.daily,
-                      child: Text(LocaleKeys.daily.tr()),
-                    ),
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.weekly,
-                      child: Text(LocaleKeys.schedule_type_weekly_days.tr()),
-                    ),
-                    DropdownMenuItem(
-                      value: DhikrScheduleType.specificDate,
-                      child: Text(LocaleKeys.schedule_type_specific_date.tr()),
-                    ),
-                  ],
-
-                  onChanged: (val) {
-                    if (val == null) return;
-                    setState(() {
-                      _selectedType = val;
-                    });
-                  },
+              // Dropdown للنوع
+              DropdownButtonFormField<DhikrScheduleType>(
+                iconSize: sizing.bodyFontSize * 2,
+                value: _selectedType,
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.arrow_drop_down_rounded,
+                  color: Colors.black87,
                 ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: sizing.screenWidth * 0.04,
+                    vertical: sizing.screenHeight * 0.01,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(sizing.borderRadius),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(sizing.borderRadius),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFF4C66A),
+                      width: 2,
+                    ),
+                  ),
+                ),
+                borderRadius: BorderRadius.circular(sizing.borderRadius),
+                dropdownColor: Colors.white,
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: sizing.bodyFontSize,
+                  height: 1.3,
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: DhikrScheduleType.none,
+                    child: Text(LocaleKeys.schedule_type_none.tr()),
+                  ),
+                  DropdownMenuItem(
+                    value: DhikrScheduleType.daily,
+                    child: Text(LocaleKeys.daily.tr()),
+                  ),
+                  DropdownMenuItem(
+                    value: DhikrScheduleType.weekly,
+                    child: Text(LocaleKeys.schedule_type_weekly_days.tr()),
+                  ),
+                  DropdownMenuItem(
+                    value: DhikrScheduleType.specificDate,
+                    child: Text(LocaleKeys.schedule_type_specific_date.tr()),
+                  ),
+                ],
+                onChanged: (val) {
+                  if (val == null) return;
+                  setState(() {
+                    _selectedType = val;
+                  });
+                },
               ),
 
-              const VerticalSpace(height: 12),
+              SizedBox(height: sizing.verticalGap * 0.6),
 
-              /// لو Weekly -> نعرض اختيارات الأيام
+              // اختيارات الأيام (Weekly)
               if (_selectedType == DhikrScheduleType.weekly) ...[
                 Text(
                   LocaleKeys.schedule_select_days_label.tr(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.secondaryTextColor,
+                    fontSize: sizing.bodyFontSize,
                   ),
                 ),
-                VerticalSpace(height: 8),
+                SizedBox(height: sizing.verticalGap * 0.4),
                 Wrap(
-                  spacing: 8.w,
-                  runSpacing: 5.h,
+                  spacing: sizing.screenWidth * 0.02,
+                  runSpacing: sizing.screenHeight * 0.008,
                   children: _weekdayLabels.entries.map((entry) {
                     final day = entry.key;
                     final label = entry.value;
                     final isSelected = _selectedWeekdays.contains(day);
+
                     return FilterChip(
                       labelStyle: TextStyle(
-                        fontSize: 10.sp,
+                        fontSize: sizing.bodyFontSize * 0.85,
                         fontWeight: FontWeight.bold,
                       ),
                       label: Text(label),
                       selected: isSelected,
-
                       onSelected: (selected) {
                         setState(() {
                           if (selected) {
@@ -288,25 +269,24 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                 ),
               ],
 
-              /// لو تاريخ محدد -> زر يختار التاريخ
+              // اختيار تاريخ محدد
               if (_selectedType == DhikrScheduleType.specificDate) ...[
-                const VerticalSpace(height: 12),
+                SizedBox(height: sizing.verticalGap * 0.6),
                 Row(
                   children: [
                     ElevatedButton(
                       onPressed: _pickDate,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryButtonBackground,
-
                         padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 8.h,
+                          horizontal: sizing.screenWidth * 0.03,
+                          vertical: sizing.screenHeight * 0.01,
                         ),
                       ),
                       child: Text(
                         LocaleKeys.schedule_select_date_label.tr(),
                         style: TextStyle(
-                          fontSize: 12.sp,
+                          fontSize: sizing.bodyFontSize,
                           color: AppTheme.primaryButtonTextColor,
                         ),
                       ),
@@ -315,72 +295,76 @@ class _DhikrFormWidgetState extends State<DhikrFormWidget> {
                     if (_selectedDate != null)
                       Text(
                         '${_selectedDate!.year}/${_selectedDate!.month}/${_selectedDate!.day}',
-
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.primaryTextColor,
+                          fontSize: sizing.bodyFontSize,
                         ),
                       ),
                   ],
                 ),
               ],
 
-              const VerticalSpace(height: 24),
+              SizedBox(height: sizing.verticalGap),
+
+              // أزرار الحفظ والإلغاء
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: 100.w,
-                      height: 40.h,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: const Color(0xFFE8EEF7),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.r),
+                  SizedBox(
+                    width: sizing.buttonSize.width,
+                    height: sizing.buttonSize.height,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFE8EEF7),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            sizing.borderRadius * 0.8,
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          LocaleKeys.common_cancel.tr(),
-
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        LocaleKeys.common_cancel.tr(),
+                        style: TextStyle(
+                          fontSize: sizing.bodyFontSize * 1.05,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryButtonBackground,
 
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size(100.w, 40.h),
-                      maximumSize: Size(100.w, 40.h),
-                    ),
+                  SizedBox(
+                    width: sizing.buttonSize.width,
+                    height: sizing.buttonSize.height,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: AppTheme.primaryButtonBackground,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            sizing.borderRadius * 0.8,
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (!_formKey.currentState!.validate()) return;
 
-                    onPressed: () {
-                      if (!_formKey.currentState!.validate()) return;
+                        final text = _textController.text.trim();
+                        final schedule = _buildSchedule();
 
-                      final text = _textController.text.trim();
-                      final schedule = _buildSchedule();
-
-                      widget.onSubmit(text, schedule);
-                    },
-                    child: Text(
-                      LocaleKeys.dhikr_save_button.tr(),
-
-                      style: TextStyle(
-                        fontSize: 14.sp,
-
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                        widget.onSubmit(text, schedule);
+                      },
+                      child: Text(
+                        LocaleKeys.dhikr_save_button.tr(),
+                        style: TextStyle(
+                          fontSize: sizing.bodyFontSize * 1,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

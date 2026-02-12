@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   dio: ^5.9.0
   easy_localization: ^3.0.8
+  file_picker: ^10.3.10
   fl_chart: ^1.1.1
   flash: ^3.1.1
   flutter:
@@ -50,11 +51,13 @@ dependencies:
   hijri: ^3.0.0
   hive: null
   hive_flutter: null
+  image_picker: ^1.2.1
   intl: ^0.20.2
   jhijri: ^1.0.0
   just_audio: ^0.10.5
-  prayers_times:
-    path: ./packages/prayers_times-main
+  path_provider: ^2.1.5
+  # prayers_times:
+  #   path: ./packages/prayers_times-main
   shared_preferences: ^2.5.3
   timezone: ^0.9.4
   url_launcher: ^6.3.2
@@ -70,52 +73,98 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-  # To add assets to your application, add an assets section, like this:
+
   assets:
     - assets/images/
     - assets/svg/
     - assets/translations/
     - assets/sounds/
+
   fonts:
-    - family: Tajawal
+    - family: KSA
       fonts:
-        - asset: assets/fonts/Tajawal-Regular.ttf
+        - asset: assets/fonts/KSARegular.ttf
           weight: 400
-        - asset: assets/fonts/Tajawal-Bold.ttf
-          weight: 700
+
     - family: Taha
       fonts:
-        - asset: assets/fonts/Taha.otf
+        - asset: assets/fonts/KFGQPCUthmanTaha.ttf
           weight: 400
-        - asset: assets/fonts/Taha_Bold.otf
-          weight: 700
-    - family: Foda
-      fonts:
-        - asset: assets/fonts/Foda-Regular.ttf
-          weight: 400
-    - family: FreeSpans
-      fonts:
-        - asset: assets/fonts/FreeSans.otf
-          weight: 400
-        - asset: assets/fonts/FreeSans_Bold.otf
-          weight: 700
+
     - family: Sultan
       fonts:
-        - asset: assets/fonts/Sultan_Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Sultan-bold.ttf
-          weight: 700
-    - family: Ksa
+        - asset: assets/fonts/SFSultan-Black.ttf
+          weight: 900
+
+    - family: Foda
       fonts:
-        - asset: assets/fonts/Ksa_regular.ttf
+        - asset: assets/fonts/FodaFreeFont.ttf
           weight: 400
-        - asset: assets/fonts/Ksa_bold.ttf
+
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/AmiriRegular.ttf
+          weight: 400
+        - asset: assets/fonts/AmiriBold.ttf
           weight: 700
+
+    - family: FreeSans
+      fonts:
+        - asset: assets/fonts/FreeSans.ttf
+          weight: 400
+        - asset: assets/fonts/FreeSansBold.ttf
+          weight: 700
+
+    - family: Andalus
+      fonts:
+        - asset: assets/fonts/Andalus.ttf
+          weight: 400
+
+    - family: BaradaReqa
+      fonts:
+        - asset: assets/fonts/BaradaReqa.ttf
+          weight: 400
+
+    - family: FreeSerif
+      fonts:
+        - asset: assets/fonts/FreeSerif.ttf
+          weight: 400
+        - asset: assets/fonts/FreeSerifBold.ttf
+          weight: 700
+
+    - family: FreeMono
+      fonts:
+        - asset: assets/fonts/FreeMono.ttf
+          weight: 400
+        - asset: assets/fonts/FreeMonoBold.ttf
+          weight: 700
+
+    # - family: HSNomr
+    #   fonts:
+    #     - asset: assets/fonts/HSNomr.ttf
+    #       weight: 400
+
+    - family: MohammadArt
+      fonts:
+        - asset: assets/fonts/mohammadboldart1.ttf
+          weight: 700
+
+    - family: Monofonto
+      fonts:
+        - asset: assets/fonts/Monofonto.ttf
+          weight: 400
+
+    - family: NRT
+      fonts:
+        - asset: assets/fonts/NRTReg.ttf
+          weight: 400
+
+    - family: STC
+      fonts:
+        - asset: assets/fonts/STC-Regular.ttf
+          weight: 400
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see

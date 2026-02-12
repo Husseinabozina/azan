@@ -176,5 +176,18 @@ abstract class  LocaleKeys {
   static const azan_adjust_iqama_hint = 'azan_adjust_iqama_hint';
   static const azan_adjust_hijri_section_title = 'azan_adjust_hijri_section_title';
   static const azan_adjust_hijri_section_hint = 'azan_adjust_hijri_section_hint';
+  static const azan_duration = 'azan_duration';
+  static const azkar_timing_settings = 'azkar_timing_settings';
+  static const enable_morning_azkar = 'enable_morning_azkar';
+  static const morning_azkar_window_minutes = 'morning_azkar_window_minutes';
+  static const enable_evening_azkar = 'enable_evening_azkar';
+  static const evening_azkar_window_minutes = 'evening_azkar_window_minutes';
+  static const enable_after_prayer_azkar = 'enable_after_prayer_azkar';
+  static const after_prayer_azkar_window_minutes = 'after_prayer_azkar_window_minutes';
+  static const minute = 'minute';
+  static const show_seconds_in_next_prayer = 'show_seconds_in_next_prayer';
+  static const change_app_logo = 'change_app_logo';
+  static const select_from_device = 'select_from_device';
+  static const default_app_logo = 'default_app_logo';
 
 }

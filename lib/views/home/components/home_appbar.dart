@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/theme/app_theme.dart';
@@ -9,31 +11,175 @@ import 'package:flutter/material.dart';
 import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:flutter_svg/svg.dart';
 
-class HomeAppBar extends StatelessWidget {
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' as io;
+
+class HomeAppBar extends StatefulWidget {
   const HomeAppBar({super.key, this.onDrawerTap});
   final Function()? onDrawerTap;
 
   @override
-  Widget build(BuildContext context) {
-    // Single layout for both portrait & landscape (no duplicated Row)
-    final _ = UiRotationCubit()
-        .isLandscape(); // keep orientation dependency (if you need it later)
+  State<HomeAppBar> createState() => _HomeAppBarState();
+}
 
-    // Keep current sizes as much as possible
+class _HomeAppBarState extends State<HomeAppBar> {
+  String? _logoPath;
+  Uint8List? _logoBytes;
+  bool _bytesIsSvg = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _logoPath = CacheHelper.getMosqueLogoPath();
+  }
+
+  bool _exists(String? path) {
+    if (kIsWeb) return false;
+    if (path == null || path.isEmpty) return false;
+    return io.File(path).existsSync();
+  }
+
+  Future<void> _pickLogoFromDevice() async {
+    final prevPath = _logoPath;
+    final prevBytes = _logoBytes;
+    final prevIsSvg = _bytesIsSvg;
+
+    final res = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['png', 'jpg', 'jpeg', 'webp', 'svg'],
+      withData: kIsWeb, // ✅ مهم للويب
+    );
+
+    if (!mounted) return;
+
+    if (res == null || res.files.isEmpty) {
+      setState(() {
+        _logoPath = prevPath;
+        _logoBytes = prevBytes;
+        _bytesIsSvg = prevIsSvg;
+      });
+      return;
+    }
+
+    final f = res.files.first;
+    final ext = p.extension(f.name).toLowerCase();
+
+    if (kIsWeb) {
+      final bytes = f.bytes;
+      if (bytes == null) return;
+
+      setState(() {
+        _logoBytes = bytes;
+        _bytesIsSvg = ext == '.svg';
+        _logoPath = null;
+      });
+      return;
+    }
+
+    if (f.path == null) return;
+
+    final pickedPath = f.path!;
+    final dir = await getApplicationDocumentsDirectory();
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final savedPath = p.join(dir.path, 'mosque_logo_$ts$ext');
+
+    await io.File(pickedPath).copy(savedPath); // ✅ io.File
+    await CacheHelper.setMosqueLogoPath(savedPath);
+
+    if (!mounted) return;
+    setState(() {
+      _logoPath = savedPath;
+      _logoBytes = null;
+      _bytesIsSvg = false;
+    });
+  }
+
+  Widget _buildLogo(double logoH, double logoW) {
+    // ✅ WEB: ممنوع file، اعرض bytes لو موجودة وإلا default asset
+    if (kIsWeb) {
+      if (_logoBytes != null) {
+        return _bytesIsSvg
+            ? SvgPicture.memory(
+                _logoBytes!,
+                height: logoH,
+                width: logoW,
+                fit: BoxFit.cover,
+              )
+            : Image.memory(
+                _logoBytes!,
+                height: logoH,
+                width: logoW,
+                fit: BoxFit.cover,
+              );
+      }
+
+      return SvgPicture.asset(
+        Assets.svg.logosvg,
+        height: logoH,
+        width: logoW,
+        fit: BoxFit.contain,
+      );
+    }
+
+    // ✅ Mobile/Desktop: اعرض من File path
+    final path = CacheHelper.getMosqueLogoPath();
+
+    if (_exists(path)) {
+      final lower = path!.toLowerCase();
+
+      // اقرأ bytes مرة واحدة هنا
+      final bytes = io.File(path).readAsBytesSync();
+
+      if (lower.endsWith('.svg')) {
+        return SvgPicture.memory(
+          bytes,
+          height: logoH,
+          width: logoW,
+          fit: BoxFit.cover,
+        );
+      }
+
+      return Image.memory(
+        bytes,
+        height: logoH,
+        width: logoW,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => SvgPicture.asset(
+          Assets.svg.logosvg,
+          height: logoH,
+          width: logoW,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return SvgPicture.asset(
+      Assets.svg.logosvg,
+      height: logoH,
+      width: logoW,
+      fit: BoxFit.contain,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final _ = UiRotationCubit().isLandscape();
+
     const double gap = 10;
     final double startPadding = 10.w;
 
     final double logoH = 31.71.h;
     final double logoW = 30.22.w;
 
-    // Reserved fixed trailing space for the menu button (content must never overlap)
     final double menuButtonWidth = 50.w;
 
-    // Base heights (we'll bump dynamically only when we detect 2 lines are needed)
     final double baseBarHeight = 50.h;
     final double oneLineAvailableHeight = 35.h;
-    final double twoLinesAvailableHeight =
-        58.h; // enough for 2 lines (avoid clipping)
+    final double twoLinesAvailableHeight = 58.h;
 
     final String titleText =
         CacheHelper.getMosqueName() ?? LocaleKeys.mosque_name_label.tr();
@@ -47,14 +193,12 @@ class HomeAppBar extends StatelessWidget {
           totalWidth,
         );
 
-        // Max width available for the title inside the group
         final double maxTitleWidth =
             (maxGroupWidth - startPadding - logoW - gap.w).clamp(
               0.0,
               maxGroupWidth,
             );
 
-        // 1) Determine if group can stay centered when single-line width fits
         final TextPainter oneLineMeasure = TextPainter(
           text: TextSpan(
             text: titleText,
@@ -74,7 +218,6 @@ class HomeAppBar extends StatelessWidget {
 
         final bool shouldCenterGroup = groupOneLineWidth <= maxGroupWidth;
 
-        // 2) Determine if text will require 2 lines under the actual maxTitleWidth
         final TextPainter twoLinesMeasure = TextPainter(
           text: TextSpan(
             text: titleText,
@@ -85,9 +228,7 @@ class HomeAppBar extends StatelessWidget {
               height: 1.15,
             ),
           ),
-
           maxLines: 2,
-
           textDirection: Directionality.of(context),
           ellipsis: '…',
         )..layout(maxWidth: maxTitleWidth);
@@ -95,20 +236,16 @@ class HomeAppBar extends StatelessWidget {
         final int neededLines = twoLinesMeasure.computeLineMetrics().length;
         final bool needsTwoLines = neededLines > 1;
 
-        // 3) Dynamically increase bar/title height only when 2 lines are needed
         final double barHeight = needsTwoLines ? (70.h) : baseBarHeight;
         final double availableTitleHeight = needsTwoLines
             ? twoLinesAvailableHeight
             : oneLineAvailableHeight;
 
-        return Container(
-          // color: Colors.red,
+        return SizedBox(
           width: double.infinity,
           height: barHeight,
-
           child: Stack(
             children: [
-              // Center group area (everything except the menu reserved width)
               PositionedDirectional(
                 start: 0,
                 end: menuButtonWidth,
@@ -126,10 +263,19 @@ class HomeAppBar extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SvgPicture.asset(
-                            Assets.svg.logosvg,
-                            height: logoH,
-                            width: logoW,
+                          GestureDetector(
+                            // ✅ هنا: دوس على اللوجو → يفتح اختيار من الجهاز
+                            onTap: _pickLogoFromDevice,
+                            child: Container(
+                              height: logoH,
+                              width: logoW,
+                              clipBehavior: Clip.hardEdge,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(2.r),
+                              ),
+
+                              child: _buildLogo(logoH, logoW),
+                            ),
                           ),
                           HorizontalSpace(width: gap),
                           ConstrainedBox(
@@ -137,7 +283,6 @@ class HomeAppBar extends StatelessWidget {
                               maxWidth: maxTitleWidth,
                             ),
                             child: Padding(
-                              // Keep same top padding, but ensure the text box can grow
                               padding: EdgeInsets.only(top: 5.h),
                               child: _AdaptiveTitleText(
                                 text: titleText,
@@ -155,8 +300,6 @@ class HomeAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Menu button (fixed trailing position + fixed reserved width)
               PositionedDirectional(
                 end: 0,
                 top: 0,
@@ -164,7 +307,7 @@ class HomeAppBar extends StatelessWidget {
                 child: SizedBox(
                   width: menuButtonWidth,
                   child: IconButton(
-                    onPressed: onDrawerTap?.call,
+                    onPressed: widget.onDrawerTap?.call,
                     icon: Icon(
                       Icons.menu,
                       color: AppTheme.accentColor,

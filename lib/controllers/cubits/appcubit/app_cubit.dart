@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -16,12 +17,14 @@ import 'package:azan/core/models/geo_location.dart';
 import 'package:azan/core/models/latlng.dart';
 import 'package:azan/core/models/next_Iqama.dart';
 import 'package:azan/core/models/prayer.dart';
+import 'package:azan/core/models/weather_day.dart';
 import 'package:azan/core/services/open_weather_service.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/additional_settings/components/azkar_time_helper.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -35,11 +38,333 @@ import 'dart:io' show gzip;
 import 'package:jhijri/_src/_jHijri.dart';
 
 class AppCubit extends Cubit<AppState> {
-  AppCubit(this._dio) : super(AppInitial()) {
-    loadAzanAdjustSettingsOnce(); // ✅ مرة واحدة
+  final Dio _dio;
+
+  AppCubit._internal(this._dio) : super(AppInitial()) {
+    weatherService = OpenMeteoWeatherService(dio: _dio);
+    _initOnce();
+  }
+
+  static AppCubit? _instance;
+  static Dio? _configuredDio;
+  static bool _initialized = false;
+
+  late final OpenMeteoWeatherService weatherService;
+  WeatherForecast? weatherForecast;
+
+  String _cityTodayKey(WeatherForecast f) {
+    final cityNow = DateTime.now().toUtc().add(
+      Duration(seconds: f.utcOffsetSeconds),
+    );
+    return DateFormat('yyyy-MM-dd', 'en').format(cityNow);
+  }
+
+  String _cityTomorrowKey(WeatherForecast f) {
+    final cityNow = DateTime.now().toUtc().add(
+      Duration(seconds: f.utcOffsetSeconds),
+    );
+    final tmr = cityNow.add(const Duration(days: 1));
+    return DateFormat('yyyy-MM-dd', 'en').format(tmr);
+  }
+
+  WeatherDay? get todayWeather {
+    final f = weatherForecast;
+    if (f == null) return null;
+    final key = _cityTodayKey(f);
+    return f.days.cast<WeatherDay?>().firstWhere(
+      (d) => d!.date == key,
+      orElse: () => null,
+    );
+  }
+
+  WeatherDay? get tomorrowWeather {
+    final f = weatherForecast;
+    if (f == null) return null;
+    final key = _cityTomorrowKey(f);
+    return f.days.cast<WeatherDay?>().firstWhere(
+      (d) => d!.date == key,
+      orElse: () => null,
+    );
+  }
+
+  Future<void> loadWeatherForecast({
+    required String country,
+    required String city,
+    bool forceRefresh = false,
+  }) async {
+    // 1) حاول من الكاش الأول (لو مش forced)
+    if (!forceRefresh) {
+      final cached = CacheHelper.get(key: WeatherCacheKeys.forecastJson);
+      if (cached is String && cached.isNotEmpty) {
+        try {
+          final map = jsonDecode(cached) as Map<String, dynamic>;
+          final f = WeatherForecast.fromJson(map);
+          if (f != null) {
+            weatherForecast = f;
+            maxTemp = todayWeather?.max; // ✅ أضف ده
+            await CacheHelper.save(
+              key: WeatherCacheKeys.forecastJson,
+              value: jsonEncode(f.toJson()),
+            );
+          }
+
+          // كفاية جدًا: لو الكاش فيه النهاردة (بتوقيت المدينة) استخدمه
+          final todayKey = _cityTodayKey(f);
+          final hasToday = f.days.any((d) => d.date == todayKey);
+
+          if (hasToday) {
+            weatherForecast = f;
+            emit(AppChanged());
+            return;
+          }
+        } catch (_) {
+          // ignore -> هننزل نجيب من النت
+        }
+      }
+    }
+
+    // 2) هات من النت
+    emit(AppInitial());
+    final f = await weatherService.fetchMaxForecast(
+      city: city,
+      country: country,
+      days: OpenMeteoWeatherService.maxForecastDays,
+      morningHour: 8,
+      nightHour: 20,
+    );
+
+    if (f != null) {
+      weatherForecast = f;
+      await CacheHelper.save(
+        key: WeatherCacheKeys.forecastJson,
+        value: jsonEncode(f.toJson()),
+      );
+    }
+
+    emit(AppChanged());
+  }
+
+  String _weatherCityKey({required String country, required String city}) {
+    // لو عندك lat/lon في CacheHelper.getCity() يبقى أحسن
+    final c = getCity();
+    if (c != null) {
+      return '${c.lat!.toStringAsFixed(4)},${c.lon!.toStringAsFixed(4)}';
+    }
+    return '$country|$city';
+  }
+
+  String _cityYmdByOffset(int utcOffsetSeconds) {
+    final cityNow = DateTime.now().toUtc().add(
+      Duration(seconds: utcOffsetSeconds),
+    );
+    return DateFormat('yyyy-MM-dd', 'en').format(cityNow);
+  }
+
+  bool _forecastHasToday(WeatherForecast f) {
+    final todayKey = _cityYmdByOffset(f.utcOffsetSeconds);
+    return f.days.any((d) => d.date == todayKey);
+  }
+
+  bool _weatherInFlight = false;
+  static const _weatherTtl = Duration(hours: 6);
+
+  bool _isFresh(WeatherForecast f) {
+    final fetched = DateTime.fromMillisecondsSinceEpoch(f.fetchedAtMs);
+    return DateTime.now().difference(fetched) < _weatherTtl;
+  }
+
+  Future<void> maybeRefreshWeather({
+    required String country,
+    required String city,
+    required Future<bool> Function() hasInternet,
+    bool force = false,
+    bool onHomeOpen = false, // ✅ جديد
+  }) async {
+    if (_weatherInFlight) return;
+    _weatherInFlight = true;
+
+    try {
+      final cityKey = _weatherCityKey(country: country, city: city);
+
+      // 1) اقرأ الكاش
+      WeatherForecast? cachedForecast;
+      final cached = CacheHelper.get(key: WeatherCacheKeys.forecastJson);
+      if (cached is String && cached.isNotEmpty) {
+        try {
+          cachedForecast = WeatherForecast.fromJson(
+            jsonDecode(cached) as Map<String, dynamic>,
+          );
+        } catch (_) {}
+      }
+
+      final cachedCity = CacheHelper.get(key: WeatherCacheKeys.lastCityKey);
+      final cacheMatchesCity = (cachedCity == cityKey);
+
+      // 2) اعرض الكاش فورًا
+      if (cachedForecast != null && cacheMatchesCity) {
+        weatherForecast = cachedForecast;
+        maxTemp = todayWeather?.max;
+        emit(AppChanged());
+      }
+
+      // 3) قرار الـ refresh
+      // ✅ لو دي نداء "فتح HomeScreen" → اعمل fetch كل مرة
+      if (onHomeOpen) {
+        final now = DateTime.now();
+        if (_lastWeatherFetchAt != null &&
+            now.difference(_lastWeatherFetchAt!) < _homeOpenThrottle) {
+          return; // منع تكرار سريع
+        }
+        // كمل fetch
+      } else if (!force) {
+        // منطقك القديم (مرة في اليوم + freshness)
+        if (cachedForecast != null && cacheMatchesCity) {
+          final todayYmd = _cityYmdByOffset(cachedForecast.utcOffsetSeconds);
+          final lastSync = CacheHelper.get(key: WeatherCacheKeys.lastSyncYmd);
+          final syncedToday = (lastSync == todayYmd);
+
+          if (syncedToday && _isFresh(cachedForecast)) return;
+        }
+      }
+
+      // 4) net
+      final net = await hasInternet();
+      if (!net) return;
+
+      // 5) fetch من النت
+      final f = await weatherService.fetchMaxForecast(
+        city: city,
+        country: country,
+        days: OpenMeteoWeatherService.maxForecastDays,
+        morningHour: 8,
+        nightHour: 20,
+      );
+
+      if (f != null) {
+        _lastWeatherFetchAt = DateTime.now(); // ✅ سجل وقت آخر fetch
+
+        weatherForecast = f;
+        maxTemp = todayWeather?.max;
+
+        await CacheHelper.save(
+          key: WeatherCacheKeys.forecastJson,
+          value: jsonEncode(f.toJson()),
+        );
+
+        await CacheHelper.save(
+          key: WeatherCacheKeys.lastSyncYmd,
+          value: _cityYmdByOffset(f.utcOffsetSeconds),
+        );
+
+        await CacheHelper.save(
+          key: WeatherCacheKeys.lastCityKey,
+          value: cityKey,
+        );
+
+        emit(AppChanged());
+      }
+    } finally {
+      _weatherInFlight = false;
+    }
+  }
+
+  Future<bool> get hasInternet => _hasConnection;
+
+  StreamSubscription? _netSub;
+  DateTime _lastNetEvent = DateTime.fromMillisecondsSinceEpoch(0);
+
+  void startWeatherAutoSync({
+    required String country,
+    required String city,
+    required Future<bool> Function() hasInternet,
+  }) {
+    _netSub?.cancel();
+
+    _netSub = Connectivity().onConnectivityChanged.listen((
+      dynamic result,
+    ) async {
+      final now = DateTime.now();
+      if (now.difference(_lastNetEvent).inSeconds < 5) return;
+      _lastNetEvent = now;
+
+      final connected = (result is List<ConnectivityResult>)
+          ? !result.contains(ConnectivityResult.none)
+          : result != ConnectivityResult.none;
+
+      if (!connected) return;
+
+      await maybeRefreshWeather(
+        country: country,
+        city: city,
+        hasInternet: hasInternet,
+        force: false,
+      );
+    });
+  }
+
+  void stopWeatherAutoSync() {
+    _netSub?.cancel();
+    _netSub = null;
+  }
+
+  static void configure({required Dio dio}) {
+    _configuredDio ??= dio;
+  }
+
+  factory AppCubit({Dio? dio}) {
+    if (_instance != null) return _instance!;
+
+    final resolved = dio ?? _configuredDio;
+    if (resolved == null) {
+      throw StateError('Call AppCubit.configure(dio: ...) before AppCubit()');
+    }
+
+    _instance = AppCubit._internal(resolved);
+    return _instance!;
+  }
+
+  void _initOnce() {
+    if (_initialized) return;
+    _initialized = true;
+
+    loadAzanAdjustSettingsOnce();
     _loadUiRotation();
   }
+
+  //
+  // AppCubit(this._dio) : super(AppInitial()) {
+  //   loadAzanAdjustSettingsOnce(); // ✅ مرة واحدة
+  //   _loadUiRotation();
+  // }
+  // singelton
+  // static final AppCubit _instance = AppCubit(Dio());
+  // static AppCubit get instance => _instance;
+  // final Dio _dio;
+
   int uiQuarterTurns = 0; // 0..3
+  /// ✅ يرجّع وقت الصلاة "بعد التعديل" حسب id (1..6)
+  /// 1=fajr, 2=sunrise, 3=dhuhr, 4=asr, 5=maghrib, 6=isha
+  DateTime? adjustedPrayerTimeById(int id, {adhan.PrayerTimes? times}) {
+    final t = times ?? prayerTimes;
+    if (t == null) return null;
+
+    switch (id) {
+      case 1:
+        return _applyAzanAdjust("fajr", t.fajr);
+      case 2:
+        return _applyAzanAdjust("sunrise", t.sunrise);
+      case 3:
+        return _applyAzanAdjust("dhuhr", t.dhuhr);
+      case 4:
+        return _applyAzanAdjust("asr", t.asr);
+      case 5:
+        return _applyAzanAdjust("maghrib", t.maghrib);
+      case 6:
+        return _applyAzanAdjust("isha", t.isha);
+      default:
+        return null;
+    }
+  }
 
   Future<void> _loadUiRotation() async {
     final saved = CacheHelper.get(key: 'ui_qt');
@@ -67,7 +392,6 @@ class AppCubit extends Cubit<AppState> {
 
   static AppCubit get(context) => BlocProvider.of(context);
 
-  final Dio _dio;
   final AzanDataSource azanDataSource = AzanDataSourceImpl(Dio());
 
   HomeScreenMobileState? homeScreenMobile;
@@ -116,8 +440,6 @@ class AppCubit extends Cubit<AppState> {
     }
   }
 
-  final weatherService = OpenMeteoWeatherService();
-
   double? maxTemp;
   // =========================
   // Azan Adjust Settings (CORRECT)
@@ -130,6 +452,53 @@ class AppCubit extends Cubit<AppState> {
   void loadAzanAdjustSettingsOnce() {
     _azanAdjust = CacheHelper.getAzanAdjustSettings();
   }
+
+  bool _isSummerByLatitude(DateTime d, double lat) {
+    // Northern hemisphere: Apr..Sep
+    if (lat >= 0) {
+      return d.month >= 4 && d.month <= 9;
+    }
+    // Southern hemisphere: Oct..Mar
+    return (d.month >= 10) || (d.month <= 3);
+  }
+
+  bool _isSummerNow() {
+    final coords = CacheHelper.getCoordinates();
+    final lat = coords?.latitude;
+
+    // fallback لو مفيش coords (اعتبره شمالي)
+    if (lat == null) {
+      final m = DateTime.now().month;
+      return m >= 4 && m <= 9;
+    }
+
+    return _isSummerByLatitude(DateTime.now(), lat);
+  }
+
+  // int _extraMinutesForPrayer(String key) {
+  //   var minutes = 0;
+
+  //   // ✅ Summer +1h (only during summer)
+  //   if (_azanAdjust.summerPlusHour && _isSummerNow()) {
+  //     minutes += 60;
+  //   }
+
+  //   // ✅ manual global shift
+  //   minutes += _azanAdjust.manualAllShiftMinutes;
+
+  //   // ✅ per prayer shift
+  //   final idx = _prayerIndex(key);
+  //   if (idx >= 0 && idx < _azanAdjust.perPrayerMinutes.length) {
+  //     minutes += _azanAdjust.perPrayerMinutes[idx];
+  //   }
+
+  //   // ✅ Ramadan Isha +30
+  //   if (key == "isha" && isRamadan && _azanAdjust.ramadanIshaPlus30) {
+  //     minutes += 30;
+  //   }
+
+  //   return minutes;
+  // }
 
   /// update + persist + refresh UI
   Future<void> updateAzanAdjustSettings(AzanAdjustSettings s) async {
@@ -153,22 +522,36 @@ class AppCubit extends Cubit<AppState> {
     return i < 0 ? 0 : i;
   }
 
+  int _dstDeltaMinutesNow() {
+    final y = DateTime.now().year;
+    final jan = DateTime(y, 1, 1).timeZoneOffset.inMinutes;
+    final jul = DateTime(y, 7, 1).timeZoneOffset.inMinutes;
+
+    final standard = min(jan, jul); // غالبًا ده الشتوي
+    final current = DateTime.now().timeZoneOffset.inMinutes;
+
+    // الناتج غالبًا 0 أو 60 (حسب البلد)
+    return current - standard;
+  }
+
   int _extraMinutesForPrayer(String key) {
     var minutes = 0;
 
-    // +1 hour summer
-    if (_azanAdjust.summerPlusHour) minutes += 60;
+    // ✅ Summer +1h (only during summer)
+    if (_azanAdjust.summerPlusHour && _isSummerNow()) {
+      minutes += 60;
+    }
 
-    // manual all shift: -60 / 0 / +60
+    // ✅ manual global shift
     minutes += _azanAdjust.manualAllShiftMinutes;
 
-    // per prayer minutes
+    // ✅ per prayer shift
     final idx = _prayerIndex(key);
     if (idx >= 0 && idx < _azanAdjust.perPrayerMinutes.length) {
       minutes += _azanAdjust.perPrayerMinutes[idx];
     }
 
-    // رمضان: على العشاء فقط (وبشرط رمضان)
+    // ✅ Ramadan Isha +30
     if (key == "isha" && isRamadan && _azanAdjust.ramadanIshaPlus30) {
       minutes += 30;
     }
@@ -203,20 +586,25 @@ class AppCubit extends Cubit<AppState> {
     return null;
   }
 
-  Future<void> loadTodayMaxTemp({
-    required String country,
-    required String city,
-  }) async {
-    emit(AppInitial());
-    final maxTemp = await weatherService.fetchTodayMaxTemperature(
-      city: city, // اللي المستخدم يدخله
-      country: country, // أو "مصر"، بس الإنجليزي أدق للـ API
-    );
+  double? get todayMaxTemp => todayWeather?.max;
+  int? get todayWeatherCode => todayWeather?.weatherCode;
+  DateTime? _lastWeatherFetchAt;
+  static const _homeOpenThrottle = Duration(seconds: 30);
 
-    this.maxTemp = maxTemp;
-    print('maxTemp: $maxTemp');
-    emit(AppChanged());
-  }
+  // Future<void> loadTodayMaxTemp({
+  //   required String country,
+  //   required String city,
+  // }) async {
+  //   emit(AppInitial());
+  //   final maxTemp = await weatherService.fetchTodayMaxTemperature(
+  //     city: city, // اللي المستخدم يدخله
+  //     country: country, // أو "مصر"، بس الإنجليزي أدق للـ API
+  //   );
+
+  //   this.maxTemp = maxTemp;
+  //   print('maxTemp: $maxTemp');
+  //   emit(AppChanged());
+  // }
 
   adhan.PrayerTimes? prayerTimes;
 
@@ -269,6 +657,23 @@ class AppCubit extends Cubit<AppState> {
     return latLng;
   }
 
+  Future<adhan.PrayerTimes?> fetchPrayerTimesExactDay(
+    LatLng latLng,
+    DateTime day, {
+    bool storeToMain = false,
+  }) async {
+    try {
+      final result = await azanDataSource.fetchPrayerTimes(latLng, day);
+      if (result != null && storeToMain) {
+        prayerTimes = result;
+      }
+      return result;
+    } catch (e) {
+      'e: $e'.log();
+      return null;
+    }
+  }
+
   Future<adhan.PrayerTimes?> fetchPrayerTimesNew(
     LatLng latLng,
     DateTime time, {
@@ -293,6 +698,7 @@ class AppCubit extends Cubit<AppState> {
           }
         }
         if (storeToMain) {
+          'storeToMain'.log();
           prayerTimes = result;
         }
         return result;
@@ -313,48 +719,82 @@ class AppCubit extends Cubit<AppState> {
     cityChanged = true;
   }
 
+  Prayer? nextFajrPrayer;
+
   Future<void> initializePrayerTimes({
     String? city,
     required BuildContext context,
   }) async {
-    if (!await _hasConnection) {
-      emit(FetchPrayerTimesFailure("لا يوجد انترنت"));
-      return;
-    }
+    try {
+      final hasNet = await _hasConnection;
+      'hasNet: $hasNet'.log();
+      connectivity = hasNet;
 
-    emit(FetchPrayerTimesLoading());
-    if (cityChanged) {
-      await fetchCityCoordinate(city!);
-      cityChanged = false;
-    }
-    if (CacheHelper.getCoordinates() == null && city != null) {
-      await fetchCityCoordinate(city);
-    }
-    if (CacheHelper.getCoordinates() == null) {
-      emit(
-        FetchPrayerTimesFailure(
-          LocaleKeys.something_went_wrong_please_try_again.tr(),
-        ),
+      emit(FetchPrayerTimesLoading());
+
+      // 1) جهّز الإحداثيات (دي عندك Offline من LocationHelper)
+      if (cityChanged) {
+        await fetchCityCoordinate(city!);
+        cityChanged = false;
+      }
+      if (CacheHelper.getCoordinates() == null && city != null) {
+        'CacheHelper.getCoordinates() == null && city != null'.log();
+        await fetchCityCoordinate(city);
+        " fetch coordinate: fetch coordinate:${await fetchCityCoordinate(city)}"
+            .log();
+      }
+
+      final coords = CacheHelper.getCoordinates();
+      if (coords == null) {
+        emit(
+          FetchPrayerTimesFailure(
+            LocaleKeys.something_went_wrong_please_try_again.tr(),
+          ),
+        );
+        return;
+      }
+
+      // 2) احسب صلوات اليوم (Offline)
+      // 2) احسب صلوات اليوم (زي ما هي حتى لو بعد العشاء)
+      final todayTimes = await fetchPrayerTimesExactDay(
+        coords,
+        DateTime.now(),
+        storeToMain: true,
       );
-      return;
+
+      // 3) احسب صلوات بكرة عشان nextFajrPrayer فقط
+      final tomorrowTimes = await fetchPrayerTimesExactDay(
+        coords,
+        DateTime.now().add(const Duration(days: 1)),
+      );
+
+      if (tomorrowTimes != null) {
+        nextFajrPrayer = _mapToPrayers(tomorrowTimes, context: context).first;
+      }
+
+      if (todayTimes != null) {
+        emit(FetchPrayerTimesSuccess());
+      } else {
+        emit(
+          FetchPrayerTimesFailure(
+            LocaleKeys.something_went_wrong_please_try_again.tr(),
+          ),
+        );
+      }
+    } catch (e) {
+      'eeeeeeee$e'.log();
     }
-    List<Prayer> allPrayers = [];
+    // ما تمنعش الصلاة بسبب النت
 
-    final success = await fetchPrayerTimesNew(
-      CacheHelper.getCoordinates()!,
-      DateTime.now(),
-      storeToMain: true,
-    );
-    if (success != null) {
-      allPrayers.addAll(_mapToPrayers(success, context: context));
-      final lastPrayerTime = success.isha;
-
-      emit(FetchPrayerTimesSuccess());
-
-      // لو اليوم هو السادس (i==5) أو السابع (i==6) جدّول تذكير التحديث
-
-      // نضيف buffer صغير بعد العشاء
-    }
+    // 4) الحاجات اللي محتاجة نت خليها اختيارية
+    //   if (hasNet) {
+    //    unawaited(
+    //   loadWeatherForecast(
+    //     country: 'Saudi Arabia',
+    //     city: city ?? CacheHelper.getCity()?.nameEn ?? '',
+    //   ),
+    // );
+    //   }
   }
 
   /*************  ✨ Windsurf Command ⭐  *************/
@@ -496,8 +936,8 @@ class AppCubit extends Cubit<AppState> {
   List<Prayer> prayers(BuildContext context) =>
       _mapToPrayers(prayerTimes, context: context);
 
-  Future<Prayer?> nextPrayer(context) async {
-    final list = prayers(context); // ✅ already adjusted
+  Future<Prayer?> nextPrayer(BuildContext context) async {
+    final list = prayers(context); // from prayerTimes (جدول اليوم)
     final now = DateTime.now();
 
     for (final p in list) {
@@ -505,14 +945,18 @@ class AppCubit extends Cubit<AppState> {
       if (dt != null && dt.isAfter(now)) return p;
     }
 
-    // ✅ لو خلصنا صلوات اليوم -> هات بكرة
-    await initializePrayerTimes(
-      city: CacheHelper.getCity()!.nameEn,
-      context: context,
-    );
+    // لو خلصنا صلوات اليوم -> هات بكرة كـ nextPrayer فقط
+    final coords = CacheHelper.getCoordinates();
+    if (coords == null) return null;
 
-    final afterReload = prayers(context);
-    return afterReload.isNotEmpty ? afterReload.first : null;
+    final tomorrowTimes = await fetchPrayerTimesExactDay(
+      coords,
+      DateTime.now().add(const Duration(days: 1)),
+    );
+    if (tomorrowTimes == null) return null;
+
+    final tomorrowPrayers = _mapToPrayers(tomorrowTimes, context: context);
+    return tomorrowPrayers.isNotEmpty ? tomorrowPrayers.first : null;
   }
 
   List<Dhikr>? adhkarList;
@@ -528,10 +972,6 @@ class AppCubit extends Cubit<AppState> {
     emit(AppChanged());
   }
 
-  String? getCountry() {
-    return CacheHelper.getCountry();
-  }
-
   String setCountry(String country) {
     CacheHelper.setCountry(country);
     return country;
@@ -542,17 +982,20 @@ class AppCubit extends Cubit<AppState> {
     return '';
   }
 
-  CityOption? getCity() {
-    emit(AppInitial());
-    emit(AppChanged());
-    return CacheHelper.getCity();
-  }
+  // CityOption? getCity() {
+  //   emit(AppInitial());
+  //   emit(AppChanged());
+  //   return CacheHelper.getCity();
+  // }
 
   void setCity(CityOption city) {
     emit(AppInitial());
     CacheHelper.setCity(city);
     emit(AppChanged());
   }
+
+  CityOption? getCity() => CacheHelper.getCity();
+  String? getCountry() => CacheHelper.getCountry();
 
   String clearCity() {
     CacheHelper.removeCity();
@@ -580,6 +1023,7 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> savePrayerDurations(List<int> prayersDuration) async {
+    'prayersDuration $prayersDuration'.log();
     emit(savePrayerDurationLoading());
     try {
       await PrayerDurationHiveHelper.savePrayerDurations(prayersDuration);
@@ -594,15 +1038,42 @@ class AppCubit extends Cubit<AppState> {
   Future<void> getPrayerDurations() async {
     emit(AppInitial());
     prayersDuration = await PrayerDurationHiveHelper.loadPrayerDurations(
-      prayerCount: 6,
+      prayerCount: 5,
     );
+
+    'prayersDuration $prayersDuration'.log();
     emit(AppChanged());
   }
 
   int? currentPrayerDuration;
   int getCurrentPrayerDuraion() {
-    currentPrayerDuration = prayersDuration![currentPrayer!.id - 1];
+    final p = currentPrayer;
+    if (p == null) return 7;
+
+    final idx = AzkarTimeHelper.durationIndexForPrayerId(p.id);
+    if (idx == null) return 7;
+
+    currentPrayerDuration =
+        prayersDuration != null && prayersDuration!.length > idx
+        ? prayersDuration![idx]
+        : 7;
+
     return currentPrayerDuration!;
+  }
+
+  int getPrayerDurationForId(int prayerId) {
+    final idx = AzkarTimeHelper.durationIndexForPrayerId(prayerId);
+
+    // 'idx ${idx}'.log();
+
+    if (idx == null) return 7;
+    // ''
+    //     " prayersDuration${prayersDuration?[idx].toString()}"
+    // .log();
+
+    return (prayersDuration != null && prayersDuration!.length > idx)
+        ? prayersDuration![idx]
+        : 7;
   }
 
   List<Dhikr>? get todaysAdkar {
@@ -613,15 +1084,27 @@ class AppCubit extends Cubit<AppState> {
   }
 
   String get getAzanSoundSource {
-    return CacheHelper.getIsAzanAppTheme()
-        ? Assets.sounds.alarmSound
-        : Assets.sounds.azan;
+    try {
+      if (CacheHelper.getUseMp3Azan() && !CacheHelper.getUseShortAzan()) {
+        final path = Assets.sounds.azanLong;
+        return path;
+      } else if (CacheHelper.getUseMp3Azan() && CacheHelper.getUseShortAzan()) {
+        final path = Assets.sounds.azan;
+        return path;
+      }
+
+      final fallback = Assets.sounds.alarmSound;
+      return fallback;
+    } catch (e) {
+      return Assets.sounds.alarmSound;
+    }
   }
 
   String get getIqamaSoundSource {
-    return CacheHelper.getIsIqamaAppTheme()
-        ? Assets.sounds.alarmSound
-        : Assets.sounds.iqama;
+    if (CacheHelper.getUseShortIqama()) {
+      return Assets.sounds.iqama;
+    }
+    return Assets.sounds.alarmSound;
   }
 
   bool showPrayerAzanPage = false;

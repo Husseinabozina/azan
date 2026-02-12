@@ -70,7 +70,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: isLandscape ? 24.w : 20.w,
-                    vertical: 10.h,
+                    vertical: 5.h,
                   ),
                   child: Column(
                     children: [

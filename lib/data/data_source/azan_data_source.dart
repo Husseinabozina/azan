@@ -6,7 +6,7 @@ import 'package:azan/core/utils/extenstions.dart';
 import 'package:dio/dio.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:prayers_times/prayers_times.dart' as pr;
+// import 'package:prayers_times/prayers_times.dart' as pr;
 
 abstract class AzanDataSource {
   Future<PrayerTimes?> fetchPrayerTimes(LatLng latLng, DateTime time);
@@ -68,8 +68,6 @@ class AzanDataSourceImpl extends AzanDataSource {
   @override
   Future<PrayerTimes?> fetchPrayerTimes(LatLng latLng, DateTime time) async {
     try {
-      'latooo lngoooo latooo lngooo ${latLng.latitude} ${latLng.longitude}'
-          .log();
       // Coordinates coordinates = Coordinates(21.1959, 72.7933);
 
       // Specify the calculation parameters for prayer times
@@ -88,6 +86,8 @@ class AzanDataSourceImpl extends AzanDataSource {
         time.day,
       ); //2025, 4, 20);
 
+      'prayerTimes prayerTimes prayerTimes prayerTimes ${PrayerTimes(Coordinates(latLng.latitude, latLng.longitude), nyDate, params).asr}'
+          .log();
       return PrayerTimes(
         Coordinates(latLng.latitude, latLng.longitude),
         nyDate,

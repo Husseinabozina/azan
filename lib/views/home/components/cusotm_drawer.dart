@@ -1,5 +1,7 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
+import 'package:azan/core/components/horizontal_space.dart';
+import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
@@ -7,6 +9,7 @@ import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/device_kind_helper.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/core/utils/native_orientation.dart';
 import 'package:azan/gen/assets.gen.dart';
@@ -24,6 +27,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 /// ===============================
 /// CustomDrawer
@@ -85,7 +94,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     CacheHelper.removeMosqueName();
                     CacheHelper.setMosqueName(name);
                   },
-                  r: r,
                 );
               },
             ),
@@ -95,17 +103,53 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 AppNavigator.push(context, AdhkarScreen());
               },
             ),
+            _DrawerEntry(
+              title: LocaleKeys.change_app_logo.tr(),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) {
+                    return Center(
+                      child: UniversalDialogShell(
+                        customMaxHeight: 140.h,
+                        child: Center(
+                          child: MosqueLogoRadioPicker(
+                            mainAxisSize: MainAxisSize.min,
+                            defaultAssetPath: Assets.svg.logosvg,
+                            onChanged: (path) {
+                              if (path != null) {
+                                CacheHelper.setMosqueLogoPath(path);
+                              } else {
+                                CacheHelper.clearMosqueLogoPath();
+                              }
+
+                              Navigator.pop(context); // اقفل الديالوج
+
+                              // اعمل refresh للهوم زي ما بتعمل في اللغة
+                              if (UiRotationCubit().isLandscape()) {
+                                AppCubit.get(
+                                  widget.context,
+                                ).homeScreenLandscape?.homeScreenWork();
+                              } else {
+                                AppCubit.get(
+                                  widget.context,
+                                ).homeScreenMobile?.homeScreenWork();
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
 
             _DrawerEntry(
               title: LocaleKeys.set_screen_hide.tr(),
               onTap: () {
                 AppNavigator.push(context, SetHideScreen());
-              },
-            ),
-            _DrawerEntry(
-              title: LocaleKeys.set_iqama_time.tr(),
-              onTap: () {
-                AppNavigator.push(context, SetIqamaScreen());
               },
             ),
 
@@ -209,19 +253,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 // );
               },
             ),
-            _DrawerEntry(
-              title: '${LocaleKeys.change_to.tr()} $targetLabel',
-              onTap: () {
-                // Navigator.pop(context);
 
-                final cubit = context.read<UiRotationCubit>();
-                if (cubit.isLandscape()) {
-                  cubit.changeIsLandscape(false);
-                } else {
-                  cubit.changeIsLandscape(true);
-                }
-              },
-            ),
+            if (isLargeScreen(kind))
+              _DrawerEntry(
+                title: '${LocaleKeys.change_to.tr()} $targetLabel',
+                onTap: () {
+                  // Navigator.pop(context);
+
+                  final cubit = context.read<UiRotationCubit>();
+                  if (cubit.isLandscape()) {
+                    cubit.changeIsLandscape(false);
+                  } else {
+                    cubit.changeIsLandscape(true);
+                  }
+                },
+              ),
           ];
 
           // Entry إضافي للغة (شكل خاص)
@@ -304,7 +350,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               icon: Icon(
                                 Icons.close,
                                 color: AppTheme.accentColor,
-                                size: 28.r,
+                                size: 35.r,
                               ),
                             ),
                             const Spacer(),
@@ -498,7 +544,7 @@ class _DrawerTitleText extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 15.sp,
+            fontSize: 24.sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryTextColor,
           ),
@@ -556,7 +602,7 @@ class LanguageDrawerTile extends StatelessWidget {
                   TextSpan(
                     text: LocaleKeys.language.tr(),
                     style: TextStyle(
-                      fontSize: 15.sp,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.primaryTextColor.withOpacity(0.85),
                     ),
@@ -564,7 +610,7 @@ class LanguageDrawerTile extends StatelessWidget {
                       TextSpan(
                         text: " : ",
                         style: TextStyle(
-                          fontSize: 15.sp,
+                          fontSize: 20.sp,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.primaryTextColor.withOpacity(0.6),
                         ),
@@ -572,7 +618,7 @@ class LanguageDrawerTile extends StatelessWidget {
                       TextSpan(
                         text: currentLanguage,
                         style: TextStyle(
-                          fontSize: 15.sp,
+                          fontSize: 20.sp,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.secondaryTextColor,
                         ),
@@ -584,6 +630,322 @@ class LanguageDrawerTile extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+enum MosqueLogoSource { defaultAsset, device }
+
+class MosqueLogoRadioPicker extends StatefulWidget {
+  const MosqueLogoRadioPicker({
+    super.key,
+    required this.defaultAssetPath,
+    this.previewSize = 36,
+    this.onChanged,
+    this.mainAxisSize,
+  });
+
+  final String defaultAssetPath; // مثال: 'assets/images/mosque_logo.png'
+  final double previewSize;
+  final ValueChanged<String?>?
+  onChanged; // null = default, otherwise custom path
+
+  final MainAxisSize? mainAxisSize;
+  @override
+  State<MosqueLogoRadioPicker> createState() => _MosqueLogoRadioPickerState();
+}
+
+class _MosqueLogoRadioPickerState extends State<MosqueLogoRadioPicker> {
+  MosqueLogoSource _source = MosqueLogoSource.defaultAsset;
+  String? _customPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _customPath = CacheHelper.getMosqueLogoPath();
+    final hasCustom = _customPath != null && File(_customPath!).existsSync();
+    _source = hasCustom
+        ? MosqueLogoSource.device
+        : MosqueLogoSource.defaultAsset;
+  }
+
+  Future<void> _pickFromGallery() async {
+    final prevSource = _source;
+    final prevPath = _customPath;
+
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+      maxWidth: 1024,
+    );
+
+    if (!mounted) return;
+
+    // ✅ المستخدم رجع بدون اختيار (Cancel/Back)
+    if (picked == null) {
+      setState(() {
+        _source = prevSource;
+        _customPath = prevPath;
+      });
+      return;
+    }
+
+    // ✅ خزّن نسخة داخل app storage عشان تفضل موجودة
+    final dir = await getApplicationDocumentsDirectory();
+    final ext = p.extension(picked.path).toLowerCase();
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final savedPath = p.join(dir.path, 'mosque_logo_$ts$ext');
+
+    await File(picked.path).copy(savedPath);
+
+    await CacheHelper.setMosqueLogoPath(savedPath);
+
+    setState(() {
+      _source = MosqueLogoSource.device;
+      _customPath = savedPath;
+    });
+
+    widget.onChanged?.call(savedPath);
+  }
+
+  Future<void> _useDefault() async {
+    // اختياري: لو عايز تمسح الملف القديم
+    final path = _customPath;
+    if (path != null) {
+      final f = File(path);
+      if (await f.exists()) {
+        await f.delete();
+      }
+    }
+    await CacheHelper.clearMosqueLogoPath();
+
+    setState(() {
+      _source = MosqueLogoSource.defaultAsset;
+      _customPath = null;
+    });
+
+    widget.onChanged?.call(null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCustom = _customPath != null && File(_customPath!).existsSync();
+
+    return Column(
+      mainAxisSize: widget.mainAxisSize ?? MainAxisSize.max,
+      children: [
+        CustomRadioTile<MosqueLogoSource>(
+          padding: EdgeInsetsDirectional.zero,
+          value: MosqueLogoSource.defaultAsset,
+          groupValue: _source,
+          radioSize: 22, // 👈 حجم الدايرة
+          onTap: _useDefault,
+          title: Text(
+            LocaleKeys.default_app_logo.tr(),
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryTextColor,
+            ),
+          ),
+          trailing: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SvgPicture.asset(
+              widget.defaultAssetPath,
+              width: widget.previewSize.r,
+              height: widget.previewSize.r,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+
+        const VerticalSpace(height: 15),
+        CustomRadioTile<MosqueLogoSource>(
+          padding: EdgeInsetsDirectional.zero,
+
+          value: MosqueLogoSource.device,
+          groupValue: _source,
+          radioSize: 22, // 👈 حجم الدايرة
+          onTap: () async {
+            // نفس سلوكك: أول ما تختارها يفتح الجاليري
+            setState(() => _source = MosqueLogoSource.device);
+            await _pickFromGallery();
+          },
+          title: Text(
+            LocaleKeys.select_from_device.tr(),
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryTextColor,
+            ),
+          ),
+          trailing: hasCustom
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(_customPath!),
+                    width: widget.previewSize.r,
+                    height: widget.previewSize.r,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Icon(
+                  Icons.image,
+                  size: widget.previewSize.r,
+                  color: AppTheme.primaryTextColor,
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class CustomRadioTile<T> extends StatelessWidget {
+  const CustomRadioTile({
+    super.key,
+    required this.value,
+    required this.groupValue,
+    required this.onTap,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.radioSize = 22,
+    this.strokeWidth = 2,
+    this.dotScale = 0.55,
+    this.gap = 12,
+    this.padding = const EdgeInsetsDirectional.symmetric(
+      horizontal: 12,
+      vertical: 10,
+    ),
+    this.radius = 14,
+    this.selectedColor,
+    this.unselectedColor,
+    this.backgroundColor,
+  });
+
+  final T value;
+  final T groupValue;
+  final VoidCallback onTap;
+
+  final Widget title;
+  final Widget? subtitle;
+  final Widget? trailing;
+
+  final double radioSize;
+  final double strokeWidth;
+  final double dotScale;
+  final double gap;
+  final EdgeInsetsDirectional padding;
+  final double radius;
+
+  final Color? selectedColor;
+  final Color? unselectedColor;
+  final Color? backgroundColor;
+
+  bool get _selected => value == groupValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final sel = selectedColor ?? AppTheme.accentColor;
+    final unsel =
+        unselectedColor ?? AppTheme.primaryTextColor.withOpacity(0.35);
+
+    return Material(
+      color: backgroundColor ?? Colors.transparent,
+      borderRadius: BorderRadius.circular(radius),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(radius),
+        onTap: onTap,
+        child: Padding(
+          padding: padding.copyWith(
+            start: padding.start.w,
+            end: padding.end.w,
+            top: padding.top.h,
+            bottom: padding.bottom.h,
+          ),
+          child: Row(
+            children: [
+              RadioDot(
+                selected: _selected,
+                size: radioSize.r,
+                strokeWidth: strokeWidth.w,
+                dotScale: dotScale,
+                selectedColor: sel,
+                unselectedColor: unsel,
+              ),
+              HorizontalSpace(width: gap),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DefaultTextStyle.merge(
+                      style: TextStyle(color: AppTheme.primaryTextColor),
+                      child: title,
+                    ),
+                    if (subtitle != null) ...[
+                      const VerticalSpace(height: 4),
+                      DefaultTextStyle.merge(
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor.withOpacity(0.7),
+                          fontSize: 12.sp,
+                        ),
+                        child: subtitle!,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[SizedBox(width: 10.h), trailing!],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RadioDot extends StatelessWidget {
+  const RadioDot({
+    required this.selected,
+    required this.size,
+    required this.strokeWidth,
+    required this.dotScale,
+    required this.selectedColor,
+    required this.unselectedColor,
+  });
+
+  final bool selected;
+  final double size;
+  final double strokeWidth;
+  final double dotScale;
+  final Color selectedColor;
+  final Color unselectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = selected ? selectedColor : unselectedColor;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: c, width: strokeWidth),
+        ),
+        child: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: selected ? size * dotScale : 0,
+            height: selected ? size * dotScale : 0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: selectedColor,
+            ),
           ),
         ),
       ),

@@ -371,12 +371,16 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
           },
           icon: Icon(Icons.close, color: AppTheme.accentColor, size: 35.r),
         ),
-        Text(
-          LocaleKeys.azan_adjust_subtitle.tr(),
-          style: TextStyle(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryTextColor,
+        Flexible(
+          child: FittedBox(
+            child: Text(
+              LocaleKeys.azan_adjust_subtitle.tr(),
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryTextColor,
+              ),
+            ),
           ),
         ),
         IconButton(
@@ -405,7 +409,7 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
   Widget _sectionTitle(String text) {
     return Text(
       text,
-      textAlign: TextAlign.right,
+      // textAlign: TextAlign.right,
       style: TextStyle(
         color: AppTheme.primaryTextColor,
         fontSize: 16.sp,
@@ -417,12 +421,29 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
   Widget _hintText(String text) {
     return Text(
       text,
-      textAlign: TextAlign.right,
+      // textAlign: TextAlign.right,
       style: TextStyle(
         color: AppTheme.primaryTextColor.withOpacity(0.80),
         fontSize: 12.sp,
       ),
     );
+  }
+
+  static const int _minIqama = 0;
+  static const int _maxIqama = 180;
+
+  void _stepIqama(int index, int delta) {
+    setState(() {
+      final next = (iqamaMinutes[index] + delta).clamp(_minIqama, _maxIqama);
+      iqamaMinutes[index] = next;
+    });
+  }
+
+  void _stepFriday(int delta) {
+    setState(() {
+      final next = (friDaySermonMinutes + delta).clamp(_minIqama, _maxIqama);
+      friDaySermonMinutes = next;
+    });
   }
 
   @override
@@ -510,30 +531,30 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                     Expanded(
                                       child: Column(
                                         children: [
-                                          // _sectionCard(
-                                          //   child: Column(
-                                          //     crossAxisAlignment:
-                                          //         CrossAxisAlignment.end,
-                                          //     children: [
-                                          //       _sectionTitle(
-                                          //         LocaleKeys.azan_adjust_title
-                                          //             .tr(),
-                                          //       ),
-                                          //       VerticalSpace(height: 6),
-                                          //       _hintText(
-                                          //         LocaleKeys
-                                          //             .azan_adjust_subtitle
-                                          //             .tr(),
-                                          //       ),
-                                          //     ],
-                                          //   ),
-                                          // ),
+                                          _sectionCard(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                _sectionTitle(
+                                                  LocaleKeys.azan_adjust_title
+                                                      .tr(),
+                                                ),
+                                                VerticalSpace(height: 6),
+                                                _hintText(
+                                                  LocaleKeys
+                                                      .azan_adjust_subtitle
+                                                      .tr(),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
 
                                           // Ramadan / Summer toggles
                                           _sectionCard(
                                             child: Column(
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 _sectionTitle(
                                                   LocaleKeys
@@ -760,26 +781,35 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                                     padding: EdgeInsets.only(
                                                       bottom: 10.h,
                                                     ),
-                                                    child: _IqamaRow(
+                                                    child: _IqamaRowInline(
                                                       prayerTitle: pr.title,
                                                       adhanTime: timeText,
-                                                      iqamaValue:
-                                                          iqamaMinutes[i],
-                                                      onTap: () =>
-                                                          _editIqamaMinutes(i),
+                                                      value: iqamaMinutes[i],
+                                                      onMinus: () =>
+                                                          _stepIqama(i, -1),
+                                                      onPlus: () =>
+                                                          _stepIqama(i, 1),
+                                                      onMinus5: () =>
+                                                          _stepIqama(i, -5),
+                                                      onPlus5: () =>
+                                                          _stepIqama(i, 5),
                                                     ),
                                                   );
                                                 }),
 
                                                 VerticalSpace(height: 10),
 
-                                                _FridayRow(
+                                                _FridayRowInline(
                                                   title: LocaleKeys
                                                       .friday_sermon_time
                                                       .tr(),
                                                   value: friDaySermonMinutes,
-                                                  onTap:
-                                                      _editFridaySermonMinutes,
+                                                  onMinus: () =>
+                                                      _stepFriday(-1),
+                                                  onPlus: () => _stepFriday(1),
+                                                  onMinus5: () =>
+                                                      _stepFriday(-5),
+                                                  onPlus5: () => _stepFriday(5),
                                                 ),
 
                                                 VerticalSpace(height: 12),
@@ -866,7 +896,7 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                     _sectionCard(
                                       child: Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.end,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           _sectionTitle(
                                             LocaleKeys
@@ -901,7 +931,7 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                     _sectionCard(
                                       child: Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.end,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           _sectionTitle(
                                             LocaleKeys
@@ -916,6 +946,8 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                           ),
                                           VerticalSpace(height: 12),
                                           Column(
+                                            // crossAxisAlignment:
+                                            // CrossAxisAlignment.start,
                                             children: [
                                               _ShiftChoiceButton(
                                                 selected:
@@ -1055,23 +1087,30 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                               padding: EdgeInsets.only(
                                                 bottom: 10.h,
                                               ),
-                                              child: _IqamaRow(
+                                              child: _IqamaRowInline(
                                                 prayerTitle: pr.title,
                                                 adhanTime: timeText,
-                                                iqamaValue: iqamaMinutes[i],
-                                                onTap: () =>
-                                                    _editIqamaMinutes(i),
+                                                value: iqamaMinutes[i],
+                                                onMinus: () =>
+                                                    _stepIqama(i, -1),
+                                                onPlus: () => _stepIqama(i, 1),
+                                                onMinus5: () =>
+                                                    _stepIqama(i, -5),
+                                                onPlus5: () => _stepIqama(i, 5),
                                               ),
                                             );
                                           }),
 
                                           VerticalSpace(height: 10),
 
-                                          _FridayRow(
+                                          _FridayRowInline(
                                             title: LocaleKeys.friday_sermon_time
                                                 .tr(),
                                             value: friDaySermonMinutes,
-                                            onTap: _editFridaySermonMinutes,
+                                            onMinus: () => _stepFriday(-1),
+                                            onPlus: () => _stepFriday(1),
+                                            onMinus5: () => _stepFriday(-5),
+                                            onPlus5: () => _stepFriday(5),
                                           ),
 
                                           VerticalSpace(height: 12),
@@ -1112,7 +1151,7 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                     _sectionCard(
                                       child: Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.end,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           _sectionTitle(
                                             LocaleKeys
@@ -1207,7 +1246,7 @@ class _CheckRow extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                textAlign: TextAlign.right,
+                // textAlign: TextAlign.right,
                 style: TextStyle(
                   color: AppTheme.primaryTextColor,
                   fontSize: 13.sp,
@@ -1258,6 +1297,220 @@ class _ShiftChoiceButton extends StatelessWidget {
           fontSize: 12.sp,
         ),
       ),
+    );
+  }
+}
+
+class _InlineStepper extends StatelessWidget {
+  const _InlineStepper({
+    required this.valueText,
+    required this.showFast,
+    required this.onMinus,
+    required this.onPlus,
+    required this.onMinus5,
+    required this.onPlus5,
+  });
+
+  final String valueText;
+  final bool showFast;
+  final VoidCallback onMinus;
+  final VoidCallback onPlus;
+  final VoidCallback onMinus5;
+  final VoidCallback onPlus5;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showFast) ...[
+          _MiniSquareBtn(
+            icon: Icons.fast_rewind,
+            onTap: onMinus5,
+            buttonWidth: 34.w,
+            buttonHeight: 34.h,
+            iconSize: 16.r,
+          ),
+          HorizontalSpace(width: 6.w),
+        ],
+        _MiniSquareBtn(
+          icon: Icons.remove,
+          onTap: onMinus,
+          buttonWidth: 34.w,
+          buttonHeight: 34.h,
+          iconSize: 18.r,
+        ),
+        HorizontalSpace(width: 8.w),
+        Container(
+          width: 86.w,
+          height: 34.h,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.22),
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(color: Colors.white.withOpacity(0.12)),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              valueText,
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 13.sp,
+              ),
+            ),
+          ),
+        ),
+        HorizontalSpace(width: 8.w),
+        _MiniSquareBtn(
+          icon: Icons.add,
+          onTap: onPlus,
+          buttonWidth: 34.w,
+          buttonHeight: 34.h,
+          iconSize: 18.r,
+        ),
+        if (showFast) ...[
+          HorizontalSpace(width: 6.w),
+          _MiniSquareBtn(
+            icon: Icons.fast_forward,
+            onTap: onPlus5,
+            buttonWidth: 34.w,
+            buttonHeight: 34.h,
+            iconSize: 16.r,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FridayRowInline extends StatelessWidget {
+  const _FridayRowInline({
+    required this.title,
+    required this.value,
+    required this.onMinus,
+    required this.onPlus,
+    required this.onMinus5,
+    required this.onPlus5,
+  });
+
+  final String title;
+  final int value;
+  final VoidCallback onMinus;
+  final VoidCallback onPlus;
+  final VoidCallback onMinus5;
+  final VoidCallback onPlus5;
+
+  @override
+  Widget build(BuildContext context) {
+    final vText = LocalizationHelper.isArAndArNumberEnable()
+        ? DateHelper.toArabicDigits('$value')
+        : '$value';
+
+    return LayoutBuilder(
+      builder: (context, c) {
+        final showFast = c.maxWidth >= 320;
+
+        return Row(
+          children: [
+            _InlineStepper(
+              valueText: '$vText ${LocaleKeys.min.tr()}',
+              showFast: showFast,
+              onMinus: onMinus,
+              onPlus: onPlus,
+              onMinus5: onMinus5,
+              onPlus5: onPlus5,
+            ),
+            HorizontalSpace(width: 10.w),
+            Expanded(
+              child: Text(
+                title,
+                // textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13.sp,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _IqamaRowInline extends StatelessWidget {
+  const _IqamaRowInline({
+    required this.prayerTitle,
+    required this.adhanTime,
+    required this.value,
+    required this.onMinus,
+    required this.onPlus,
+    required this.onMinus5,
+    required this.onPlus5,
+  });
+
+  final String prayerTitle;
+  final String adhanTime;
+  final int value;
+  final VoidCallback onMinus;
+  final VoidCallback onPlus;
+  final VoidCallback onMinus5;
+  final VoidCallback onPlus5;
+
+  @override
+  Widget build(BuildContext context) {
+    final vText = LocalizationHelper.isArAndArNumberEnable()
+        ? DateHelper.toArabicDigits('$value')
+        : '$value';
+
+    return LayoutBuilder(
+      builder: (context, c) {
+        // لو المساحة ضيقة شيل أزرار +/-5 تلقائيًا عشان مفيش overflow
+        final showFast = c.maxWidth >= 320;
+
+        return Row(
+          children: [
+            _InlineStepper(
+              valueText: '$vText ${LocaleKeys.min.tr()}',
+              showFast: showFast,
+              onMinus: onMinus,
+              onPlus: onPlus,
+              onMinus5: onMinus5,
+              onPlus5: onPlus5,
+            ),
+            HorizontalSpace(width: 10.w),
+            Expanded(
+              child: Column(
+                // crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    prayerTitle,
+                    // textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    '${LocaleKeys.adhan_time_label.tr()}: $adhanTime',
+                    // textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor.withOpacity(0.75),
+                      fontSize: 11.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1438,7 +1691,7 @@ class _AdjustRowPortrait extends StatelessWidget {
         const Spacer(),
         Text(
           title,
-          textAlign: TextAlign.right,
+          // textAlign: TextAlign.right,
           style: TextStyle(
             color: AppTheme.primaryTextColor,
             fontSize: 13.sp,
@@ -1500,7 +1753,7 @@ class _IqamaRow extends StatelessWidget {
             children: [
               Text(
                 prayerTitle,
-                textAlign: TextAlign.right,
+                // textAlign: TextAlign.right,
                 style: TextStyle(
                   color: AppTheme.primaryTextColor,
                   fontWeight: FontWeight.bold,
@@ -1510,7 +1763,7 @@ class _IqamaRow extends StatelessWidget {
               SizedBox(height: 2.h),
               Text(
                 '${LocaleKeys.adhan_time_label.tr()}: $adhanTime',
-                textAlign: TextAlign.right,
+                // textAlign: TextAlign.right,
                 style: TextStyle(
                   color: AppTheme.primaryTextColor.withOpacity(0.75),
                   fontSize: 11.sp,

@@ -7,6 +7,7 @@ import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -89,6 +90,19 @@ class CacheHelper {
   static const String _hijriOffsetDir = "_hijriOffsetDir"; // int: 1 or -1
   static const String _enableGlassPrayerRows = "_enableGlassPrayerRows";
   static const String _kAzanAdjustV1 = "_azanAdjustV1"; // json
+  static const String _azanDuration = "_azanDuration";
+  static const String _kMorningAzkarEnabled = 'morning_azkar_enabled';
+  static const String _kEveningAzkarEnabled = 'evening_azkar_enabled';
+  static const String _kMorningAzkarWindowMinutes =
+      'morning_azkar_window_minutes';
+  static const String _kEveningAzkarWindowMinutes =
+      'evening_azkar_window_minutes';
+
+  static const String _kAfterPrayerAzkarEnabled = 'after_prayer_azkar_enabled';
+  static const String _kAfterPrayerAzkarWindowMinutes =
+      'after_prayer_azkar_window_minutes';
+  static const String _showSecondsInNextPrayer = "_showSecondsInNextPrayer";
+  static const _mosqueLogoPathKey = 'mosque_logo_path';
 
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -192,6 +206,46 @@ class CacheHelper {
     );
   }
 
+  static bool getShowSecondsInNextPrayer() =>
+      CacheHelper.get(key: _showSecondsInNextPrayer) ?? false;
+
+  static Future<void> setShowSecondsInNextPrayer(bool v) async =>
+      await CacheHelper.save(key: _showSecondsInNextPrayer, value: v);
+  //remove
+  static void removeSecondsInNextPrayer() async =>
+      await CacheHelper.remove(key: _showSecondsInNextPrayer);
+
+  static bool getMorningAzkarEnabled() =>
+      CacheHelper.get(key: _kMorningAzkarEnabled) ?? true;
+
+  static Future<void> setMorningAzkarEnabled(bool v) async =>
+      await CacheHelper.save(key: _kMorningAzkarEnabled, value: v);
+
+  static Future<void> setMosqueLogoPath(String path) async =>
+      sharedPreferences.setString(_mosqueLogoPathKey, path);
+
+  static String? getMosqueLogoPath() =>
+      sharedPreferences.getString(_mosqueLogoPathKey);
+
+  static Future<void> clearMosqueLogoPath() async =>
+      sharedPreferences.remove(_mosqueLogoPathKey);
+  static bool getEveningAzkarEnabled() =>
+      CacheHelper.get(key: _kEveningAzkarEnabled) ?? true;
+
+  static Future<void> setEveningAzkarEnabled(bool v) async =>
+      await CacheHelper.save(key: _kEveningAzkarEnabled, value: v);
+
+  static int getMorningAzkarWindowMinutes() =>
+      CacheHelper.get(key: _kMorningAzkarWindowMinutes) ?? 5; // default = 2h
+
+  static Future<void> setMorningAzkarWindowMinutes(int minutes) async =>
+      await CacheHelper.save(key: _kMorningAzkarWindowMinutes, value: minutes);
+
+  static int getEveningAzkarWindowMinutes() =>
+      CacheHelper.get(key: _kEveningAzkarWindowMinutes) ?? 5; // default = 3h
+
+  static Future<void> setEveningAzkarWindowMinutes(int minutes) async =>
+      await CacheHelper.save(key: _kEveningAzkarWindowMinutes, value: minutes);
   static Future<void> removeAzanAdjustSettings() async {
     await sharedPreferences.remove(_kAzanAdjustV1);
   }
@@ -207,6 +261,22 @@ class CacheHelper {
   static bool getAzkarNotficationEnabled() {
     return sharedPreferences.getBool(_azkarNotficationEnabled) ?? false;
   }
+
+  static bool getAfterPrayerAzkarEnabled() =>
+      CacheHelper.get(key: _kAfterPrayerAzkarEnabled) ?? false;
+
+  static Future<void> setAfterPrayerAzkarEnabled(bool v) async =>
+      await CacheHelper.save(key: _kAfterPrayerAzkarEnabled, value: v);
+
+  static int getAfterPrayerAzkarWindowMinutes() =>
+      CacheHelper.get(key: _kAfterPrayerAzkarWindowMinutes) ??
+      5; // default = 20m
+
+  static Future<void> setAfterPrayerAzkarWindowMinutes(int minutes) async =>
+      await CacheHelper.save(
+        key: _kAfterPrayerAzkarWindowMinutes,
+        value: minutes,
+      );
 
   static setAzkarNotficationEnabled(bool value) async {
     await sharedPreferences.setBool(_azkarNotficationEnabled, value);
@@ -598,7 +668,7 @@ class CacheHelper {
   }
 
   static String getFontFamily() {
-    return sharedPreferences.getString(_FontFamily) ?? tajwalFont;
+    return sharedPreferences.getString(_FontFamily) ?? sultanFont;
   }
 
   static removeFontFamily() async {
@@ -622,7 +692,7 @@ class CacheHelper {
   }
 
   static String getTimeFontFamily() {
-    return sharedPreferences.getString(_timeFontFamily) ?? tajwalFont;
+    return sharedPreferences.getString(_timeFontFamily) ?? freeSerifBoldFont;
   }
 
   static removeTimeFontFamily() {
@@ -634,7 +704,7 @@ class CacheHelper {
   }
 
   static String getTimesFontFamily() {
-    return sharedPreferences.getString(_timesFontFamily) ?? tajwalFont;
+    return sharedPreferences.getString(_timesFontFamily) ?? freeSerifBoldFont;
   }
 
   static removeTimesFontFamily() {
@@ -646,7 +716,7 @@ class CacheHelper {
   }
 
   static String getTextsFontFamily() {
-    return sharedPreferences.getString(_textsFontFamily) ?? tajwalFont;
+    return sharedPreferences.getString(_textsFontFamily) ?? amiriFont;
   }
 
   static removeTextsFontFamily() {
@@ -844,76 +914,7 @@ class CacheHelper {
   }
 
   static List<String> getAllBackgrounds() {
-    return [
-      Assets.images.home.path,
-      Assets.images.backgroundBroundWithMosBird.path,
-      Assets.images.backgroundLight2.path,
-      Assets.images.backgroundOliveGreenWithMosq.path,
-      Assets.images.backgroundGreenWith.path,
-
-      Assets.images.awesomeBackground.path,
-      Assets.images.awesome2.path,
-      Assets.images.darkBrownBackground.path,
-      Assets.images.lightBackground1.path,
-      Assets.images.lightBrownBackground.path,
-      Assets.images.brownBackground.path,
-      Assets.images.background2.path,
-      Assets.images.whiteBackgroundWithNaqsh.path,
-      Assets.images.elegantTealArabesqueBackground.path,
-      Assets.images.elegantBurgundyArabesqueBackground.path,
-      Assets.images.convinentOliveGreenBackground.path,
-      Assets.images.convinentBeigeBackground.path,
-      Assets.images.tealBlueBackground.path,
-
-      Assets.images.hr0.path,
-      Assets.images.hr1.path,
-      Assets.images.hr2.path,
-      Assets.images.hr3.path,
-      Assets.images.hr4.path,
-      Assets.images.hr5.path,
-      Assets.images.hr6.path,
-      Assets.images.hr7.path,
-      Assets.images.hr8.path,
-      Assets.images.hr9.path,
-      Assets.images.hr10.path,
-      Assets.images.hr11.path,
-      Assets.images.hr12.path,
-      Assets.images.hr13.path,
-      Assets.images.hr14.path,
-      Assets.images.hr15.path,
-      Assets.images.hr16.path,
-      Assets.images.hr17.path,
-      Assets.images.hr18.path,
-      Assets.images.hr19.path,
-      Assets.images.hr20.path,
-      Assets.images.hr21.path,
-      Assets.images.hr22.path,
-      Assets.images.hr23.path,
-      Assets.images.hr24.path,
-      Assets.images.hr25.path,
-      Assets.images.hr26.path,
-      Assets.images.hr27.path,
-      Assets.images.hr28.path,
-      Assets.images.hr29.path,
-      Assets.images.hr30.path,
-      Assets.images.hr31.path,
-      Assets.images.hr32.path,
-      Assets.images.hr33.path,
-      Assets.images.hr34.path,
-      Assets.images.hr35.path,
-      Assets.images.hr36.path,
-      Assets.images.hr37.path,
-      Assets.images.hr38.path,
-
-      Assets.images.vr20.path,
-      Assets.images.vr21.path,
-      Assets.images.vr22.path,
-      Assets.images.vr23.path,
-      Assets.images.vr24.path,
-      Assets.images.vr25.path,
-      Assets.images.vr26.path,
-      Assets.images.vr27.path,
-    ];
+    return BackgroundThemes.all;
   }
 
   // =========================
@@ -1037,6 +1038,20 @@ class CacheHelper {
 
   static Future<void> removeAdd30MinutesToIshaaInRamdan() async {
     await sharedPreferences.remove(_add30MinutesToIshaaInRamdan);
+  }
+
+  // azan duration
+  static int getAzanDuration() {
+    return sharedPreferences.getInt(_azanDuration) ??
+        (CacheHelper.getUseMp3Azan() ? 3 : 1);
+  }
+
+  static Future<void> setAzanDuration(int v) async {
+    await sharedPreferences.setInt(_azanDuration, v);
+  }
+
+  static Future<void> removeAzanDuration() async {
+    await sharedPreferences.remove(_azanDuration);
   }
 }
 

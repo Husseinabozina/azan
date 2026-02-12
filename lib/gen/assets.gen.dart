@@ -46,9 +46,20 @@ class $AssetsImagesGen {
   AssetGenImage get brownBackground =>
       const AssetGenImage('assets/images/brown_background.png');
 
+  /// File path: assets/images/clear_day.png
+  AssetGenImage get clearDay =>
+      const AssetGenImage('assets/images/clear_day.png');
+
+  /// File path: assets/images/clear_night.png
+  AssetGenImage get clearNight =>
+      const AssetGenImage('assets/images/clear_night.png');
+
   /// File path: assets/images/close phone.png
   AssetGenImage get closePhone =>
       const AssetGenImage('assets/images/close phone.png');
+
+  /// File path: assets/images/cloudy.png
+  AssetGenImage get cloudy => const AssetGenImage('assets/images/cloudy.png');
 
   /// File path: assets/images/convinent_beige_background.png
   AssetGenImage get convinentBeigeBackground =>
@@ -71,6 +82,12 @@ class $AssetsImagesGen {
   AssetGenImage get elegantTealArabesqueBackground => const AssetGenImage(
     'assets/images/elegant_teal_arabesque_background.png',
   );
+
+  /// File path: assets/images/fog.png
+  AssetGenImage get fog => const AssetGenImage('assets/images/fog.png');
+
+  /// File path: assets/images/haze.png
+  AssetGenImage get haze => const AssetGenImage('assets/images/haze.png');
 
   /// File path: assets/images/home.png
   AssetGenImage get home => const AssetGenImage('assets/images/home.png');
@@ -204,9 +221,22 @@ class $AssetsImagesGen {
   AssetGenImage get palastine =>
       const AssetGenImage('assets/images/palastine.png');
 
+  /// File path: assets/images/rain.png
+  AssetGenImage get rain => const AssetGenImage('assets/images/rain.png');
+
   /// File path: assets/images/teal_blue_background.png
   AssetGenImage get tealBlueBackground =>
       const AssetGenImage('assets/images/teal_blue_background.png');
+
+  /// File path: assets/images/thunder.png
+  AssetGenImage get thunder => const AssetGenImage('assets/images/thunder.png');
+
+  /// File path: assets/images/thunder_rain.png
+  AssetGenImage get thunderRain =>
+      const AssetGenImage('assets/images/thunder_rain.png');
+
+  /// File path: assets/images/unknown.png
+  AssetGenImage get unknown => const AssetGenImage('assets/images/unknown.png');
 
   /// File path: assets/images/vr20.jpg
   AssetGenImage get vr20 => const AssetGenImage('assets/images/vr20.jpg');
@@ -232,6 +262,42 @@ class $AssetsImagesGen {
   /// File path: assets/images/vr27.jpg
   AssetGenImage get vr27 => const AssetGenImage('assets/images/vr27.jpg');
 
+  /// File path: assets/images/vr28.jpg
+  AssetGenImage get vr28 => const AssetGenImage('assets/images/vr28.jpg');
+
+  /// File path: assets/images/vr29.jpg
+  AssetGenImage get vr29 => const AssetGenImage('assets/images/vr29.jpg');
+
+  /// File path: assets/images/vr30.jpg
+  AssetGenImage get vr30 => const AssetGenImage('assets/images/vr30.jpg');
+
+  /// File path: assets/images/vr31.jpg
+  AssetGenImage get vr31 => const AssetGenImage('assets/images/vr31.jpg');
+
+  /// File path: assets/images/vr32.jpg
+  AssetGenImage get vr32 => const AssetGenImage('assets/images/vr32.jpg');
+
+  /// File path: assets/images/vr33.jpg
+  AssetGenImage get vr33 => const AssetGenImage('assets/images/vr33.jpg');
+
+  /// File path: assets/images/vr34.jpg
+  AssetGenImage get vr34 => const AssetGenImage('assets/images/vr34.jpg');
+
+  /// File path: assets/images/vr35.jpg
+  AssetGenImage get vr35 => const AssetGenImage('assets/images/vr35.jpg');
+
+  /// File path: assets/images/vr36.jpg
+  AssetGenImage get vr36 => const AssetGenImage('assets/images/vr36.jpg');
+
+  /// File path: assets/images/vr37.jpg
+  AssetGenImage get vr37 => const AssetGenImage('assets/images/vr37.jpg');
+
+  /// File path: assets/images/vr38.jpg
+  AssetGenImage get vr38 => const AssetGenImage('assets/images/vr38.jpg');
+
+  /// File path: assets/images/vr39.jpg
+  AssetGenImage get vr39 => const AssetGenImage('assets/images/vr39.jpg');
+
   /// File path: assets/images/white_background_with_naqsh.png
   AssetGenImage get whiteBackgroundWithNaqsh =>
       const AssetGenImage('assets/images/white_background_with_naqsh.png');
@@ -246,12 +312,17 @@ class $AssetsImagesGen {
     backgroundLight2,
     backgroundOliveGreenWithMosq,
     brownBackground,
+    clearDay,
+    clearNight,
     closePhone,
+    cloudy,
     convinentBeigeBackground,
     convinentOliveGreenBackground,
     darkBrownBackground,
     elegantBurgundyArabesqueBackground,
     elegantTealArabesqueBackground,
+    fog,
+    haze,
     home,
     hr0,
     hr1,
@@ -295,7 +366,11 @@ class $AssetsImagesGen {
     lightBackground1,
     lightBrownBackground,
     palastine,
+    rain,
     tealBlueBackground,
+    thunder,
+    thunderRain,
+    unknown,
     vr20,
     vr21,
     vr22,
@@ -304,6 +379,18 @@ class $AssetsImagesGen {
     vr25,
     vr26,
     vr27,
+    vr28,
+    vr29,
+    vr30,
+    vr31,
+    vr32,
+    vr33,
+    vr34,
+    vr35,
+    vr36,
+    vr37,
+    vr38,
+    vr39,
     whiteBackgroundWithNaqsh,
   ];
 }

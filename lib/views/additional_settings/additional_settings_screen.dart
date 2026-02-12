@@ -1,3 +1,4 @@
+import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
@@ -12,6 +13,7 @@ import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/additional_settings/components/azan_iqam_sound.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
+import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
@@ -36,6 +38,41 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
   late bool arabicNumbers;
   late bool checkInternet;
   late int sliderTime;
+  late bool morningAzkarEnabled;
+  late bool eveningAzkarEnabled;
+  late int morningWindowMinutes;
+  late int eveningWindowMinutes;
+  late bool afterPrayerAzkarEnabled;
+  late int afterPrayerWindowMinutes;
+  late bool showSecondsInNextPrayer;
+
+  void _setShowSecondsInNextPrayer(bool v) {
+    setState(() => showSecondsInNextPrayer = v);
+    CacheHelper.setShowSecondsInNextPrayer(v);
+  }
+
+  void _setMorningAzkarEnabled(bool v) {
+    setState(() => morningAzkarEnabled = v);
+    CacheHelper.setMorningAzkarEnabled(v);
+  }
+
+  void _setEveningAzkarEnabled(bool v) {
+    setState(() => eveningAzkarEnabled = v);
+    CacheHelper.setEveningAzkarEnabled(v);
+  }
+
+  void _setMorningWindowMinutes(int v) {
+    final clamped = v.clamp(1, 600); // 1..600 دقيقة
+    setState(() => morningWindowMinutes = clamped);
+    CacheHelper.setMorningAzkarWindowMinutes(clamped);
+  }
+
+  void _setEveningWindowMinutes(int v) {
+    final clamped = v.clamp(1, 600);
+    setState(() => eveningWindowMinutes = clamped);
+    CacheHelper.setEveningAzkarWindowMinutes(clamped);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +83,24 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     arabicNumbers = CacheHelper.getIsArabicNumbersEnabled();
     checkInternet = CacheHelper.getEnableCheckInternetConnection();
     sliderTime = CacheHelper.getSliderTime();
+    morningAzkarEnabled = CacheHelper.getMorningAzkarEnabled();
+    eveningAzkarEnabled = CacheHelper.getEveningAzkarEnabled();
+    morningWindowMinutes = CacheHelper.getMorningAzkarWindowMinutes();
+    eveningWindowMinutes = CacheHelper.getEveningAzkarWindowMinutes();
+    afterPrayerAzkarEnabled = CacheHelper.getAfterPrayerAzkarEnabled();
+    afterPrayerWindowMinutes = CacheHelper.getAfterPrayerAzkarWindowMinutes();
+    showSecondsInNextPrayer = CacheHelper.getShowSecondsInNextPrayer();
+  }
+
+  void _setAfterPrayerAzkarEnabled(bool v) {
+    setState(() => afterPrayerAzkarEnabled = v);
+    CacheHelper.setAfterPrayerAzkarEnabled(v);
+  }
+
+  void _setAfterPrayerWindowMinutes(int v) {
+    final clamped = v;
+    setState(() => afterPrayerWindowMinutes = clamped);
+    CacheHelper.setAfterPrayerAzkarWindowMinutes(clamped);
   }
 
   Future<void> _setUse24h(bool v) async {
@@ -100,104 +155,153 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
           !UiRotationCubit().isLandscape()
               ?
                 // ✅ Portrait: scroll طبيعي
-                SingleChildScrollView(
-                  child: SizedBox(
-                    width: 1.sw,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _TopBar(context: context),
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: 10.h,
-                            left: 10.w,
-                            right: 10.w,
-                            bottom: 14.h,
+                SafeArea(
+                  child: SingleChildScrollView(
+                    child: SizedBox(
+                      width: 1.sw,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _TopBar(context: context),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 10.h,
+                              left: 10.w,
+                              right: 10.w,
+                              bottom: 14.h,
+                            ),
+                            child: _PortraitContent(
+                              showSecondsInNextPrayer: showSecondsInNextPrayer,
+                              onShowSecondsInNextPrayer:
+                                  _setShowSecondsInNextPrayer,
+                              afterPrayerAzkarEnabled: afterPrayerAzkarEnabled,
+                              afterPrayerWindowMinutes:
+                                  afterPrayerWindowMinutes,
+                              onAfterPrayerAzkarEnabled:
+                                  _setAfterPrayerAzkarEnabled,
+                              onAfterPrayerWindowMinutes:
+                                  _setAfterPrayerWindowMinutes,
+                              morningAzkarEnabled: morningAzkarEnabled,
+                              eveningAzkarEnabled: eveningAzkarEnabled,
+                              morningWindowMinutes: morningWindowMinutes,
+                              eveningWindowMinutes: eveningWindowMinutes,
+                              onMorningAzkarEnabled: _setMorningAzkarEnabled,
+                              onEveningAzkarEnabled: _setEveningAzkarEnabled,
+                              onMorningWindowMinutes: _setMorningWindowMinutes,
+                              onEveningWindowMinutes: _setEveningWindowMinutes,
+                              enableShadow: CacheHelper.getEnableGlassEffect(),
+                              onEnableShadow: (value) => setState(() {
+                                CacheHelper.setEnableGlassEffect(value);
+                              }),
+                              sliderTime: sliderTime,
+                              onSliderTime: _setSliderTime,
+                              use24h: use24h,
+                              fullTime: fullTime,
+                              dimPrev: dimPrev,
+                              changeCounter: changeCounter,
+                              arabicNumbers: arabicNumbers,
+                              checkInternet: checkInternet,
+                              onUse24h: _setUse24h,
+                              onFullTime: _setFullTime,
+                              onDimPrev: _setDimPrev,
+                              onChangeCounter: _setChangeCounter,
+                              onArabicNumbers: _setArabicNumbers,
+                              onCheckInternet: _setCheckInternet,
+                              onRefresh: () => setState(() {}),
+                            ),
                           ),
-                          child: _PortraitContent(
-                            enableShadow: CacheHelper.getEnableGlassEffect(),
-                            onEnableShadow: (value) => setState(() {
-                              CacheHelper.setEnableGlassEffect(value);
-                            }),
-                            sliderTime: sliderTime,
-                            onSliderTime: _setSliderTime,
-                            use24h: use24h,
-                            fullTime: fullTime,
-                            dimPrev: dimPrev,
-                            changeCounter: changeCounter,
-                            arabicNumbers: arabicNumbers,
-                            checkInternet: checkInternet,
-                            onUse24h: _setUse24h,
-                            onFullTime: _setFullTime,
-                            onDimPrev: _setDimPrev,
-                            onChangeCounter: _setChangeCounter,
-                            onArabicNumbers: _setArabicNumbers,
-                            onCheckInternet: _setCheckInternet,
-                            onRefresh: () => setState(() {}),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 )
               :
                 // ✅ Landscape: عمودين - كل عمود سكرول لوحده
-                SingleChildScrollView(
-                  child: SizedBox(
-                    width: 1.sw,
-                    child: Column(
-                      children: [
-                        _TopBar(context: context),
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: 10.h,
-                            left: 10.w,
-                            right: 10.w,
-                            bottom: 10.h,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 52,
-                                child: _PanelScroll(
-                                  child: _LandscapeLeftPanel(
-                                    onEnableShadow: (value) => setState(() {
-                                      CacheHelper.setEnableGlassEffect(value);
-                                    }),
-                                    enableShadow:
-                                        CacheHelper.getEnableGlassEffect(),
-                                    onSliderTime: _setSliderTime,
-                                    sliderTime: sliderTime,
+                SafeArea(
+                  child: SingleChildScrollView(
+                    child: SizedBox(
+                      width: 1.sw,
+                      child: Column(
+                        children: [
+                          _TopBar(context: context),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 10.h,
+                              left: 10.w,
+                              right: 10.w,
+                              bottom: 10.h,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 52,
+                                  child: _PanelScroll(
+                                    child: _LandscapeLeftPanel(
+                                      showSecondsInNextPrayer:
+                                          showSecondsInNextPrayer,
+                                      onShowSecondsInNextPrayer:
+                                          _setShowSecondsInNextPrayer,
+                                      afterPrayerAzkarEnabled:
+                                          afterPrayerAzkarEnabled,
+                                      afterPrayerWindowMinutes:
+                                          afterPrayerWindowMinutes,
+                                      onAfterPrayerAzkarEnabled:
+                                          _setAfterPrayerAzkarEnabled,
+                                      onAfterPrayerWindowMinutes:
+                                          _setAfterPrayerWindowMinutes,
+                                      morningAzkarEnabled: morningAzkarEnabled,
+                                      eveningAzkarEnabled: eveningAzkarEnabled,
+                                      morningWindowMinutes:
+                                          morningWindowMinutes,
+                                      eveningWindowMinutes:
+                                          eveningWindowMinutes,
+                                      onMorningAzkarEnabled:
+                                          _setMorningAzkarEnabled,
+                                      onEveningAzkarEnabled:
+                                          _setEveningAzkarEnabled,
+                                      onMorningWindowMinutes:
+                                          _setMorningWindowMinutes,
+                                      onEveningWindowMinutes:
+                                          _setEveningWindowMinutes,
+                                      onEnableShadow: (value) => setState(() {
+                                        CacheHelper.setEnableGlassEffect(value);
+                                      }),
+                                      enableShadow:
+                                          CacheHelper.getEnableGlassEffect(),
+                                      onSliderTime: _setSliderTime,
+                                      sliderTime: sliderTime,
 
-                                    use24h: use24h,
-                                    fullTime: fullTime,
-                                    dimPrev: dimPrev,
-                                    changeCounter: changeCounter,
-                                    arabicNumbers: arabicNumbers,
-                                    checkInternet: checkInternet,
-                                    onUse24h: _setUse24h,
-                                    onFullTime: _setFullTime,
-                                    onDimPrev: _setDimPrev,
-                                    onChangeCounter: _setChangeCounter,
-                                    onArabicNumbers: _setArabicNumbers,
-                                    onCheckInternet: _setCheckInternet,
-                                    onRefresh: () => setState(() {}),
+                                      use24h: use24h,
+                                      fullTime: fullTime,
+                                      dimPrev: dimPrev,
+                                      changeCounter: changeCounter,
+                                      arabicNumbers: arabicNumbers,
+                                      checkInternet: checkInternet,
+                                      onUse24h: _setUse24h,
+                                      onFullTime: _setFullTime,
+                                      onDimPrev: _setDimPrev,
+                                      onChangeCounter: _setChangeCounter,
+                                      onArabicNumbers: _setArabicNumbers,
+                                      onCheckInternet: _setCheckInternet,
+                                      onRefresh: () => setState(() {}),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                flex: 48,
-                                child: _PanelScroll(
-                                  child: _LandscapeRightPanel(
-                                    onRefresh: () => setState(() {}),
+                                SizedBox(width: 12.w),
+                                Expanded(
+                                  flex: 48,
+                                  child: _PanelScroll(
+                                    child: _LandscapeRightPanel(
+                                      onRefresh: () => setState(() {}),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -276,7 +380,38 @@ class _PortraitContent extends StatelessWidget {
     required this.onSliderTime,
     required this.enableShadow,
     required this.onEnableShadow,
+    required this.morningAzkarEnabled,
+    required this.eveningAzkarEnabled,
+    required this.morningWindowMinutes,
+    required this.eveningWindowMinutes,
+    required this.onMorningAzkarEnabled,
+    required this.onEveningAzkarEnabled,
+    required this.onMorningWindowMinutes,
+    required this.onEveningWindowMinutes,
+    required this.afterPrayerAzkarEnabled,
+    required this.afterPrayerWindowMinutes,
+    required this.onAfterPrayerAzkarEnabled,
+    required this.onAfterPrayerWindowMinutes,
+    required this.showSecondsInNextPrayer,
+    required this.onShowSecondsInNextPrayer,
   });
+  final bool morningAzkarEnabled;
+  final bool eveningAzkarEnabled;
+  final int morningWindowMinutes;
+  final int eveningWindowMinutes;
+
+  final void Function(bool) onMorningAzkarEnabled;
+  final void Function(bool) onEveningAzkarEnabled;
+  final void Function(int) onMorningWindowMinutes;
+  final void Function(int) onEveningWindowMinutes;
+  final bool afterPrayerAzkarEnabled;
+  final int afterPrayerWindowMinutes;
+
+  final void Function(bool) onAfterPrayerAzkarEnabled;
+  final void Function(int) onAfterPrayerWindowMinutes;
+  final void Function(bool) onShowSecondsInNextPrayer;
+
+  final bool showSecondsInNextPrayer;
 
   final bool use24h;
   final bool fullTime;
@@ -310,14 +445,14 @@ class _PortraitContent extends StatelessWidget {
           title: LocaleKeys.enable_24_hours.tr(),
           value: use24h,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onFullTime,
           title: "${LocaleKeys.enable_full_time.tr()} 00:00:00",
           value: fullTime,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onDimPrev,
@@ -331,14 +466,14 @@ class _PortraitContent extends StatelessWidget {
           title: LocaleKeys.change_counter_color.tr(),
           value: changeCounter,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onArabicNumbers,
           title: LocaleKeys.enable_arabic_numbers.tr(),
           value: arabicNumbers,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onCheckInternet,
@@ -352,9 +487,92 @@ class _PortraitContent extends StatelessWidget {
           value: enableShadow,
         ),
         VerticalSpace(height: 12),
-        _zekrAppearDurationWidget(
-          onSliderTime: onSliderTime,
-          sliderTime: sliderTime,
+        CustomCheckTile(
+          onChanged: onShowSecondsInNextPrayer,
+          title: LocaleKeys.show_seconds_in_next_prayer.tr(),
+          value: showSecondsInNextPrayer,
+        ),
+        VerticalSpace(height: 12),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.second.tr(),
+          title: LocaleKeys.zekr_appear_duration.tr(),
+          onChange: onSliderTime,
+          value: sliderTime,
+          layout: PlusMinusLayout.wrap,
+        ),
+        VerticalSpace(height: 12),
+
+        const _DividerLine(),
+        VerticalSpace(height: 12),
+
+        // ===== Azkar Timing Settings =====
+        Text(
+          LocaleKeys.azkar_timing_settings.tr(),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+          ),
+        ),
+        VerticalSpace(height: 10),
+
+        CustomCheckTile(
+          onChanged: onMorningAzkarEnabled,
+          title: LocaleKeys.enable_morning_azkar.tr(),
+          value: morningAzkarEnabled,
+        ),
+
+        VerticalSpace(height: 10),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.minute.tr(),
+          title: LocaleKeys.morning_azkar_window_minutes.tr(),
+          onChange: onMorningWindowMinutes,
+          value: morningWindowMinutes,
+          step: 1,
+          min: 1,
+          max: 600,
+          layout: PlusMinusLayout.wrap,
+        ),
+        VerticalSpace(height: 12.h),
+
+        CustomCheckTile(
+          onChanged: onEveningAzkarEnabled,
+          title: LocaleKeys.enable_evening_azkar.tr(),
+          value: eveningAzkarEnabled,
+        ),
+        VerticalSpace(height: 10),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.minute.tr(),
+          title: LocaleKeys.evening_azkar_window_minutes.tr(),
+          onChange: onEveningWindowMinutes,
+          value: eveningWindowMinutes,
+          step: 1,
+          min: 1,
+          max: 600,
+          layout: PlusMinusLayout.wrap,
+        ),
+
+        VerticalSpace(height: 10),
+
+        CustomCheckTile(
+          onChanged: onAfterPrayerAzkarEnabled,
+          title: LocaleKeys.enable_after_prayer_azkar.tr(),
+          value: afterPrayerAzkarEnabled,
+        ),
+        VerticalSpace(height: 10),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.minute.tr(),
+          title: LocaleKeys.after_prayer_azkar_window_minutes.tr(),
+          onChange: onAfterPrayerWindowMinutes,
+          value: afterPrayerWindowMinutes,
+          step: 1,
+          min: 1,
+          max: 600,
+          layout: PlusMinusLayout.wrap,
         ),
 
         VerticalSpace(height: 12),
@@ -405,6 +623,22 @@ class _LandscapeLeftPanel extends StatelessWidget {
     required this.onSliderTime,
     required this.enableShadow,
     required this.onEnableShadow,
+    required this.morningAzkarEnabled,
+    required this.eveningAzkarEnabled,
+    required this.morningWindowMinutes,
+    required this.eveningWindowMinutes,
+    required this.onMorningAzkarEnabled,
+    required this.onEveningAzkarEnabled,
+    required this.onMorningWindowMinutes,
+    required this.onEveningWindowMinutes,
+
+    required this.afterPrayerAzkarEnabled,
+    required this.afterPrayerWindowMinutes,
+    required this.onAfterPrayerAzkarEnabled,
+    required this.onAfterPrayerWindowMinutes,
+    required this.showSecondsInNextPrayer,
+
+    required this.onShowSecondsInNextPrayer,
   });
 
   final bool use24h;
@@ -415,6 +649,9 @@ class _LandscapeLeftPanel extends StatelessWidget {
   final bool checkInternet;
   final int sliderTime;
   final bool enableShadow;
+  final bool showSecondsInNextPrayer;
+
+  final void Function(bool) onShowSecondsInNextPrayer;
   final void Function(int) onSliderTime;
   final void Function(bool) onEnableShadow;
 
@@ -424,6 +661,20 @@ class _LandscapeLeftPanel extends StatelessWidget {
   final void Function(bool) onChangeCounter;
   final void Function(bool) onArabicNumbers;
   final void Function(bool) onCheckInternet;
+  final bool morningAzkarEnabled;
+  final bool eveningAzkarEnabled;
+  final int morningWindowMinutes;
+  final int eveningWindowMinutes;
+
+  final void Function(bool) onMorningAzkarEnabled;
+  final void Function(bool) onEveningAzkarEnabled;
+  final void Function(int) onMorningWindowMinutes;
+  final void Function(int) onEveningWindowMinutes;
+
+  final bool afterPrayerAzkarEnabled;
+  final int afterPrayerWindowMinutes;
+  final void Function(bool) onAfterPrayerAzkarEnabled;
+  final void Function(int) onAfterPrayerWindowMinutes;
 
   final VoidCallback onRefresh;
 
@@ -437,57 +688,135 @@ class _LandscapeLeftPanel extends StatelessWidget {
           title: LocaleKeys.enable_24_hours.tr(),
           value: use24h,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onFullTime,
           title: "${LocaleKeys.enable_full_time.tr()} 00:00:00",
           value: fullTime,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onDimPrev,
           title: LocaleKeys.dim_previous_prayers.tr(),
           value: dimPrev,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onChangeCounter,
           title: LocaleKeys.change_counter_color.tr(),
           value: changeCounter,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onArabicNumbers,
           title: LocaleKeys.enable_arabic_numbers.tr(),
           value: arabicNumbers,
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onCheckInternet,
           title: LocaleKeys.check_your_internet_connection_the_star.tr(),
           value: checkInternet,
         ),
-        VerticalSpace(height: 8),
-        VerticalSpace(height: 12),
+        VerticalSpace(height: 10),
         CustomCheckTile(
           onChanged: onEnableShadow,
           title: LocaleKeys.enable_shadow_around_prayers.tr(),
           value: enableShadow,
         ),
+        VerticalSpace(height: 10),
 
-        _zekrAppearDurationWidget(
-          onSliderTime: onSliderTime,
-          sliderTime: sliderTime,
+        CustomCheckTile(
+          onChanged: onShowSecondsInNextPrayer,
+          title: LocaleKeys.show_seconds_in_next_prayer.tr(),
+          value: showSecondsInNextPrayer,
+        ),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.second.tr(),
+          title: LocaleKeys.zekr_appear_duration.tr(),
+          onChange: onSliderTime,
+          value: sliderTime,
         ),
         VerticalSpace(height: 8),
         const _DividerLine(),
+        VerticalSpace(height: 10),
+
+        Text(
+          LocaleKeys.azkar_timing_settings.tr(),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+          ),
+        ),
+        VerticalSpace(height: 10),
+
+        CustomCheckTile(
+          onChanged: onMorningAzkarEnabled,
+          title: LocaleKeys.enable_morning_azkar.tr(),
+          value: morningAzkarEnabled,
+        ),
+
+        VerticalSpace(height: 10),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.minute.tr(),
+          title: LocaleKeys.morning_azkar_window_minutes.tr(),
+          onChange: onMorningWindowMinutes,
+          value: morningWindowMinutes,
+          step: 1,
+          min: 1,
+          max: 600,
+        ),
+        VerticalSpace(height: 12.h),
+
+        CustomCheckTile(
+          onChanged: onEveningAzkarEnabled,
+          title: LocaleKeys.enable_evening_azkar.tr(),
+          value: eveningAzkarEnabled,
+        ),
+        VerticalSpace(height: 10),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.minute.tr(),
+          title: LocaleKeys.evening_azkar_window_minutes.tr(),
+          onChange: onEveningWindowMinutes,
+          value: eveningWindowMinutes,
+          step: 1,
+          min: 1,
+          max: 600,
+        ),
+
+        VerticalSpace(height: 12.h),
+
+        CustomCheckTile(
+          onChanged: onAfterPrayerAzkarEnabled,
+          title: LocaleKeys.enable_after_prayer_azkar.tr(),
+          value: afterPrayerAzkarEnabled,
+        ),
+        VerticalSpace(height: 10),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.minute.tr(),
+          title: LocaleKeys.after_prayer_azkar_window_minutes.tr(),
+          onChange: onAfterPrayerWindowMinutes,
+          value: afterPrayerWindowMinutes,
+          step: 1,
+          min: 1,
+          max: 600,
+        ),
+
+        VerticalSpace(height: 12),
 
         VerticalSpace(height: 8),
+        const _DividerLine(),
+        VerticalSpace(height: 10),
 
         _EidSection(onChanged: onRefresh),
       ],
@@ -495,52 +824,158 @@ class _LandscapeLeftPanel extends StatelessWidget {
   }
 }
 
-class _zekrAppearDurationWidget extends StatelessWidget {
-  const _zekrAppearDurationWidget({
+class PlusAndMinusWidget extends StatelessWidget {
+  const PlusAndMinusWidget({
     super.key,
-    required this.onSliderTime,
-    required this.sliderTime,
+    required this.onChange,
+    required this.value,
+    required this.title,
+    required this.duration,
+    this.mainAxisAlignment,
+    this.step = 1,
+    this.min,
+    this.max,
+
+    // ✅ NEW (اختياري)
+    this.layout = PlusMinusLayout.row, // الافتراضي زي القديم
+    this.compact = false, // اختياري لتصغير شوية
+    this.titleMaxLines = 2,
   });
 
-  final void Function(int) onSliderTime;
-  final int sliderTime;
+  final void Function(int) onChange;
+  final int value;
+  final String title;
+  final String duration;
+  final MainAxisAlignment? mainAxisAlignment;
 
-  @override
-  Widget build(BuildContext context) {
+  final int step;
+  final int? min;
+  final int? max;
+
+  // ✅ NEW
+  final PlusMinusLayout layout;
+  final bool compact;
+  final int titleMaxLines;
+
+  int _clamp(int v) {
+    if (min != null && v < min!) return min!;
+    if (max != null && v > max!) return max!;
+    return v;
+  }
+
+  Widget _buildTitle() {
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: title,
+            style: TextStyle(
+              fontSize: compact ? 18.sp : 20.sp,
+              color: AppTheme.primaryTextColor,
+            ),
+          ),
+          TextSpan(
+            text: "  ($duration)",
+            style: TextStyle(
+              fontSize: compact ? 14.sp : 16.sp,
+              color: AppTheme.primaryTextColor.withOpacity(0.7),
+            ),
+          ),
+        ],
+      ),
+      maxLines: titleMaxLines,
+      overflow: TextOverflow.ellipsis,
+      softWrap: true,
+    );
+  }
+
+  Widget _buildControls() {
+    final iconSize = compact ? 22.r : 26.r;
+    final valueSize = compact ? 18.sp : 20.sp;
+
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          LocaleKeys.zekr_appear_duration.tr(),
-          style: TextStyle(fontSize: 20.sp, color: AppTheme.primaryTextColor),
+        IconButton(
+          onPressed: () => onChange(_clamp(value + step)),
+          icon: Icon(Icons.add, color: AppTheme.accentColor, size: iconSize),
         ),
         Text(
-          "  (${LocaleKeys.second.tr()})",
+          value.toString(),
           style: TextStyle(
-            fontSize: 16.sp,
-            color: AppTheme.primaryTextColor.withOpacity(0.7),
+            fontSize: valueSize,
+            color: AppTheme.secondaryTextColor,
           ),
         ),
-        HorizontalSpace(width: 10),
         IconButton(
-          onPressed: () {
-            onSliderTime(sliderTime + 1);
-          },
-          icon: Icon(Icons.add, color: AppTheme.accentColor, size: 26.r),
-        ),
-        Text(
-          sliderTime.toString(),
-          style: TextStyle(fontSize: 20.sp, color: AppTheme.secondaryTextColor),
-        ),
-        IconButton(
-          onPressed: () {
-            onSliderTime(sliderTime - 1);
-          },
-          icon: Icon(Icons.remove, color: AppTheme.accentColor, size: 26.r),
+          onPressed: () => onChange(_clamp(value - step)),
+          icon: Icon(Icons.remove, color: AppTheme.accentColor, size: iconSize),
         ),
       ],
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    // ✅ 1) نفس القديم تمامًا
+    if (layout == PlusMinusLayout.row) {
+      return Row(
+        mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: compact ? 18.sp : 20.sp,
+              color: AppTheme.primaryTextColor,
+            ),
+          ),
+          Text(
+            "  ($duration)",
+            style: TextStyle(
+              fontSize: compact ? 14.sp : 16.sp,
+              color: AppTheme.primaryTextColor.withOpacity(0.7),
+            ),
+          ),
+          HorizontalSpace(width: 10),
+          _buildControls(),
+        ],
+      );
+    }
+
+    // ✅ 2) Wrap: يمنع overflow ويكسر لسطر تاني تلقائيًا
+    if (layout == PlusMinusLayout.wrap) {
+      return LayoutBuilder(
+        builder: (context, c) {
+          return Wrap(
+            alignment: WrapAlignment.start,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 10.w,
+            runSpacing: 6.h,
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: c.maxWidth),
+                child: _buildTitle(),
+              ),
+              _buildControls(),
+            ],
+          );
+        },
+      );
+    }
+
+    // ✅ 3) Stacked: عنوان فوق + أزرار تحت (أضمن حاجة ضد overflow)
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTitle(),
+        VerticalSpace(height: 6.h),
+        _buildControls(),
+      ],
+    );
+  }
 }
+
+enum PlusMinusLayout { row, wrap, stacked }
 
 // ===================== LANDSCAPE RIGHT PANEL =====================
 
@@ -624,7 +1059,7 @@ class _EidSection extends StatelessWidget {
             ),
           ],
         ),
-        VerticalSpace(height: 10.h),
+        VerticalSpace(height: 10),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -682,12 +1117,7 @@ class _FontsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        int cols = 4;
-        if (c.maxWidth < 520) {
-          cols = 2;
-        } else if (c.maxWidth < 760) {
-          cols = 3;
-        }
+        int cols = UiRotationCubit().isLandscape() ? 2 : 4;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -703,7 +1133,7 @@ class _FontsSection extends StatelessWidget {
                 ),
               ),
             ),
-            VerticalSpace(height: 10.h),
+            VerticalSpace(height: 10),
             _FontsGrid(columns: cols, onChanged: onChanged),
           ],
         );
@@ -717,81 +1147,98 @@ class _FontsGrid extends StatelessWidget {
   final int columns;
   final VoidCallback onChanged;
 
+  String _pick(String cached, List<String> items) {
+    // ✅ حماية من القيم القديمة في الكاش (Tajwal/FreeSpans...)
+    if (items.contains(cached)) return cached;
+    return items.first;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final groups = <_FontGroupData>[
-      _FontGroupData(
-        header: LocaleKeys.the_adhkar.tr(),
-        headerStyle: TextStyle(
-          fontSize: 15.sp,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.primaryTextColor,
-        ),
-        items: azkarFonts,
-        selected: CacheHelper.getAzkarFontFamily(),
-        onSelect: (v) {
-          CacheHelper.setAzkarFontFamily(v);
-          onChanged();
-        },
-      ),
-      _FontGroupData(
-        header: LocaleKeys.time.tr(),
-        headerStyle: TextStyle(
-          fontFamily: CacheHelper.getTimeFontFamily(),
-          fontSize: 15.sp,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.primaryTextColor,
-        ),
-        items: timeFonts,
-        selected: CacheHelper.getTimeFontFamily(),
-        onSelect: (v) {
-          CacheHelper.setTimeFontFamily(v);
-          onChanged();
-        },
-      ),
-      _FontGroupData(
-        header: LocaleKeys.prayers.tr(),
-        headerStyle: TextStyle(
-          fontSize: 15.sp,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.primaryTextColor,
-        ),
-        items: timesFonts,
-        selected: CacheHelper.getTimesFontFamily(),
-        onSelect: (v) {
-          CacheHelper.setTimesFontFamily(v);
-          onChanged();
-        },
-      ),
-      _FontGroupData(
-        header: LocaleKeys.texts.tr(),
-        headerStyle: TextStyle(
-          fontSize: 15.sp,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.primaryTextColor,
-        ),
-        items: textsFonts,
-        selected: CacheHelper.getTextsFontFamily(),
-        onSelect: (v) {
-          CacheHelper.setTextsFontFamily(v);
-          onChanged();
-        },
-      ),
-    ];
+    return LayoutBuilder(
+      builder: (context, c) {
+        final spacing = 3.w;
+        final runSpacing = 3.w;
 
-    return Wrap(
-      // direction: Axis.horizontal,
-      // spacing: 5.w,
-      // runSpacing: 12.h,
-      children: groups
-          .map(
-            (e) => SizedBox(
-              width: UiRotationCubit().isLandscape() ? .14.sw : .23.sw,
+        final itemWidth = (c.maxWidth - (runSpacing * (columns - 1))) / columns;
+        c.maxWidth.toString().log();
 
-              child: _FontGroupCard(data: e),
+        '$itemWidth ${itemWidth * columns}'.log();
+
+        final groups = <_FontGroupData>[
+          _FontGroupData(
+            header: LocaleKeys.texts.tr(),
+            headerStyle: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryTextColor,
             ),
-          )
-          .toList(),
+            items: textsFonts,
+            selected: _pick(CacheHelper.getTextsFontFamily(), textsFonts),
+            onSelect: (v) {
+              CacheHelper.setTextsFontFamily(v);
+              onChanged();
+            },
+          ),
+          _FontGroupData(
+            header: LocaleKeys.prayers.tr(),
+            headerStyle: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryTextColor,
+            ),
+            items: timesFonts,
+            selected: _pick(CacheHelper.getTimesFontFamily(), timesFonts),
+            onSelect: (v) {
+              CacheHelper.setTimesFontFamily(v);
+              onChanged();
+            },
+          ),
+          _FontGroupData(
+            header: LocaleKeys.time.tr(),
+            headerStyle: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryTextColor,
+            ),
+            items: timeFonts,
+            selected: _pick(CacheHelper.getTimeFontFamily(), timeFonts),
+            onSelect: (v) {
+              CacheHelper.setTimeFontFamily(v);
+              onChanged();
+            },
+          ),
+          _FontGroupData(
+            header: LocaleKeys.the_adhkar.tr(),
+            headerStyle: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryTextColor,
+            ),
+            items: azkarFonts,
+            selected: _pick(CacheHelper.getAzkarFontFamily(), azkarFonts),
+            onSelect: (v) {
+              CacheHelper.setAzkarFontFamily(v);
+              onChanged();
+            },
+          ),
+        ];
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: runSpacing,
+
+          children: groups
+              .map(
+                (e) => SizedBox(
+                  width: itemWidth,
+
+                  child: _FontGroupCard(data: e),
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -825,23 +1272,128 @@ class _FontGroupCard extends StatelessWidget {
           alignment: AlignmentDirectional.centerStart,
           child: Text(data.header, style: data.headerStyle),
         ),
-        VerticalSpace(height: 10.h),
-        ...List.generate(data.items.length, (index) {
-          final name = data.items[index];
-          return Padding(
-            padding: EdgeInsets.only(bottom: 6.h),
-            child: CustomCheckTile(
-              withoutExpand: true,
-              checkBoxSize: 18.r,
-              fontSize: 12.sp,
-              title: name,
-              value: data.selected == name,
-              onChanged: (_) => data.onSelect(name),
+        VerticalSpace(height: 8),
+        ...data.items.map((name) {
+          return Container(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 6.h),
+              child: _FontRadioRow(
+                title: name,
+                groupValue: data.selected,
+                onSelect: data.onSelect,
+              ),
             ),
           );
-        }),
+        }).toList(),
       ],
     );
+  }
+}
+
+class _FontRadioRow extends StatelessWidget {
+  const _FontRadioRow({
+    required this.title,
+    required this.groupValue,
+    required this.onSelect,
+  });
+
+  final String title;
+  final String groupValue;
+  final ValueChanged<String> onSelect;
+
+  double _fontFromWidth(double w) {
+    // w = عرض المساحة المتاحة للنص فقط
+    // عامل التحويل: كل ما المساحة تكبر يكبر الخط
+    final s = isLargeScreen(kind)
+        ? w * 0.13
+        : w * 0.14; // جرّب 0.16..0.22 حسب ذوقك
+    return s; // حدود ثابتة
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return UiRotationCubit().isLandscape()
+        ? InkWell(
+            onTap: () => onSelect(title),
+            child: Row(
+              children: [
+                RadioDot(
+                  selected: title == groupValue,
+                  size: 20.r,
+
+                  strokeWidth: 2.w,
+                  dotScale: 0.55,
+
+                  selectedColor: AppTheme.accentColor,
+                  unselectedColor: AppTheme.primaryTextColor.withOpacity(0.35),
+                ),
+                HorizontalSpace(width: 6),
+
+                // ✅ لا Expanded هنا
+                Text(
+                  title,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: title,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryTextColor,
+                  ),
+                ),
+              ],
+            ),
+          )
+        : LayoutBuilder(
+            builder: (context, c) {
+              final rowW = c.maxWidth;
+
+              final radioSize = 20.r; // حجم الراديو
+              final gap = 4.w; // مسافة بين الراديو والنص
+              final textW = (rowW - radioSize - gap);
+
+              final fontSize = _fontFromWidth(textW);
+
+              return InkWell(
+                onTap: () => onSelect(title),
+                child: Row(
+                  children: [
+                    RadioDot(
+                      selected: title == groupValue,
+                      size: 16.r,
+
+                      strokeWidth: 2.w,
+                      dotScale: 0.55,
+
+                      selectedColor: AppTheme.accentColor,
+                      unselectedColor: AppTheme.primaryTextColor.withOpacity(
+                        0.35,
+                      ),
+                    ),
+                    SizedBox(width: gap),
+
+                    // ✅ لا Expanded هنا
+                    SizedBox(
+                      width: textW,
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: title,
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
   }
 }
 

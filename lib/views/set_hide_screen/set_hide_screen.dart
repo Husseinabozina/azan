@@ -2,10 +2,13 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/horizontal_space.dart';
+import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/home_screen.dart';
@@ -37,6 +40,11 @@ class _SetHideScreenState extends State<SetHideScreen> {
 
   late bool hideAfterIshaa;
   late int hideAfterIshaaMinutes;
+  late int azanDuration;
+  void _setAzanDuration(int v) {
+    setState(() => azanDuration = v);
+    CacheHelper.setAzanDuration(v);
+  }
 
   @override
   void initState() {
@@ -52,6 +60,8 @@ class _SetHideScreenState extends State<SetHideScreen> {
 
     hideAfterIshaa = CacheHelper.getHideScreenAfterIshaaEnabled();
     hideAfterIshaaMinutes = CacheHelper.getHideScreenAfterIshaaMinutes();
+
+    azanDuration = CacheHelper.getAzanDuration();
 
     appCubit.getPrayerDurations();
   }
@@ -79,7 +89,7 @@ class _SetHideScreenState extends State<SetHideScreen> {
         builder: (context, state) {
           final durations =
               appCubit.prayersDuration ??
-              List<int>.filled(prayerTitles.length, 10);
+              List<int>.filled(prayerTitles.length, 7);
 
           return SizedBox(
             width: 1.sw,
@@ -106,6 +116,8 @@ class _SetHideScreenState extends State<SetHideScreen> {
                       Expanded(
                         child: (!UiRotationCubit().isLandscape())
                             ? _PortraitBody(
+                                azanDuration: azanDuration,
+                                onSetAzanDuration: _setAzanDuration,
                                 prayerTitles: prayerTitles,
                                 durations: durations,
                                 enableHideDuringPrayer: enableHideDuringPrayer,
@@ -159,6 +171,7 @@ class _SetHideScreenState extends State<SetHideScreen> {
                                   list[i] = (list[i] + 1).clamp(0, 999);
                                   appCubit.prayersDuration = list;
                                   appCubit.savePrayerDurations(list);
+
                                   setState(() {});
                                 },
                                 onMinus: (i) {
@@ -171,6 +184,8 @@ class _SetHideScreenState extends State<SetHideScreen> {
                               )
                             // ✅ Landscape: Row -> Left Column settings + Right Column durations (NO SCROLL)
                             : _LandscapeRowBody(
+                                azanDuration: azanDuration,
+                                onSetAzanDuration: _setAzanDuration,
                                 prayerTitles: prayerTitles,
                                 durations: durations,
                                 enableHideDuringPrayer: enableHideDuringPrayer,
@@ -311,6 +326,8 @@ class _PortraitBody extends StatelessWidget {
     required this.onIshaaMinutesChanged,
     required this.onPlus,
     required this.onMinus,
+    required this.onSetAzanDuration,
+    required this.azanDuration,
   });
 
   final List<String> prayerTitles;
@@ -325,6 +342,7 @@ class _PortraitBody extends StatelessWidget {
 
   final bool hideAfterIshaa;
   final int hideAfterIshaaMinutes;
+  final int azanDuration;
 
   final ValueChanged<bool> onToggleEnableHideDuringPrayer;
   final ValueChanged<bool> onToggleShowTime;
@@ -338,6 +356,7 @@ class _PortraitBody extends StatelessWidget {
 
   final void Function(int index) onPlus;
   final void Function(int index) onMinus;
+  final void Function(int index) onSetAzanDuration;
 
   @override
   Widget build(BuildContext context) {
@@ -433,6 +452,15 @@ class _PortraitBody extends StatelessWidget {
               }),
 
               _SectionDivider(),
+              Padding(
+                padding: EdgeInsetsDirectional.only(start: 18.w),
+                child: PlusAndMinusWidget(
+                  duration: LocaleKeys.min.tr(),
+                  onChange: onSetAzanDuration,
+                  value: azanDuration,
+                  title: LocaleKeys.azan_duration.tr(),
+                ),
+              ),
               SizedBox(height: 30.h),
             ],
           ),
@@ -443,7 +471,6 @@ class _PortraitBody extends StatelessWidget {
 }
 
 // ===================== LANDSCAPE BODY (NO SCROLL) =====================
-
 class _LandscapeRowBody extends StatelessWidget {
   const _LandscapeRowBody({
     required this.prayerTitles,
@@ -464,6 +491,8 @@ class _LandscapeRowBody extends StatelessWidget {
     required this.onIshaaMinutesChanged,
     required this.onPlus,
     required this.onMinus,
+    required this.onSetAzanDuration,
+    required this.azanDuration,
   });
 
   final List<String> prayerTitles;
@@ -479,6 +508,8 @@ class _LandscapeRowBody extends StatelessWidget {
   final bool hideAfterIshaa;
   final int hideAfterIshaaMinutes;
 
+  final int azanDuration;
+
   final ValueChanged<bool> onToggleEnableHideDuringPrayer;
   final ValueChanged<bool> onToggleShowTime;
   final ValueChanged<bool> onToggleShowDate;
@@ -491,115 +522,183 @@ class _LandscapeRowBody extends StatelessWidget {
 
   final void Function(int index) onPlus;
   final void Function(int index) onMinus;
+  final void Function(int index) onSetAzanDuration;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // اقفل عرض المحتوى عشان تمنع الفراغ الضخم في النص
-        // (لو الشاشة كبيرة جدًا زي TV هتلاحظ الفرق فورًا)
-        final double contentMaxW =
-            constraints.maxWidth * 0.88; // جرّب 0.85 ~ 0.92
+        final isRtl = CacheHelper.getLang() == 'ar' ? true : false;
 
-        return Center(
+        // group width centered (من غير clamp)
+        final contentMaxW = constraints.maxWidth * 0.92;
+        final gap = constraints.maxWidth * 0.03; // مسافة نسبية
+        final dividerW = 1.w;
+
+        // لو ارتفاع الشاشة صغير (موبايل لاندسكيب) نسمح بسكرول خفيف للـbody كله
+        final needsScroll = constraints.maxHeight < 420.h;
+
+        Widget panelHeader(String title, IconData icon) {
+          final txt = Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: isRtl ? TextAlign.end : TextAlign.start,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primaryTextColor,
+              ),
+            ),
+          );
+
+          final ic = Icon(icon, size: 18.r, color: AppTheme.accentColor);
+
+          return Row(
+            children: isRtl
+                ? [txt, SizedBox(width: 10.w), ic]
+                : [ic, SizedBox(width: 10.w), txt],
+          );
+        }
+
+        Widget glassPanel({required Widget child, required Widget header}) {
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.22),
+              borderRadius: BorderRadius.circular(18.r),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.14),
+                width: 1.w,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.20),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                header,
+                SizedBox(height: 10.h),
+                Divider(color: Colors.white.withOpacity(0.12), height: 1),
+                SizedBox(height: 10.h),
+                child,
+              ],
+            ),
+          );
+        }
+
+        final leftSettings = glassPanel(
+          header: panelHeader(
+            LocaleKeys.set_screen_hide.tr(),
+            Icons.tune_rounded,
+          ),
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SettingTileDense(
+                title: LocaleKeys.enable_hiding_screen_during_prayer.tr(),
+                value: enableHideDuringPrayer,
+                onChanged: onToggleEnableHideDuringPrayer,
+              ),
+              SizedBox(height: 10.h),
+              SettingTileDense(
+                title: LocaleKeys.show_time_on_black_screen.tr(),
+                value: showTimeOnBlack,
+                onChanged: onToggleShowTime,
+              ),
+              SizedBox(height: 10.h),
+              SettingTileDense(
+                title: LocaleKeys.show_date_on_black_screen.tr(),
+                value: showDateOnBlack,
+                onChanged: onToggleShowDate,
+              ),
+              SizedBox(height: 12.h),
+              Container(
+                // width: 20.sw,
+                // color: Colors.red,
+                child: _TwoLineCheckboxDense(
+                  value: hideAfterSunrise,
+                  title: LocaleKeys.hide_screen_after_sunrise_by.tr(),
+                  minutes: hideAfterSunriseMinutes,
+                  onChanged: onToggleSunrise,
+                  onMinutesChanged: onSunriseMinutesChanged,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              _TwoLineCheckboxDense(
+                value: hideAfterIshaa,
+                title: LocaleKeys.hide_screen_after_Ishaa_by.tr(),
+                minutes: hideAfterIshaaMinutes,
+                onChanged: onToggleIshaa,
+                onMinutesChanged: onIshaaMinutesChanged,
+              ),
+            ],
+          ),
+        );
+
+        final rightDurations = glassPanel(
+          header: panelHeader(
+            LocaleKeys.prayer_duration_for_hiding_screen.tr(),
+            Icons.timer_outlined,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ...List.generate(prayerTitles.length, (i) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 10.h),
+                  child: _PrayerDurationRow(
+                    title: prayerTitles[i],
+                    value: durations.length > i ? durations[i] : 10,
+                    onPlus: () => onPlus(i),
+                    onMinus: () => onMinus(i),
+                  ),
+                );
+              }),
+              SizedBox(height: 6.h),
+              PlusAndMinusWidget(
+                duration: LocaleKeys.min.tr(),
+                onChange: onSetAzanDuration,
+                value: azanDuration,
+                title: LocaleKeys.azan_duration.tr(),
+                mainAxisAlignment: MainAxisAlignment.end,
+              ),
+            ],
+          ),
+        );
+
+        final body = Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: contentMaxW),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-              child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // ✅ يمنع واحدة فوق والتانية تحت
-                children: [
-                  // LEFT: settings column
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SettingTileDense(
-                          title: LocaleKeys.enable_hiding_screen_during_prayer
-                              .tr(),
-                          value: enableHideDuringPrayer,
-                          onChanged: onToggleEnableHideDuringPrayer,
-                        ),
-                        SizedBox(height: 10.h),
-
-                        SettingTileDense(
-                          title: LocaleKeys.show_time_on_black_screen.tr(),
-                          value: showTimeOnBlack,
-                          onChanged: onToggleShowTime,
-                        ),
-                        SizedBox(height: 10.h),
-
-                        SettingTileDense(
-                          title: LocaleKeys.show_date_on_black_screen.tr(),
-                          value: showDateOnBlack,
-                          onChanged: onToggleShowDate,
-                        ),
-                        SizedBox(height: 12.h),
-
-                        _TwoLineCheckboxDense(
-                          value: hideAfterSunrise,
-                          title: LocaleKeys.hide_screen_after_sunrise_by.tr(),
-                          minutes: hideAfterSunriseMinutes,
-                          onChanged: onToggleSunrise,
-                          onMinutesChanged: onSunriseMinutesChanged,
-                        ),
-                        SizedBox(height: 12.h),
-
-                        _TwoLineCheckboxDense(
-                          value: hideAfterIshaa,
-                          title: LocaleKeys.hide_screen_after_Ishaa_by.tr(),
-                          minutes: hideAfterIshaaMinutes,
-                          onChanged: onToggleIshaa,
-                          onMinutesChanged: onIshaaMinutesChanged,
-                        ),
-                      ],
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: isRtl ? rightDurations : leftSettings),
+                    SizedBox(width: gap),
+                    Container(
+                      width: dividerW,
+                      color: Colors.white.withOpacity(0.10),
                     ),
-                  ),
-
-                  SizedBox(width: 22.w), // ✅ التحكم في المسافة بين العمودين
-                  // RIGHT: durations column
-                  Expanded(
-                    flex: 1,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            LocaleKeys.prayer_duration_for_hiding_screen.tr(),
-                            textAlign: TextAlign.end,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryTextColor,
-                            ),
-                          ),
-                          SizedBox(height: 10.h),
-
-                          // ✅ لو مصممك “ممنوع سكرول في اللاندسكيب” خليه Column عادي
-                          ...List.generate(prayerTitles.length, (i) {
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: 10.h),
-                              child: _PrayerDurationRow(
-                                title: prayerTitles[i],
-                                value: durations.length > i ? durations[i] : 10,
-                                onPlus: () => onPlus(i),
-                                onMinus: () => onMinus(i),
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                    SizedBox(width: gap),
+                    Expanded(child: isRtl ? leftSettings : rightDurations),
+                  ],
+                ),
               ),
             ),
           ),
         );
+
+        return needsScroll ? SingleChildScrollView(child: body) : body;
       },
     );
   }
@@ -677,27 +776,33 @@ class SettingTileDense extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRtl = CacheHelper.getLang() == 'ar' ? true : false;
+
+    final checkbox = CustomCheckbox(
+      value: value,
+      onChanged: onChanged,
+      activeColor: AppTheme.accentColor,
+      size: 20.r,
+    );
+
+    final label = Expanded(
+      child: Text(
+        title,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: isRtl ? TextAlign.end : TextAlign.start,
+        style: TextStyle(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.bold,
+          color: AppTheme.secondaryTextColor,
+        ),
+      ),
+    );
+
     return Row(
-      children: [
-        CustomCheckbox(
-          value: value,
-          onChanged: onChanged,
-          activeColor: AppTheme.accentColor,
-          size: 20.r,
-        ),
-        HorizontalSpace(width: 8.w),
-        Text(
-          title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.end,
-          style: TextStyle(
-            fontSize: 13.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.secondaryTextColor,
-          ),
-        ),
-      ],
+      children: isRtl
+          ? [label, HorizontalSpace(width: 8.w), checkbox]
+          : [checkbox, HorizontalSpace(width: 8.w), label],
     );
   }
 }
@@ -793,6 +898,7 @@ class _TwoLineCheckboxDense extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         CustomCheckbox(
           value: value,

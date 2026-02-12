@@ -21,7 +21,7 @@ class GlassPill extends StatelessWidget {
   final double radius;
   final double blurSigma;
   final EdgeInsetsDirectional? padding;
-  final EdgeInsets? margin;
+  final EdgeInsetsDirectional? margin;
   final bool scaleHeight; // ✅ NEW
 
   @override
@@ -39,24 +39,24 @@ class GlassPill extends StatelessWidget {
       // margin: margin,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius.r),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blurSigma.w, sigmaY: blurSigma.h),
+        child: Container(
+          // filter: ImageFilter.blur(sigmaX: blurSigma.w, sigmaY: blurSigma.h),
           child: Container(
-            // padding: padding,
+            padding: padding,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(radius.r),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withOpacity(0.14),
-                  Colors.white.withOpacity(0.06),
+                  Colors.white.withOpacity(0.08),
+                  Colors.white.withOpacity(0.08),
                 ],
               ),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.22),
-                width: 1.w,
-              ),
+              // border: Border.all(
+              //   color: Colors.white.withOpacity(0.22),
+              //   width: 1.w,
+              // ),
             ),
             child: child,
           ),

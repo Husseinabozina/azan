@@ -24,16 +24,16 @@ class PrayerDurationHiveHelper {
           )
           .toList();
 
-      if (list.length < prayerCount) {
-        return [
-          ...list,
-          ...List<int>.filled(prayerCount - list.length, defaultMinutes),
-        ];
-      }
+      // if (list.length < prayerCount) {
+      //   return [
+      //     ...list,
+      //     ...List<int>.filled(prayerCount - list.length, defaultMinutes),
+      //   ];
+      // }
 
-      if (list.length > prayerCount) {
-        return list.take(prayerCount).toList();
-      }
+      // if (list.length > prayerCount) {
+      //   return list.take(prayerCount).toList();
+      // }
 
       return list;
     }

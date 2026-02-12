@@ -60,9 +60,11 @@ class _AzanIqamaSoundOptionsState extends State<AzanIqamaSoundOptions> {
   // paths من flutter_gen
   String get _azanLongPath => Assets.sounds.azanLong; // azan_long.mp3
   String get _azanShortPath => Assets.sounds.azan; // azan.mp3
-  String get _iqamaPath => Assets.sounds.iqama; // iqama.mp3
+  String get _iqamaPath => Assets.sounds.iqama;
 
   Future<void> _toggleUseMp3(bool v) async {
+    await _player.stop(); // ✅ قبل أي حاجة
+
     setState(() {
       _useMp3 = v;
       if (!_useMp3) {
@@ -76,29 +78,42 @@ class _AzanIqamaSoundOptionsState extends State<AzanIqamaSoundOptions> {
     widget.onShortIqamaChanged(_shortIqama);
 
     if (_useMp3) {
-      // Preview: azan_long
       await _player.playAsset(_azanLongPath);
     }
   }
 
   Future<void> _toggleShortAzan(bool v) async {
     if (!_useMp3) return;
+
     setState(() => _shortAzan = v);
     widget.onShortAzanChanged(_shortAzan);
 
-    if (_shortAzan) {
-      await _player.playAsset(_azanShortPath);
+    if (!_shortAzan) {
+      await _player.stop(); // ✅ أهم سطر كان ناقص
+      return;
     }
+
+    await _player.playAsset(_azanShortPath);
   }
 
   Future<void> _toggleShortIqama(bool v) async {
     if (!_useMp3) return;
+
     setState(() => _shortIqama = v);
     widget.onShortIqamaChanged(_shortIqama);
 
-    if (_shortIqama) {
-      await _player.playAsset(_iqamaPath);
+    if (!_shortIqama) {
+      await _player.stop(); // ✅ أهم سطر كان ناقص
+      return;
     }
+
+    await _player.playAsset(_iqamaPath);
+  }
+
+  @override
+  void dispose() {
+    _player.stop();
+    super.dispose();
   }
 
   @override
@@ -176,14 +191,17 @@ class _SoundCheckTile extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CustomCheckbox(
-                size: checkBoxSize,
-                activeColor: AppTheme.accentColor,
-                value: value,
-                onChanged: (v) => onChanged(v),
+              IgnorePointer(
+                // ✅ يمنع checkbox من إرسال onChanged
+                ignoring: true,
+                child: CustomCheckbox(
+                  size: checkBoxSize,
+                  activeColor: AppTheme.accentColor,
+                  value: value,
+                  onChanged: (_) {},
+                ),
               ),
               HorizontalSpace(width: 6.w),
-
               Text(
                 title,
                 maxLines: 2,

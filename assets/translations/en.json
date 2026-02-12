@@ -193,5 +193,18 @@
   "azan_adjust_iqama_hint": "Tap minutes to edit iqama time after adhan",
   "azan_adjust_hijri_section_title": "Hijri Date Adjustment",
   "azan_adjust_hijri_section_hint": "Tap Hijri date to edit Hijri date +2 / -2"
-
+  ,"azan_duration":"Azan duration"
+,
+ "azkar_timing_settings": "Azkar timing settings",
+  "enable_morning_azkar": "Enable morning azkar",
+  "morning_azkar_window_minutes": "Morning azkar duration",
+  "enable_evening_azkar": "Enable evening azkar",
+  "evening_azkar_window_minutes": "Evening azkar duration",
+  "enable_after_prayer_azkar": "Enable after-prayer azkar",
+  "after_prayer_azkar_window_minutes": "After-prayer azkar duration",
+  "minute": "minute",
+  "show_seconds_in_next_prayer": "show seconds in next prayer",
+"change_app_logo":"Change app logo",
+"select_from_device":"Select from device",
+"default_app_logo":"Default app logo"
 }

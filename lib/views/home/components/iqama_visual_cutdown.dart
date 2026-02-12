@@ -12,12 +12,12 @@ class IqamaVisualCountdown extends StatefulWidget {
     required this.totalDuration,
     this.size = 220,
     this.strokeWidth = 14,
-    this.startAngle = -math.pi / 2, // يبدأ من فوق
-    this.reverse = true, // يفرّغ مع الوقت
+    this.startAngle = -math.pi / 2,
+    this.reverse = true,
     this.backgroundStrokeColor = const Color(0x33FFFFFF),
     this.progressColor = Colors.white,
-    this.warningColor = const Color(0xFFFFD54F), // آخر 20%
-    this.dangerColor = const Color(0xFFFF5252), // آخر 8%
+    this.warningColor = const Color(0xFFFFD54F),
+    this.dangerColor = const Color(0xFFFF5252),
     this.warningThreshold = 0.20,
     this.dangerThreshold = 0.08,
     this.centerChild,
@@ -35,7 +35,6 @@ class IqamaVisualCountdown extends StatefulWidget {
   final Color warningColor;
   final Color dangerColor;
 
-  /// نسبة متبقية: 0.20 يعني آخر 20% من الوقت
   final double warningThreshold;
   final double dangerThreshold;
 
@@ -62,7 +61,6 @@ class _IqamaVisualCountdownState extends State<IqamaVisualCountdown>
             }
           });
 
-    // نبدأ من 0 إلى 1 (يمثل مرور الوقت)
     _controller.forward();
   }
 
@@ -70,7 +68,6 @@ class _IqamaVisualCountdownState extends State<IqamaVisualCountdown>
   void didUpdateWidget(covariant IqamaVisualCountdown oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // لو المدة اتغيرت، أعد تشغيل العداد
     if (oldWidget.totalDuration != widget.totalDuration) {
       _controller
         ..stop()
@@ -87,23 +84,32 @@ class _IqamaVisualCountdownState extends State<IqamaVisualCountdown>
   }
 
   Color _pickColor(double remainingRatio) {
-    if (remainingRatio <= widget.dangerThreshold)
+    if (remainingRatio <= widget.dangerThreshold) {
       return CacheHelper.getIsChangeCounterEnabled()
           ? widget.dangerColor
           : widget.warningColor;
+    }
     if (remainingRatio <= widget.warningThreshold) return widget.warningColor;
     return widget.progressColor;
   }
 
   @override
   Widget build(BuildContext context) {
+    // ✅ الـ size و strokeWidth جايين من الـ parent (_AzanMetrics)
+    // هنستخدمهم زي ما هم لأن الـ parent بيحسبهم صح
+    final actualSize = widget.size;
+    final actualStroke = widget.strokeWidth;
+
+    // ✅ الـ fontSize يكون نسبة من الـ ring size
+    final fontSize = actualSize * 0.136; // ~30/220
+
     return SizedBox(
-      width: widget.size,
-      height: widget.size,
+      width: actualSize,
+      height: actualSize,
       child: AnimatedBuilder(
         animation: _controller,
         builder: (_, __) {
-          final elapsed = _controller.value; // 0..1
+          final elapsed = _controller.value;
           final remainingRatio = 1.0 - elapsed;
 
           final progress = widget.reverse ? remainingRatio : elapsed;
@@ -118,7 +124,7 @@ class _IqamaVisualCountdownState extends State<IqamaVisualCountdown>
           return CustomPaint(
             painter: _RingPainter(
               progress: progress.clamp(0.0, 1.0),
-              strokeWidth: widget.strokeWidth,
+              strokeWidth: actualStroke,
               startAngle: widget.startAngle,
               bgColor: widget.backgroundStrokeColor,
               progressColor: color,
@@ -127,7 +133,7 @@ class _IqamaVisualCountdownState extends State<IqamaVisualCountdown>
               child: Text(
                 _format(remaining),
                 style: TextStyle(
-                  fontSize: 30.sp,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryTextColor,
                 ),
@@ -156,7 +162,7 @@ class _RingPainter extends CustomPainter {
     required this.progressColor,
   });
 
-  final double progress; // 0..1
+  final double progress;
   final double strokeWidth;
   final double startAngle;
   final Color bgColor;
@@ -179,7 +185,6 @@ class _RingPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    // الخلفية (حلقة كاملة)
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       0,
@@ -188,7 +193,6 @@ class _RingPainter extends CustomPainter {
       bgPaint,
     );
 
-    // التقدم
     final sweep = (math.pi * 2) * progress;
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),

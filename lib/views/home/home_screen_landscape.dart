@@ -18,9 +18,12 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/core/utils/selection_dialoge.dart';
+import 'package:azan/core/utils/temp_icon_result.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/additional_settings/components/azkar_time_helper.dart';
 import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/components/RotatingAyahBanner.dart';
+import 'package:azan/views/home/components/azkar_view.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
@@ -43,7 +46,7 @@ class HomeScreenLandscape extends StatefulWidget {
 class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  AppCubit get cubit => AppCubit.get(context);
+  AppCubit get cubit => AppCubit();
   late DateTime _lastDate;
 
   // ✅ الصوت
@@ -95,9 +98,18 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
     final city = cubit.getCity()?.nameEn ?? '';
     unawaited(cubit.initializePrayerTimes(city: city, context: context));
-    unawaited(cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city));
     unawaited(cubit.getIqamaTime());
     unawaited(cubit.assignAdhkar());
+
+    // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
+    unawaited(
+      cubit.maybeRefreshWeather(
+        country: 'Saudi Arabia',
+        city: city,
+        hasInternet: () => cubit.hasInternet,
+        onHomeOpen: true, // ✅ أهم سطر
+      ),
+    );
 
     _refreshMinuteFutures();
   }
@@ -117,24 +129,31 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
     _refreshMinuteFutures();
 
-    _tickTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+    _tickTimer = Timer.periodic(const Duration(seconds: 1), (t) async {
       if (!mounted) {
         t.cancel();
         return;
       }
 
-      setState(() {}); // تحديث الساعة
-
-      _checkAndPlayPrayerSound(DateTime.now());
-      performAdhanActions(context);
-
+      // ✅ احفظ الوقت الحقيقي أول ما دخلت
       final now = DateTime.now();
+
+      // ✅ اعمل الحاجات المهمة الأولى (بدون setState)
+      await _checkAndPlayPrayerSound(now); // ✅ await!
+      performAdhanActions(context);
+      _azkarOverlay.tick(now: now);
+
+      // ✅ setState في الآخر (مش مهم لو أخذت وقت)
+      setState(() {});
+
+      // ✅ تحقق من اليوم الجديد
       if (!_isSameDay(now, _lastDate)) {
         _lastDate = now;
         _onNewDay();
       }
     });
 
+    // ✅ التايمر الثاني، يبقى كما هو
     _minuteTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (!mounted) return;
       setState(() => _refreshMinuteFutures());
@@ -146,30 +165,53 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     setState(() => isloading = true);
 
     _lastDate = DateTime.now();
+
     final city = cubit.getCity()?.nameEn ?? '';
     await _assignHijriDate();
 
-    '_assignHijriDate _assignHijriDate _assignHijriDate'.log();
-
-    await Future.wait([
+    // ✅ استنى الأساسيات فقط
+    (await Future.wait([
       cubit.getIqamaTime(),
       cubit.initializePrayerTimes(city: city, context: context),
-    ]);
+    ]));
 
     if (!mounted) return;
     setState(() => isloading = false);
+    _azkarOverlay.tick(now: DateTime.now());
+
+    // ✅ الباقي في الخلفية
     // unawaited(_assignHijriDate());
-    unawaited(cubit.loadTodayMaxTemp(country: 'Saudi Arabia', city: city));
+    // final city = cubit.getCity()?.nameEn ?? '';
+
+    unawaited(
+      cubit.maybeRefreshWeather(
+        country: 'Saudi Arabia',
+        city: city,
+        hasInternet: () => cubit.hasInternet,
+        onHomeOpen: true, // ✅ أهم سطر
+      ),
+    );
+
+    cubit.startWeatherAutoSync(
+      country: 'Saudi Arabia',
+      city: city,
+      hasInternet: () => cubit.hasInternet,
+    );
+
     unawaited(cubit.assignAdhkar());
 
+    // ✅ شغل التايمرز بعد ما الأساسيات خلصت
     _startTimers();
   }
 
+  late final AzkarOverlayController _azkarOverlay;
   @override
   void initState() {
     super.initState();
     AppCubit.get(context).homeScreenLandscape = this;
+    _azkarOverlay = AzkarOverlayController();
 
+    // _azkarOverlay.start();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       homeScreenWork();
@@ -197,7 +239,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     }
   }
 
-  void _checkAndPlayPrayerSound(DateTime now) {
+  Future<void> _checkAndPlayPrayerSound(DateTime now) async {
     if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
 
     final prayers = cubit.prayers(context);
@@ -205,18 +247,34 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     final azanSource = cubit.getAzanSoundSource;
     final iqamaSource = cubit.getIqamaSoundSource;
 
+    // ✅ تحقق من الـ source أولاً
+    if (azanSource.isEmpty || iqamaSource.isEmpty) {
+      '⚠️ Sound source empty: azan=$azanSource, iqama=$iqamaSource'.log();
+      return;
+    }
+
     for (final prayer in prayers) {
       final int id = prayer.id;
       final DateTime? adhanTime = prayer.dateTime;
       if (adhanTime == null) continue;
 
-      // 1️⃣ وقت الأذان
+      // ===== أذان =====
       if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
-        _playedAdhanToday.add(id);
-        _soundPlayer.playAdhanPing(azanSource);
+        '🔊 Playing Azan for ${prayer.title} at $now'.log();
+
+        // ✅ await على النتيجة
+        final success = await _soundPlayer.playAsset(azanSource);
+
+        // ✅ ضف العلامة فقط لو نجح
+        if (success) {
+          _playedAdhanToday.add(id);
+          '✅ Azan played successfully for ${prayer.title}'.log();
+        } else {
+          '❌ Azan play failed for ${prayer.title}'.log();
+        }
       }
 
-      // 2️⃣ وقت الإقامة
+      // ===== إقامة =====
       if (iqamaMinutes.length >= id) {
         final DateTime iqamaTime = adhanTime.add(
           Duration(minutes: iqamaMinutes[id - 1]),
@@ -241,8 +299,17 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
         }
 
         if (!_playedIqamaToday.contains(id) && _isSameMinute(iqamaTime, now)) {
-          _playedIqamaToday.add(id);
-          _soundPlayer.playIqamaPing(iqamaSource);
+          '🔊 Playing Iqama for ${prayer.title} at $now'.log();
+
+          // ✅ await
+          final success = await _soundPlayer.playAsset(iqamaSource);
+
+          if (success) {
+            _playedIqamaToday.add(id);
+            '✅ Iqama played successfully for ${prayer.title}'.log();
+          } else {
+            '❌ Iqama play failed for ${prayer.title}'.log();
+          }
         }
       }
     }
@@ -287,11 +354,177 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     return now.isBefore(end);
   }
 
+  Future<void> _openAzkarTimingSettings() async {
+    bool morningEnabled = CacheHelper.getMorningAzkarEnabled();
+    bool eveningEnabled = CacheHelper.getEveningAzkarEnabled();
+    int morningMinutes = CacheHelper.getMorningAzkarWindowMinutes();
+    int eveningMinutes = CacheHelper.getEveningAzkarWindowMinutes();
+
+    int clampMinutes(int v) => v.clamp(1, 600); // 1..600 دقيقة
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocal) {
+            Widget minutesRow({
+              required String title,
+              required int value,
+              required VoidCallback onMinus,
+              required VoidCallback onPlus,
+            }) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onMinus,
+                    icon: Icon(
+                      Icons.remove_circle_outline,
+                      color: AppTheme.primaryTextColor,
+                    ),
+                  ),
+                  Text(
+                    '$value',
+                    style: TextStyle(
+                      color: AppTheme.secondaryTextColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onPlus,
+                    icon: Icon(
+                      Icons.add_circle_outline,
+                      color: AppTheme.primaryTextColor,
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  Text(
+                    'دقيقة',
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor.withOpacity(.8),
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            return AlertDialog(
+              backgroundColor: Colors.black.withOpacity(0.85),
+              title: Text(
+                'إعدادات الأذكار',
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SizedBox(
+                width: 420.w, // مناسب لعرض TV
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SwitchListTile(
+                      value: morningEnabled,
+                      activeColor: AppTheme.secondaryTextColor,
+                      title: Text(
+                        'تفعيل أذكار الصباح',
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onChanged: (v) => setLocal(() => morningEnabled = v),
+                    ),
+                    minutesRow(
+                      title: 'مدة نافذة أذكار الصباح',
+                      value: morningMinutes,
+                      onMinus: () => setLocal(() {
+                        morningMinutes = clampMinutes(morningMinutes - 5);
+                      }),
+                      onPlus: () => setLocal(() {
+                        morningMinutes = clampMinutes(morningMinutes + 5);
+                      }),
+                    ),
+                    SizedBox(height: 12.h),
+                    SwitchListTile(
+                      value: eveningEnabled,
+                      activeColor: AppTheme.secondaryTextColor,
+                      title: Text(
+                        'تفعيل أذكار المساء',
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onChanged: (v) => setLocal(() => eveningEnabled = v),
+                    ),
+                    minutesRow(
+                      title: 'مدة نافذة أذكار المساء',
+                      value: eveningMinutes,
+                      onMinus: () => setLocal(() {
+                        eveningMinutes = clampMinutes(eveningMinutes - 5);
+                      }),
+                      onPlus: () => setLocal(() {
+                        eveningMinutes = clampMinutes(eveningMinutes + 5);
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'إلغاء',
+                    style: TextStyle(color: AppTheme.primaryTextColor),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await CacheHelper.setMorningAzkarEnabled(morningEnabled);
+                    await CacheHelper.setEveningAzkarEnabled(eveningEnabled);
+                    await CacheHelper.setMorningAzkarWindowMinutes(
+                      morningMinutes,
+                    );
+                    await CacheHelper.setEveningAzkarWindowMinutes(
+                      eveningMinutes,
+                    );
+
+                    // ✅ عشان لو محتوى الأذكار بيتغير حسب الوقت
+                    unawaited(cubit.assignAdhkar());
+
+                    if (mounted) setState(() {});
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  child: Text(
+                    'حفظ',
+                    style: TextStyle(color: AppTheme.secondaryTextColor),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _tickTimer?.cancel();
     _minuteTimer?.cancel();
     _soundPlayer.dispose();
+    _azkarOverlay.dispose();
     super.dispose();
   }
 
@@ -346,7 +579,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
               CacheHelper.getEnableGlassEffect(); // 👈 لو عايزه “true = glass شغال”
 
           final headerStyle = TextStyle(
-            fontSize: 16.sp,
+            fontSize: 13.sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryTextColor,
             fontFamily: CacheHelper.getTextsFontFamily(),
@@ -381,14 +614,22 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
             final adhanStr = CacheHelper.getUse24HoursFormat()
                 ? (p.time24 ?? '--:--')
-                : (p.time ?? '--:--');
+                : (p.time24 != null
+                      ? DateHelper.stripAmPmFromTimeText(p.time!, context)
+                      : '--:--');
 
             final iqamaStr = (p.time != null && cubit.iqamaMinutes != null)
-                ? DateHelper.addMinutesToTimeStringWithSettings(
-                    p.time!,
-                    cubit.iqamaMinutes![p.id - 1],
+                ? DateHelper.stripAmPmFromTimeText(
+                    DateHelper.addMinutesToTimeStringWithSettings(
+                      p.time!,
+                      cubit.iqamaMinutes![p.id - 1],
+                      context,
+                    ),
                     context,
                   )
+                : '--:--';
+            final nextFajrPrayer = cubit.nextFajrPrayer != null
+                ? cubit.nextFajrPrayer!.time24
                 : '--:--';
 
             return PrayerRowData(
@@ -396,6 +637,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
               adhanTime: adhanStr,
               iqamaTime: iqamaStr,
               dimmed: dimmed,
+              nextFajrPrayer: nextFajrPrayer.toString(),
             );
           });
           return Stack(
@@ -409,225 +651,258 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
               ),
 
               // Main fixed-grid layout
-              LayoutBuilder(
-                builder: (context, c) {
-                  final safeH = c.maxHeight; // ده الحقيقي
-                  final safeW = c.maxWidth;
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    final safeH = c.maxHeight; // ده الحقيقي
+                    final safeW = c.maxWidth;
 
-                  // نسب من تصميم 960x540
-                  final topH = safeH * (62.0 / 540.0);
-                  // final sliderH = safeH * (78.0 / 540.0);
-                  final footerH = safeH * (20.0 / 540.0);
-                  // final mainH = safeH - topH - sliderH - footerH;
+                    // نسب من تصميم 960x540
+                    final topH = safeH * (62.0 / 540.0);
+                    // final sliderH = safeH * (78.0 / 540.0);
+                    final footerH = safeH * (20.0 / 540.0);
+                    // final mainH = safeH - topH - sliderH - footerH;
 
-                  // Padding برضه يكون آمن (مش يكبر زيادة)
-                  final padX = (safeW * 0.012).toDouble(); // ~12px على 960
-                  final padY = (safeH * 0.012);
+                    // Padding برضه يكون آمن (مش يكبر زيادة)
+                    final padX = (safeW * 0.012).toDouble(); // ~12px على 960
+                    final padY = (safeH * 0.012);
 
-                  final sliderH = safeH * (92.0 / 540.0); // كان 78
-                  final mainH =
-                      safeH - topH - sliderH - footerH; // هيتقل تلقائي
+                    final sliderH = safeH * (92.0 / 540.0); // كان 78
+                    final mainH =
+                        safeH - topH - sliderH - footerH; // هيتقل تلقائي
 
-                  return Column(
-                    children: [
-                      // SLOT 1: TopBar (fixed)
-                      SizedBox(
-                        height: topH,
-                        child: HomeAppBar(
-                          onDrawerTap: () =>
-                              scaffoldKey.currentState?.openDrawer(),
+                    return Column(
+                      children: [
+                        // SLOT 1: TopBar (fixed)
+                        SizedBox(
+                          height: topH,
+                          child: HomeAppBar(
+                            onDrawerTap: () =>
+                                scaffoldKey.currentState?.openDrawer(),
+                          ),
                         ),
-                      ),
 
-                      // SLOT 2: Main (fixed)
-                      SizedBox(
-                        height: mainH,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w),
-                          child: isloading
-                              ? Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      CircularProgressIndicator(
-                                        color: AppTheme.primaryTextColor,
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Text(
-                                        LocaleKeys.loading.tr(),
-                                        style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.bold,
+                        // SLOT 2: Main (fixed)
+                        SizedBox(
+                          height: mainH,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
+                            child: isloading
+                                ? Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CircularProgressIndicator(
                                           color: AppTheme.primaryTextColor,
+                                        ),
+                                        SizedBox(height: 8.h),
+                                        Text(
+                                          LocaleKeys.loading.tr(),
+                                          style: TextStyle(
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.primaryTextColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      // LEFT (58)
+                                      Expanded(
+                                        flex: 50,
+                                        child: GlassPanel(
+                                          padding: EdgeInsets.all(10.w),
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                              left: 23.w,
+                                              right: 23.w,
+                                            ),
+                                            child: PrayerTimesTable(
+                                              rows: rows,
+                                              enableGlass: enableGlass,
+                                              headerStyle: headerStyle,
+                                              prayerStyle: prayerStyle,
+                                              adhanStyle: adhanStyle,
+                                              iqamaStyle: iqamaStyle,
+                                            ),
+                                          ),
+                                          //  _PrayerTableFixed(
+                                          //   prayers: prayers,
+                                          //   pastIqamaFlags: pastIqamaFlags,
+                                          //   iqamaMinutes: cubit.iqamaMinutes,
+                                          // ),
+                                        ),
+                                      ),
+
+                                      SizedBox(width: 12.w),
+
+                                      // CENTER (24)
+                                      Expanded(
+                                        flex: 24,
+                                        child: GlassPanel(
+                                          padding: EdgeInsets.all(10.w),
+                                          child: _CenterClockFixed(
+                                            fixedDhikr:
+                                                CacheHelper.getFixedDhikr(),
+                                            onTap: () {
+                                              CacheHelper.setIsFullTimeEnabled(
+                                                !CacheHelper.getIsFullTimeEnabled(),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+
+                                      SizedBox(width: 12.w),
+
+                                      // RIGHT (18)
+                                      Expanded(
+                                        flex: 24,
+                                        child: GlassPanel(
+                                          padding: EdgeInsets.all(10.w),
+                                          child: _RightInfoFixed(
+                                            cubit: cubit,
+                                            nextPrayerFuture: _nextPrayerFuture,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                )
-                              : Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    // LEFT (58)
-                                    Expanded(
-                                      flex: 50,
-                                      child: GlassPanel(
-                                        padding: EdgeInsets.all(10.w),
-                                        child: Padding(
-                                          padding: EdgeInsets.only(
-                                            left: 23.w,
-                                            right: 23.w,
-                                          ),
-                                          child: PrayerTimesTable(
-                                            rows: rows,
-                                            enableGlass: enableGlass,
-                                            headerStyle: headerStyle,
-                                            prayerStyle: prayerStyle,
-                                            adhanStyle: adhanStyle,
-                                            iqamaStyle: iqamaStyle,
-                                          ),
-                                        ),
-                                        //  _PrayerTableFixed(
-                                        //   prayers: prayers,
-                                        //   pastIqamaFlags: pastIqamaFlags,
-                                        //   iqamaMinutes: cubit.iqamaMinutes,
-                                        // ),
-                                      ),
-                                    ),
-
-                                    SizedBox(width: 12.w),
-
-                                    // CENTER (24)
-                                    Expanded(
-                                      flex: 24,
-                                      child: GlassPanel(
-                                        padding: EdgeInsets.all(10.w),
-                                        child: _CenterClockFixed(
-                                          fixedDhikr:
-                                              CacheHelper.getFixedDhikr(),
-                                        ),
-                                      ),
-                                    ),
-
-                                    SizedBox(width: 12.w),
-
-                                    // RIGHT (18)
-                                    Expanded(
-                                      flex: 24,
-                                      child: GlassPanel(
-                                        padding: EdgeInsets.all(10.w),
-                                        child: _RightInfoFixed(
-                                          cubit: cubit,
-                                          nextPrayerFuture: _nextPrayerFuture,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-
-                      // SLOT 3: Slider reserved (fixed even if hidden)
-                      SizedBox(
-                        height: sliderH,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: padX,
-                            vertical: padY,
-                          ),
-                          child: (!isloading && CacheHelper.getSliderOpened())
-                              ? LandscapeAzkarSlider(
-                                  adhkar: cubit.todaysAdkar != null
-                                      ? cubit.todaysAdkar!
-                                            .map((e) => e.text)
-                                            .toList()
-                                      : [],
-                                  height: (sliderH - (padY * 2)).toDouble(),
-                                  maxFontSize: 18.sp,
-                                  minFontSize: 11.sp,
-                                )
-                              : const SizedBox.expand(), // reserved empty space
-                        ),
-                      ),
-
-                      // SLOT 4: Footer (fixed)
-                      SizedBox(
-                        height: footerH,
-                        child: Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AutoSizeText(
-                                LocaleKeys.copy_right_for_sadja.tr(),
-                                maxLines: 1,
-                                minFontSize: 8,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: AppTheme.primaryTextColor,
-                                ),
-                              ),
-                              HorizontalSpace(width: 8),
-                              AutoSizeText(
-                                AppCubit.get(context).getCity() != null
-                                    ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
-                                    : "",
-                                maxLines: 1,
-                                minFontSize: 8, // ✅ raw
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: AppTheme.primaryTextColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  );
-                },
+
+                        // SLOT 3: Slider reserved (fixed even if hidden)
+                        SizedBox(
+                          height: sliderH,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: padX,
+                              vertical: padY,
+                            ),
+                            child: (!isloading && CacheHelper.getSliderOpened())
+                                ? LandscapeAzkarSlider(
+                                    adhkar: cubit.todaysAdkar != null
+                                        ? cubit.todaysAdkar!
+                                              .map((e) => e.text)
+                                              .toList()
+                                        : [],
+                                    height: (sliderH - (padY * 2)).toDouble(),
+                                    maxFontSize: 18.sp,
+                                    minFontSize: 11.sp,
+                                  )
+                                : const SizedBox.expand(), // reserved empty space
+                          ),
+                        ),
+
+                        // SLOT 4: Footer (fixed)
+                        GestureDetector(
+                          onTap: () {},
+                          child: SizedBox(
+                            height: footerH,
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AutoSizeText(
+                                    LocaleKeys.copy_right_for_sadja.tr(),
+                                    maxLines: 1,
+                                    minFontSize: 8,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                  HorizontalSpace(width: 8),
+                                  AutoSizeText(
+                                    AppCubit.get(context).getCity() != null
+                                        ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
+                                        : "",
+                                    maxLines: 1,
+                                    minFontSize: 8, // ✅ raw
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: AppTheme.primaryTextColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
 
-              // ✅ Overlay: AzanPrayerScreen (unchanged)
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 1500),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, anim) =>
-                    FadeTransition(opacity: anim, child: child),
-                child: (cubit.currentPrayer != null && cubit.showPrayerAzanPage)
-                    ? AzanPrayerScreen(
-                        key: const ValueKey('azan-test'),
-                        currentPrayer: cubit.currentPrayer!,
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              // if (cubit.currentPrayer != null)
+              //   AzanPrayerScreen(
+              //     key: ValueKey('azan-test'),
+              //     currentPrayer: cubit.currentPrayer!,
+              //   ),
 
-              // ✅ Overlay: Black screen (unchanged)
+              // // ✅ Overlay: AzanPrayerScreen (unchanged)
               FutureBuilder<bool>(
                 future: _hideFuture,
                 builder: (context, snapshot) {
-                  final shouldHide = snapshot.data == true;
+                  final shouldHide =
+                      CacheHelper.getHideScreenAfterIshaaEnabled() &&
+                      (snapshot.data == true);
 
-                  if (!CacheHelper.getHideScreenAfterIshaaEnabled() ||
-                      !shouldHide) {
-                    return const SizedBox.shrink();
-                  }
+                  final azanActive =
+                      (cubit.currentPrayer != null &&
+                      cubit.currentPrayer!.id != 2 &&
+                      cubit.showPrayerAzanPage);
 
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 1500),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, anim) =>
-                        FadeTransition(opacity: anim, child: child),
-                    child: Container(
-                      key: const ValueKey('black_screen'),
-                      height: 1.sh,
-                      width: 1.sw,
-                      color: Colors.black,
-                    ),
+                  return ValueListenableBuilder<AzkarWindow?>(
+                    valueListenable: _azkarOverlay,
+                    builder: (_, w, __) {
+                      Widget overlay = const SizedBox.shrink();
+
+                      // 1) أعلى أولوية: AzanPrayerScreen
+                      if (azanActive) {
+                        overlay = AzanPrayerScreen(
+                          key: const ValueKey('azan-test'),
+                          currentPrayer: cubit.currentPrayer!,
+                        );
+                      }
+                      // 2) ثاني أولوية: black screen
+                      else if (shouldHide) {
+                        overlay = Container(
+                          key: const ValueKey('black_screen'),
+                          height: 1.sh,
+                          width: 1.sw,
+                          color: Colors.black,
+                        );
+                      }
+                      // 3) ثالث أولوية: Azkar
+                      else if (w != null) {
+                        overlay = GestureDetector(
+                          key: ValueKey(
+                            'azkar-${w.type.name}-${w.prayerId ?? 0}',
+                          ),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _azkarOverlay.dismissForNow,
+                          child: AzkarView(azkarType: w.type),
+                        );
+                      }
+
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 1500),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, anim) =>
+                            FadeTransition(opacity: anim, child: child),
+                        child: overlay,
+                      );
+                    },
                   );
                 },
               ),
@@ -894,8 +1169,9 @@ class _PrayerRow extends StatelessWidget {
 
 /// CENTER panel: fixed layout (no FittedBox / no overflow)
 class _CenterClockFixed extends StatelessWidget {
-  const _CenterClockFixed({required this.fixedDhikr});
+  const _CenterClockFixed({required this.fixedDhikr, required this.onTap});
   final String fixedDhikr;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -910,10 +1186,7 @@ class _CenterClockFixed extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
-                onTap: () {
-                  final UiRotationCubit cubit = context.read<UiRotationCubit>();
-                  cubit.changeIsLandscape(cubit.isLandscape() ? false : true);
-                },
+                onTap: onTap,
                 child: SizedBox(
                   // height: clockH,
                   child: Center(
@@ -991,10 +1264,13 @@ class _RightInfoFixed extends StatelessWidget {
 
             // SizedBox(height: 20),
             if (showFitr)
-              _EidMiniBlock(
-                title: LocaleKeys.eid_al_fitr.tr(),
-                date: CacheHelper.getFitrEid()?[0] ?? '--/--/--',
-                time: CacheHelper.getFitrEid()?[1] ?? '--:--',
+              SizedBox(
+                height: singleEidH,
+                child: _EidMiniBlock(
+                  title: LocaleKeys.eid_al_fitr.tr(),
+                  date: CacheHelper.getFitrEid()?[0] ?? '--/--/--',
+                  time: CacheHelper.getFitrEid()?[1] ?? '--:--',
+                ),
               ),
 
             // SizedBox(height: 10.h),
@@ -1060,7 +1336,12 @@ class _InfoBlock extends StatelessWidget {
         SizedBox(height: 6.h),
         _infoLine(LocaleKeys.gregorian_date.tr(), greg),
         SizedBox(height: 6.h),
-        _infoLine(LocaleKeys.temp.tr(), '$tempStr°'),
+        TemperatureBadge(
+          // tempC: cubit.maxTemp,
+          // weatherCode: cubit.todayWeather?.weatherCode, // ✅
+          iconSize: 26.sp,
+          textSize: 36.sp,
+        ),
       ],
     );
   }
@@ -1099,9 +1380,19 @@ class _BigCountdownPanel extends StatelessWidget {
               ? "--:--"
               : (LocalizationHelper.isArAndArNumberEnable()
                     ? DateHelper.toArabicDigits(
-                        dt.difference(DateTime.now()).formatDuration(),
+                        dt
+                            .difference(DateTime.now())
+                            .formatDuration(
+                              showSeconds:
+                                  CacheHelper.getShowSecondsInNextPrayer(),
+                            ),
                       )
-                    : dt.difference(DateTime.now()).formatDuration());
+                    : dt
+                          .difference(DateTime.now())
+                          .formatDuration(
+                            showSeconds:
+                                CacheHelper.getShowSecondsInNextPrayer(),
+                          ));
 
           final leftForText = LocalizationHelper.isArabic()
               ? (LocaleKeys.left_for.tr() + (p?.title.substring(1) ?? ""))

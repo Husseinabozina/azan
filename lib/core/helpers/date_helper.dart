@@ -168,6 +168,67 @@ class DateHelper {
     final today = DateTime(now.year, now.month, now.day);
     return today.weekday == 5;
   }
+
+  static String displayHHmmNoPeriod(String timeStr, BuildContext context) {
+    final t = parseTime12h(timeStr); // بيدعم 12h/24h
+    final raw = CacheHelper.getUse24HoursFormat()
+        ? formatTime24h(t, context)
+        : formatTime12h(t, context);
+    return stripAmPmFromTimeText(raw, context); // يشيل AM/PM أو ص/م
+  }
+
+  static String addMinutesDisplayHHmmNoPeriod(
+    String timeStr,
+    int minutesToAdd,
+    BuildContext context,
+  ) {
+    final t = parseTime12h(timeStr);
+    final updated = addMinutesToTimeOfDay(t, minutesToAdd);
+
+    final raw = CacheHelper.getUse24HoursFormat()
+        ? formatTime24h(updated, context)
+        : formatTime12h(updated, context);
+
+    return stripAmPmFromTimeText(raw, context);
+  }
+
+  /// 🔹 جديد: يشيل AM/PM أو ص/م (مع/بدون نقطة) من نص الوقت
+  /// أمثلة:
+  /// "3:33 AM"  -> "3:33"
+  /// "03:33 AM" -> "03:33"
+  /// "٠٣:٣٣ ص"  -> "٠٣:٣٣"
+  /// "03:33 .م" -> "03:33"
+  static String stripAmPmFromTimeText(String timeText, BuildContext context) {
+    var s = timeText.trim();
+
+    // 1) شيل الترجمة لو عندك (مثلاً: صباحًا/مساءً أو ص/م حسب الترجمة)
+    final amTr = LocaleKeys.am.tr();
+    final pmTr = LocaleKeys.pm.tr();
+
+    if (amTr.isNotEmpty) {
+      s = s.replaceAll(
+        RegExp(r'\s*' + RegExp.escape(amTr) + r'\s*$', unicode: true),
+        '',
+      );
+    }
+    if (pmTr.isNotEmpty) {
+      s = s.replaceAll(
+        RegExp(r'\s*' + RegExp.escape(pmTr) + r'\s*$', unicode: true),
+        '',
+      );
+    }
+
+    // 2) شيل English AM/PM (AM, PM, A.M, P.M ... إلخ)
+    s = s.replaceAll(
+      RegExp(r'\s*(?:A\.?M\.?|P\.?M\.?)\s*$', caseSensitive: false),
+      '',
+    );
+
+    // 3) شيل العربي المختصر ص/م مع/بدون نقطة، ومع/بدون مسافة
+    s = s.replaceAll(RegExp(r'\s*\.?\s*[صم]\s*\.?\s*$', unicode: true), '');
+
+    return s.trim();
+  }
 }
 
  // if today is friday

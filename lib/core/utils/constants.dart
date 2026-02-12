@@ -12,18 +12,55 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 const String fixedDhikr = "حَسْبُنَا اللّهُ وَنِعْمَ الْوَكِيلُ";
+
+// ✅ Fonts الجديدة (لازم تطابق family في pubspec بالظبط)
 const String ksaFont = "KSA";
-const String tajwalFont = "Tajwal";
-const String tahaFont = "Taha";
-const String freeSpansFont = "FreeSpans";
-const String sultanFont = "Sultan";
-const String fodaFont = "Foda";
+const String tahaFont = "TAHA";
+const String sultanFont = "SULTAN";
+const String fodaFont = "FODA";
 
+// ===== CLOCK / TIMES =====
+const String freeSerifBoldFont = "FreeSerifBold";
+const String freeSansFont = "FreeSans";
+const String freeSansBoldFont = "FreeSansBold";
+const String fontoFont = "FONTO";
+const String stcFont = "STC";
+
+// ===== TEXT =====
+const String amiriFont = "Amiri";
+const String amiriBoldFont = "AmiriBold";
+const String andalusFont = "Andalus";
+
+// نفس توزيع السكرين شوت بالظبط
 const List<String> azkarFonts = [ksaFont, tahaFont, sultanFont, fodaFont];
-const List<String> timeFonts = [tajwalFont, freeSpansFont, sultanFont];
-const List<String> timesFonts = [tajwalFont, freeSpansFont, sultanFont];
-const List<String> textsFonts = [tajwalFont, freeSpansFont, sultanFont];
 
+const List<String> timeFonts = [
+  freeSerifBoldFont,
+  freeSansFont,
+  freeSansBoldFont,
+  fontoFont,
+  sultanFont,
+  stcFont,
+];
+
+const List<String> timesFonts = [
+  freeSerifBoldFont,
+  freeSansFont,
+  freeSansBoldFont,
+  fontoFont,
+  sultanFont,
+  stcFont,
+];
+
+const List<String> textsFonts = [
+  amiriFont,
+  amiriBoldFont,
+  andalusFont,
+  ksaFont,
+  tahaFont,
+  stcFont,
+  fodaFont,
+];
 var kind;
 
 bool isLargeScreen(DeviceKind kind) {

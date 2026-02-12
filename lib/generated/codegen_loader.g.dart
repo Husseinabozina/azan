@@ -187,7 +187,20 @@ class CodegenLoader extends AssetLoader{
   "azan_adjust_iqama_section_title": "Iqama Settings",
   "azan_adjust_iqama_hint": "Tap minutes to edit iqama time after adhan",
   "azan_adjust_hijri_section_title": "Hijri Date Adjustment",
-  "azan_adjust_hijri_section_hint": "Tap Hijri date to edit Hijri date +2 / -2"
+  "azan_adjust_hijri_section_hint": "Tap Hijri date to edit Hijri date +2 / -2",
+  "azan_duration": "Azan duration",
+  "azkar_timing_settings": "Azkar timing settings",
+  "enable_morning_azkar": "Enable morning azkar",
+  "morning_azkar_window_minutes": "Morning azkar duration",
+  "enable_evening_azkar": "Enable evening azkar",
+  "evening_azkar_window_minutes": "Evening azkar duration",
+  "enable_after_prayer_azkar": "Enable after-prayer azkar",
+  "after_prayer_azkar_window_minutes": "After-prayer azkar duration",
+  "minute": "minute",
+  "show_seconds_in_next_prayer": "show seconds in next prayer",
+  "change_app_logo": "Change app logo",
+  "select_from_device": "Select from device",
+  "default_app_logo": "Default app logo"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -363,7 +376,20 @@ static const Map<String,dynamic> _ar = {
   "azan_adjust_iqama_section_title": "إقامة الصلاة",
   "azan_adjust_iqama_hint": "اضغط على الدقائق لتعديل وقت الإقامة بعد الأذان",
   "azan_adjust_hijri_section_title": "ضبط التاريخ الهجري",
-  "azan_adjust_hijri_section_hint": "اضغط علي التاريخ الهجري لتعديل التاريخ +2 / -2"
+  "azan_adjust_hijri_section_hint": "اضغط علي التاريخ الهجري لتعديل التاريخ +2 / -2",
+  "azan_duration": "مدة الأذان",
+  "azkar_timing_settings": "إعدادات توقيت الأذكار",
+  "enable_morning_azkar": "تفعيل أذكار الصباح",
+  "morning_azkar_window_minutes": "مدة أذكار الصباح",
+  "enable_evening_azkar": "تفعيل أذكار المساء",
+  "evening_azkar_window_minutes": "مدة أذكار المساء",
+  "enable_after_prayer_azkar": "تفعيل أذكار ما بعد الصلاة",
+  "after_prayer_azkar_window_minutes": "مدة أذكار ما بعد الصلاة",
+  "minute": "دقيقة",
+  "show_seconds_in_next_prayer": "اظهار الثواني في صلاة القادمة",
+  "change_app_logo": "تغيير شعار التطبيق",
+  "select_from_device": "اختر من الجهاز",
+  "default_app_logo": "الشعار الإفتراضي"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"en": _en, "ar": _ar};
 }

@@ -30,11 +30,11 @@ class PrayerTimesTable extends StatelessWidget {
       builder: (context, constraints) {
         final n = rows.length;
 
-        final headerH = 22.h;
-        final spaceAfterHeader = 10.h;
+        final headerH = 19.h;
+        final spaceAfterHeader = 3.h;
 
         // ✅ خلي gap واحد فقط (من هنا)
-        final gap = 10.h;
+        final gap = 3.h;
 
         final available = constraints.maxHeight - headerH - spaceAfterHeader;
         final safeAvailable = (available.isFinite && available > 0)
@@ -63,7 +63,14 @@ class PrayerTimesTable extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.symmetric(),
                 child: Prayer3Cols(
-                  prayer: Text(LocaleKeys.prayer.tr(), style: headerStyle),
+                  endAlignment: AlignmentDirectional.center,
+                  startAlignment: AlignmentDirectional.center,
+                  centerAlignment: AlignmentDirectional.center,
+
+                  prayer: Padding(
+                    padding: EdgeInsetsDirectional.only(end: 0),
+                    child: Text(LocaleKeys.prayer.tr(), style: headerStyle),
+                  ),
                   adhan: Text(LocaleKeys.adhan_time.tr(), style: headerStyle),
                   iqama: Text(LocaleKeys.iqama_time.tr(), style: headerStyle),
                 ),
@@ -89,7 +96,10 @@ class PrayerTimesTable extends StatelessWidget {
                     textStyleAdhan: adhanStyleDyn,
                     textStyleIqama: iqamaStyleDyn,
                     rowHeight: rowH,
-                    outerMargin: EdgeInsets.zero, // ✅ مهم: مفيش margin إضافية
+                    outerMargin: EdgeInsetsDirectional.only(
+                      start: 12.w,
+                      end: 12.w,
+                    ), // ✅ مهم: مفيش margin إضافية
                   );
                 },
               ),

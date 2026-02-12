@@ -17,7 +17,7 @@
 
 // class MainActivity : FlutterActivity() {
 
-//     private val channelName = "azan/device_kind"
+//     private val channelName = "azan/device_kind"` 
 
 //     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 //         super.configureFlutterEngine(flutterEngine)

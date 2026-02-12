@@ -1,3 +1,5 @@
+import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_state.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -12,76 +14,91 @@ import 'package:azan/core/utils/screenutil_flip_ext.dart';
 /// BackgroundThemes: List of all backgrounds (same list you already use)
 /// ===============================
 class BackgroundThemes {
-  static List<String> all = [
-    Assets.images.home.path,
-    Assets.images.backgroundBroundWithMosBird.path,
-    Assets.images.backgroundLight2.path,
-    Assets.images.backgroundOliveGreenWithMosq.path,
-    Assets.images.backgroundGreenWith.path,
+  static List<String> get all => UiRotationCubit().isLandscape()
+      ? [
+          Assets.images.home.path,
+          Assets.images.hr0.path,
+          Assets.images.hr1.path,
+          Assets.images.hr2.path,
+          Assets.images.hr3.path,
+          Assets.images.hr4.path,
+          Assets.images.hr5.path,
+          Assets.images.hr6.path,
+          Assets.images.hr7.path,
+          Assets.images.hr8.path,
+          Assets.images.hr9.path,
+          Assets.images.hr10.path,
+          Assets.images.hr11.path,
+          Assets.images.hr12.path,
+          Assets.images.hr13.path,
+          Assets.images.hr14.path,
+          Assets.images.hr15.path,
+          Assets.images.hr16.path,
+          Assets.images.hr17.path,
+          Assets.images.hr18.path,
+          Assets.images.hr19.path,
+          Assets.images.hr20.path,
+          Assets.images.hr21.path,
+          Assets.images.hr22.path,
+          Assets.images.hr23.path,
+          Assets.images.hr24.path,
+          Assets.images.hr25.path,
+          Assets.images.hr26.path,
+          Assets.images.hr27.path,
+          Assets.images.hr28.path,
+          Assets.images.hr29.path,
+          Assets.images.hr30.path,
+          Assets.images.hr31.path,
+          Assets.images.hr32.path,
+          Assets.images.hr33.path,
+          Assets.images.hr34.path,
+          Assets.images.hr35.path,
+          Assets.images.hr36.path,
+          Assets.images.hr37.path,
+          Assets.images.hr38.path,
+        ]
+      : [
+          Assets.images.backgroundBroundWithMosBird.path,
+          Assets.images.backgroundLight2.path,
+          Assets.images.backgroundOliveGreenWithMosq.path,
+          Assets.images.backgroundGreenWith.path,
 
-    Assets.images.awesomeBackground.path,
-    Assets.images.awesome2.path,
-    Assets.images.darkBrownBackground.path,
-    Assets.images.lightBackground1.path,
-    Assets.images.lightBrownBackground.path,
-    Assets.images.brownBackground.path,
-    Assets.images.background2.path,
-    Assets.images.whiteBackgroundWithNaqsh.path,
-    Assets.images.elegantTealArabesqueBackground.path,
-    Assets.images.elegantBurgundyArabesqueBackground.path,
-    Assets.images.convinentOliveGreenBackground.path,
-    Assets.images.convinentBeigeBackground.path,
-    Assets.images.tealBlueBackground.path,
+          Assets.images.awesomeBackground.path,
+          Assets.images.awesome2.path,
+          Assets.images.darkBrownBackground.path,
+          Assets.images.lightBackground1.path,
+          Assets.images.lightBrownBackground.path,
+          Assets.images.brownBackground.path,
+          Assets.images.background2.path,
+          Assets.images.whiteBackgroundWithNaqsh.path,
+          Assets.images.elegantTealArabesqueBackground.path,
+          Assets.images.elegantBurgundyArabesqueBackground.path,
+          Assets.images.convinentOliveGreenBackground.path,
+          Assets.images.convinentBeigeBackground.path,
+          Assets.images.tealBlueBackground.path,
+          Assets.images.home.path,
 
-    Assets.images.hr0.path,
-    Assets.images.hr1.path,
-    Assets.images.hr2.path,
-    Assets.images.hr3.path,
-    Assets.images.hr4.path,
-    Assets.images.hr5.path,
-    Assets.images.hr6.path,
-    Assets.images.hr7.path,
-    Assets.images.hr8.path,
-    Assets.images.hr9.path,
-    Assets.images.hr10.path,
-    Assets.images.hr11.path,
-    Assets.images.hr12.path,
-    Assets.images.hr13.path,
-    Assets.images.hr14.path,
-    Assets.images.hr15.path,
-    Assets.images.hr16.path,
-    Assets.images.hr17.path,
-    Assets.images.hr18.path,
-    Assets.images.hr19.path,
-    Assets.images.hr20.path,
-    Assets.images.hr21.path,
-    Assets.images.hr22.path,
-    Assets.images.hr23.path,
-    Assets.images.hr24.path,
-    Assets.images.hr25.path,
-    Assets.images.hr26.path,
-    Assets.images.hr27.path,
-    Assets.images.hr28.path,
-    Assets.images.hr29.path,
-    Assets.images.hr30.path,
-    Assets.images.hr31.path,
-    Assets.images.hr32.path,
-    Assets.images.hr33.path,
-    Assets.images.hr34.path,
-    Assets.images.hr35.path,
-    Assets.images.hr36.path,
-    Assets.images.hr37.path,
-    Assets.images.hr38.path,
-
-    Assets.images.vr20.path,
-    Assets.images.vr21.path,
-    Assets.images.vr22.path,
-    Assets.images.vr23.path,
-    Assets.images.vr24.path,
-    Assets.images.vr25.path,
-    Assets.images.vr26.path,
-    Assets.images.vr27.path,
-  ];
+          Assets.images.vr20.path,
+          Assets.images.vr21.path,
+          Assets.images.vr22.path,
+          Assets.images.vr23.path,
+          Assets.images.vr24.path,
+          Assets.images.vr25.path,
+          Assets.images.vr26.path,
+          Assets.images.vr27.path,
+          Assets.images.vr28.path,
+          Assets.images.vr29.path,
+          Assets.images.vr30.path,
+          Assets.images.vr31.path,
+          Assets.images.vr32.path,
+          Assets.images.vr33.path,
+          Assets.images.vr34.path,
+          Assets.images.vr35.path,
+          Assets.images.vr36.path,
+          Assets.images.vr37.path,
+          Assets.images.vr38.path,
+          Assets.images.vr39.path,
+        ];
 
   static int clampIndex(int i) {
     if (all.isEmpty) return 0;
@@ -214,6 +231,7 @@ class _ChangeBackgroundSettingsScreenState
   @override
   Widget build(BuildContext context) {
     final bool isLandscape = UiRotationCubit().isLandscape();
+    final bool showRight = mode != BackgroundChangeMode.manual;
 
     return Scaffold(
       body: Stack(
@@ -245,7 +263,7 @@ class _ChangeBackgroundSettingsScreenState
                           child: Row(
                             children: [
                               Expanded(
-                                flex: 52,
+                                flex: showRight ? 52 : 100,
                                 child: PanelScroll(
                                   child: LandscapeLeftPanel(
                                     mode: mode,
@@ -262,51 +280,54 @@ class _ChangeBackgroundSettingsScreenState
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                flex: 48,
-                                child: PanelScroll(
-                                  child: LandscapeRightPanel(
-                                    mode: mode,
-                                    perPrayer: perPrayer,
-                                    perDay: perDay,
-                                    randomPool: randomPool,
-                                    onPickPrayerTheme: (key, current) {
-                                      _pickSingleTheme(
-                                        current: current,
-                                        onPick: (v) {
-                                          setState(() {
-                                            perPrayer[key] = v;
-                                            // _persistAll();
-                                          });
-                                        },
-                                      );
-                                    },
-                                    onPickDayTheme: (key, current) {
-                                      _pickSingleTheme(
-                                        current: current,
-                                        onPick: (v) {
-                                          setState(() {
-                                            perDay[key] = v;
-                                            // _persistAll();
-                                          });
-                                        },
-                                      );
-                                    },
-                                    onPickRandomPool: () {
-                                      _pickMultiThemes(
-                                        current: randomPool,
-                                        onPick: (list) {
-                                          setState(() {
-                                            randomPool = list;
-                                            // _persistAll();
-                                          });
-                                        },
-                                      );
-                                    },
+
+                              if (showRight) ...[
+                                SizedBox(width: 12.w),
+                                Expanded(
+                                  flex: 48,
+                                  child: PanelScroll(
+                                    child: LandscapeRightPanel(
+                                      mode: mode,
+                                      perPrayer: perPrayer,
+                                      perDay: perDay,
+                                      randomPool: randomPool,
+                                      onPickPrayerTheme: (key, current) {
+                                        _pickSingleTheme(
+                                          current: current,
+                                          onPick: (v) {
+                                            setState(() {
+                                              perPrayer[key] = v;
+                                              // _persistAll();
+                                            });
+                                          },
+                                        );
+                                      },
+                                      onPickDayTheme: (key, current) {
+                                        _pickSingleTheme(
+                                          current: current,
+                                          onPick: (v) {
+                                            setState(() {
+                                              perDay[key] = v;
+                                              // _persistAll();
+                                            });
+                                          },
+                                        );
+                                      },
+                                      onPickRandomPool: () {
+                                        _pickMultiThemes(
+                                          current: randomPool,
+                                          onPick: (list) {
+                                            setState(() {
+                                              randomPool = list;
+                                              // _persistAll();
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
@@ -659,25 +680,79 @@ class LandscapeRightPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (mode == BackgroundChangeMode.perPrayer)
-          PrayerThemesRow(values: perPrayer, onTapItem: onPickPrayerTheme),
-        if (mode == BackgroundChangeMode.perDay)
-          DayThemesRow(values: perDay, onTapItem: onPickDayTheme),
-        if (mode == BackgroundChangeMode.randomPool)
-          RandomPoolSection(pool: randomPool, onTapPool: onPickRandomPool),
-      ],
-    );
+    Widget? section;
+
+    if (mode == BackgroundChangeMode.perPrayer) {
+      section = PrayerThemesRow(
+        values: perPrayer,
+        onTapItem: onPickPrayerTheme,
+      );
+    } else if (mode == BackgroundChangeMode.perDay) {
+      section = DayThemesRow(values: perDay, onTapItem: onPickDayTheme);
+    } else if (mode == BackgroundChangeMode.randomPool) {
+      section = RandomPoolSection(
+        pool: randomPool,
+        onTapPool: onPickRandomPool,
+      );
+    } else {
+      // manual => مفيش حاجة يمين
+      section = null;
+    }
+
+    if (section == null) return const SizedBox.shrink();
+
+    return Column(children: [section]);
   }
 }
 
 class PanelScroll extends StatelessWidget {
-  const PanelScroll({super.key, required this.child});
+  const PanelScroll({
+    super.key,
+    required this.child,
+    // this.hideIfEmpty = false,
+  });
+
   final Widget child;
+  // final bool hideIfEmpty;
+
+  bool _isEffectivelyEmpty(Widget w) {
+    // 1) SizedBox.shrink أو SizedBox بدون أبعاد
+    if (w is SizedBox) {
+      final isShrink =
+          (w.width == 0 && w.height == 0) ||
+          (w.child == null && w.width == null && w.height == null);
+      if (isShrink) return true;
+    }
+
+    // 2) Column فاضي
+    if (w is Column && w.children.isEmpty) return true;
+
+    // 3) Row فاضي (احتياطي)
+    if (w is Row && w.children.isEmpty) return true;
+
+    // 4) Container فاضي (مش دايمًا، بس غالبًا عندك)
+    if (w is Container &&
+        w.child == null &&
+        w.constraints == null &&
+        w.decoration == null &&
+        w.foregroundDecoration == null &&
+        w.padding == null &&
+        w.margin == null) {
+      return true;
+    }
+
+    // 5) أي “Shrink” مخصص عندك (لو بتستخدمه)
+    // لو عندك Widget زي const SizedBox.shrink() غالبًا هيتغطى بالفعل.
+
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isEffectivelyEmpty(child)) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: EdgeInsets.all(10.r),
       decoration: BoxDecoration(

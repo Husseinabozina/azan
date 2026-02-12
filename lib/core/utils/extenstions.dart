@@ -129,11 +129,11 @@ extension arabicWeekDay on String {
 }
 
 extension DurationFormate on Duration {
-  String formatDuration() {
+  String formatDuration({bool showSeconds = true}) {
     final hours = inHours.toString().padLeft(2, '0');
     final minutes = (inMinutes % 60).toString().padLeft(2, '0');
     final seconds = (inSeconds % 60).toString().padLeft(2, '0');
-    return '$hours:$minutes:$seconds';
+    return showSeconds ? '$hours:$minutes:$seconds' : '$hours:$minutes';
   }
 }
 

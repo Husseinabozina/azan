@@ -555,6 +555,81 @@ class AppTheme {
       baseBg: Color(0xFF0E2A44),
       dialogBg: Color(0xFF081826),
     ),
+    // =========================
+    // VR-28 ... VR-35  (حسب الصور اللي بعتها)
+    // =========================
+
+    // VR-28 — Smoky lantern (teal smoke)
+    Assets.images.vr28.path: const _ThemePack(
+      primaryText: _goldText,
+      secondaryText: _softWhite,
+      accent: _gold,
+      baseBg: Color(0xFF22373C),
+      dialogBg: Color(0xFF162428),
+    ),
+
+    // VR-29 — Night mosque + minaret
+    Assets.images.vr29.path: const _ThemePack(
+      primaryText: _goldText,
+      secondaryText: _softWhite,
+      accent: _gold,
+      baseBg: Color(0xFF1B2A32),
+      dialogBg: Color(0xFF0F171B),
+    ),
+
+    // VR-30 — Black + crescent + gold corners
+    Assets.images.vr30.path: const _ThemePack(
+      primaryText: _goldText,
+      secondaryText: _softWhite,
+      accent: _gold,
+      baseBg: Color(0xFF050505),
+      dialogBg: Color(0xFF111111),
+    ),
+
+    // VR-31 — Dome of the Rock (dark photo)
+    Assets.images.vr31.path: const _ThemePack(
+      primaryText: _goldText,
+      secondaryText: _softWhite,
+      accent: _gold,
+      baseBg: Color(0xFF121519),
+      dialogBg: Color(0xFF0A0C0E),
+    ),
+
+    // VR-32 — Dark green pattern
+    Assets.images.vr32.path: const _ThemePack(
+      primaryText: _softWhite,
+      secondaryText: Color(0xFFD6E7E8),
+      accent: _gold,
+      baseBg: Color(0xFF0E3B2E),
+      dialogBg: Color(0xFF07261E),
+    ),
+
+    // VR-33 — Burgundy / red pattern
+    Assets.images.vr33.path: const _ThemePack(
+      primaryText: _goldText,
+      secondaryText: _softWhite,
+      accent: _teal,
+      baseBg: Color(0xFF4A0D12),
+      dialogBg: Color(0xFF2A0E12),
+    ),
+
+    // VR-34 — Blue pattern
+    Assets.images.vr34.path: const _ThemePack(
+      primaryText: _softWhite,
+      secondaryText: Color(0xFFD5E6FF),
+      accent: _gold,
+      baseBg: Color(0xFF123B5E),
+      dialogBg: Color(0xFF081C31),
+    ),
+
+    // VR-35 — Teal arabesque pattern
+    Assets.images.vr35.path: const _ThemePack(
+      primaryText: _softWhite,
+      secondaryText: Color(0xFFD6E7E8),
+      accent: _gold,
+      baseBg: Color(0xFF0F4650),
+      dialogBg: Color(0xFF0A2F36),
+    ),
   };
 
   static _ThemePack get _p =>
