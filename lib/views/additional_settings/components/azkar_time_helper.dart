@@ -41,8 +41,6 @@ class AzkarTimeHelper {
 
     final iqama = adhan!.add(Duration(minutes: _iqamaOffsetMinutes(prayerId)));
     final azkarTime = iqama.add(_prayerHideDuration(prayerId));
-    'adhan adhan $adhan iqama iqama $iqama iqamaDuration iqamaDuration $azkarTime'
-        .log();
   }
 
   static int _iqamaOffsetMinutes(int prayerId) {

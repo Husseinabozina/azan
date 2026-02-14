@@ -1010,7 +1010,6 @@ class CacheHelper {
 
     await setHijriOffsetDir(dir);
     await setHijriOffsetDays(offset);
-    offset.toString().log();
     return offset;
   }
 

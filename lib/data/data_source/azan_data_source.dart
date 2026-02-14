@@ -20,12 +20,10 @@ class AzanDataSourceImpl extends AzanDataSource {
     double lat,
     double lng,
   ) async {
-    // "_selectCalculationMethod lat lang ${lat} ${lng}".log();
     // // try {
     // try {
     //   await placemarkFromCoordinates(lat, lng);
     // } catch (e) {
-    //   ' erroooooroooooo ${e}'.log();
     // }
     return CalculationMethod.umm_al_qura; // 'SA';
 
@@ -60,7 +58,6 @@ class AzanDataSourceImpl extends AzanDataSource {
     //       return CalculationMethod.muslim_world_league;
     //   }
     // } catch (e) {
-    //   'errorerrorerrorerrorerrorerror $e'.log();
     //   return CalculationMethod.muslim_world_league;
     // }
   }
@@ -86,8 +83,6 @@ class AzanDataSourceImpl extends AzanDataSource {
         time.day,
       ); //2025, 4, 20);
 
-      'prayerTimes prayerTimes prayerTimes prayerTimes ${PrayerTimes(Coordinates(latLng.latitude, latLng.longitude), nyDate, params).asr}'
-          .log();
       return PrayerTimes(
         Coordinates(latLng.latitude, latLng.longitude),
         nyDate,

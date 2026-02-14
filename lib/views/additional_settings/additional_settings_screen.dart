@@ -140,8 +140,6 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    'widthoooo ${1.sw} && heightoooooo ${1.sh}'.log();
-
     return Scaffold(
       body: Stack(
         children: [
@@ -1161,9 +1159,6 @@ class _FontsGrid extends StatelessWidget {
         final runSpacing = 3.w;
 
         final itemWidth = (c.maxWidth - (runSpacing * (columns - 1))) / columns;
-        c.maxWidth.toString().log();
-
-        '$itemWidth ${itemWidth * columns}'.log();
 
         final groups = <_FontGroupData>[
           _FontGroupData(

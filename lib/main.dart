@@ -142,7 +142,7 @@ class _MyAppState extends State<MyApp> {
               supportedLocales: context.supportedLocales,
               locale: context.locale,
               theme: ThemeData(fontFamily: CacheHelper.getTextsFontFamily()),
-              home: AzkarView(azkarType: AzkarType.afterPrayer),
+              home: HomeScreen(),
             ),
           );
 

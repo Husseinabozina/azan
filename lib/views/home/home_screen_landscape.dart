@@ -249,7 +249,6 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
     // ✅ تحقق من الـ source أولاً
     if (azanSource.isEmpty || iqamaSource.isEmpty) {
-      '⚠️ Sound source empty: azan=$azanSource, iqama=$iqamaSource'.log();
       return;
     }
 
@@ -260,18 +259,13 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
       // ===== أذان =====
       if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
-        '🔊 Playing Azan for ${prayer.title} at $now'.log();
-
         // ✅ await على النتيجة
         final success = await _soundPlayer.playAsset(azanSource);
 
         // ✅ ضف العلامة فقط لو نجح
         if (success) {
           _playedAdhanToday.add(id);
-          '✅ Azan played successfully for ${prayer.title}'.log();
-        } else {
-          '❌ Azan play failed for ${prayer.title}'.log();
-        }
+        } else {}
       }
 
       // ===== إقامة =====
@@ -299,17 +293,12 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
         }
 
         if (!_playedIqamaToday.contains(id) && _isSameMinute(iqamaTime, now)) {
-          '🔊 Playing Iqama for ${prayer.title} at $now'.log();
-
           // ✅ await
           final success = await _soundPlayer.playAsset(iqamaSource);
 
           if (success) {
             _playedIqamaToday.add(id);
-            '✅ Iqama played successfully for ${prayer.title}'.log();
-          } else {
-            '❌ Iqama play failed for ${prayer.title}'.log();
-          }
+          } else {}
         }
       }
     }
@@ -542,8 +531,6 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
   @override
   Widget build(BuildContext context) {
-    // 'setHeight test = ${ScreenUtil().setHeight(100)}'.log();
-
     final now = DateTime.now();
     final prayers = cubit.prayers(context);
 
@@ -1327,7 +1314,6 @@ class _InfoBlock extends StatelessWidget {
         SizedBox(height: 6.h),
         GestureDetector(
           onTap: () async {
-            'dfjkl'.log();
             await CacheHelper.stepHijriOffsetCycle();
             await AppCubit.get(context).getTodayHijriDate(context);
           },

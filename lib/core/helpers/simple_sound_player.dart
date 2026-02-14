@@ -18,9 +18,7 @@ class SimpleSoundPlayer {
     _isPlaying = false;
     try {
       await _player.stop();
-    } catch (e) {
-      '❌ Error stopping player: $e'.log();
-    }
+    } catch (e) {}
   }
 
   Future<bool> _playAsset(String path) async {
@@ -29,13 +27,11 @@ class SimpleSoundPlayer {
     try {
       // ✅ تحقق أولاً قبل أي عملية طويلة
       if (myToken != _token) {
-        '⚠️ Token changed, aborting play'.log();
         return false;
       }
 
       // ✅ تحقق من الـ path
       if (path.isEmpty || path == 'null') {
-        '❌ Invalid asset path: $path'.log();
         return false;
       }
 
@@ -43,7 +39,6 @@ class SimpleSoundPlayer {
 
       // ✅ تحقق مرة أخرى بعد stop (الأهم!)
       if (myToken != _token) {
-        '⚠️ Token changed after stop, aborting'.log();
         return false;
       }
 
@@ -51,18 +46,14 @@ class SimpleSoundPlayer {
 
       // ✅ تحقق مرة أخرى بعد setAsset
       if (myToken != _token) {
-        '⚠️ Token changed after setAsset, aborting'.log();
         return false;
       }
 
-      '✅ Starting audio play: $path'.log();
       _isPlaying = true;
       await _player.play();
 
-      '✅ Audio started successfully'.log();
       return true;
     } catch (e, st) {
-      '❌ Error playing audio: $e\n$st'.log();
       _isPlaying = false;
       return false;
     }
@@ -72,8 +63,6 @@ class SimpleSoundPlayer {
     try {
       await stop();
       await _player.dispose();
-    } catch (e) {
-      '❌ Error disposing player: $e'.log();
-    }
+    } catch (e) {}
   }
 }

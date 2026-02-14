@@ -1,6 +1,11 @@
+import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
+import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
+import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/theme/app_theme.dart';
+import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -672,6 +677,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                   TextField(
                     controller: dateController,
                     readOnly: true,
+
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: sizing.bodyFontSize,
@@ -689,6 +695,9 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                         horizontal: sizing.screenWidth * 0.035,
                         vertical: sizing.screenHeight * 0.015,
                       ),
+                      // labelStyle: TextStyle(
+                      //   fontSize: sizing.bodyFontSize * 0.9,
+                      // ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
                           sizing.borderRadius,
@@ -789,5 +798,532 @@ class _AddEidDialogState extends State<_AddEidDialog> {
         ],
       ),
     );
+  }
+}
+
+Future<void> showEditDhikrDialog2(
+  BuildContext context, {
+  required Dhikr dhikr,
+}) async {
+  final sizing = DialogConfig.getSizing(context);
+
+  await showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (ctx) {
+      return UniversalDialogShell(
+        forceMaxHeight: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DialogTitle(LocaleKeys.dhikr_edit_title.tr()),
+            SizedBox(height: sizing.verticalGap * 0.6),
+
+            Flexible(
+              fit: FlexFit.loose,
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const BouncingScrollPhysics(),
+                child: ImprovedDhikrEditFormWidget(
+                  initialText: dhikr.text,
+                  initialSchedule: dhikr.schedule,
+                  onSubmit: (newText, newSchedule) async {
+                    final updatedDhikr = dhikr.copyWith(
+                      text: newText,
+                      schedule: newSchedule,
+                    );
+
+                    await DhikrHiveHelper.updateDhikr(updatedDhikr);
+
+                    // ✅ refresh list
+                    AppCubit().assignAdhkar();
+
+                    Navigator.of(ctx).pop();
+                  },
+                ),
+              ),
+            ),
+
+            SizedBox(height: sizing.verticalGap * 0.4),
+
+            // ✅ نفس تجربة الديالوج عندك: Cancel / Save (اختياري هنا لأن الفورم فيه زرار Save)
+            // تقدر تشيل الجزء ده لو انت مكتفي بزرار Save داخل الفورم
+          ],
+        ),
+      );
+    },
+  );
+}
+
+class ImprovedDhikrEditFormWidget extends StatefulWidget {
+  final String initialText;
+  final DhikrSchedule? initialSchedule;
+  final void Function(String text, DhikrSchedule? schedule) onSubmit;
+
+  const ImprovedDhikrEditFormWidget({
+    super.key,
+    required this.initialText,
+    required this.initialSchedule,
+    required this.onSubmit,
+  });
+
+  @override
+  State<ImprovedDhikrEditFormWidget> createState() =>
+      _ImprovedDhikrEditFormWidgetState();
+}
+
+class _ImprovedDhikrEditFormWidgetState
+    extends State<ImprovedDhikrEditFormWidget> {
+  late final TextEditingController _textController;
+
+  DhikrScheduleType _selectedType = DhikrScheduleType.none;
+  final Set<int> _selectedWeekdays = {};
+  DateTime? _selectedDate;
+
+  final _formKey = GlobalKey<FormState>();
+
+  static final Map<int, String> _weekdayLabels = {
+    DateTime.saturday: LocaleKeys.day_saturday.tr(),
+    DateTime.sunday: LocaleKeys.day_sunday.tr(),
+    DateTime.monday: LocaleKeys.day_monday.tr(),
+    DateTime.tuesday: LocaleKeys.day_tuesday.tr(),
+    DateTime.wednesday: LocaleKeys.day_wednesday.tr(),
+    DateTime.thursday: LocaleKeys.day_thursday.tr(),
+    DateTime.friday: LocaleKeys.day_friday.tr(),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+
+    _textController = TextEditingController(text: widget.initialText);
+
+    // ✅ Prefill schedule → type + values
+    final init = _ScheduleInit.fromSchedule(widget.initialSchedule);
+
+    _selectedType = init.type;
+    _selectedDate = init.date;
+    _selectedWeekdays
+      ..clear()
+      ..addAll(init.weekdays);
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  DhikrSchedule? _buildSchedule() {
+    switch (_selectedType) {
+      case DhikrScheduleType.none:
+        // نفس منطقك الحالي: none => daily
+        return DhikrSchedule.daily();
+
+      case DhikrScheduleType.daily:
+        return DhikrSchedule.daily();
+
+      case DhikrScheduleType.weekly:
+        if (_selectedWeekdays.isEmpty) return null;
+        return DhikrSchedule.weekly(
+          weekdays: _selectedWeekdays.toList()..sort(),
+        );
+
+      case DhikrScheduleType.specificDate:
+        if (_selectedDate == null) return DhikrSchedule.daily();
+        return DhikrSchedule.specificDate(_selectedDate!);
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showUniversalDatePicker(
+      context,
+      initialDate: _selectedDate ?? DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sizing = DialogConfig.getSizing(context);
+
+    return Padding(
+      padding: EdgeInsets.zero,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              LocaleKeys.dhikr_edit_title.tr(),
+              style: TextStyle(
+                fontSize: sizing.bodyFontSize * 1.2,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.secondaryTextColor,
+              ),
+            ),
+
+            SizedBox(height: sizing.verticalGap * 0.8),
+
+            // ✅ TextField للنص (prefilled)
+            TextFormField(
+              controller: _textController,
+              maxLines: sizing.isLandscape ? 3 : 4,
+              // textDirection: widgets.TextDirection.rtl,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: sizing.bodyFontSize,
+              ),
+              decoration: InputDecoration(
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                alignLabelWithHint: true,
+                // labelText: LocaleKeys.dhikr_text_label.tr(),
+                hintText: LocaleKeys.dhikr_text_label.tr(),
+                hintStyle: TextStyle(color: Colors.grey.shade500),
+                filled: true,
+                fillColor: Colors.white,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(sizing.borderRadius),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400,
+                    width: 1.5,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(sizing.borderRadius),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFF4C66A),
+                    width: 2,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(sizing.borderRadius),
+                  borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(sizing.borderRadius),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: sizing.screenWidth * 0.015,
+                  vertical: sizing.screenHeight * 0.015,
+                ),
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) {
+                  return LocaleKeys.dhikr_text_required_error.tr();
+                }
+                return null;
+              },
+            ),
+
+            SizedBox(height: sizing.verticalGap * 0.8),
+
+            Text(
+              LocaleKeys.schedule_type_label.tr(),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.secondaryTextColor,
+                fontSize: sizing.bodyFontSize * 1.05,
+              ),
+            ),
+
+            // ✅ Dropdown للنوع (prefilled)
+            DropdownButtonFormField<DhikrScheduleType>(
+              iconSize: sizing.bodyFontSize * 2,
+              value: _selectedType,
+              isExpanded: true,
+              icon: const Icon(
+                Icons.arrow_drop_down_rounded,
+                color: Colors.black87,
+              ),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: sizing.screenWidth * 0.04,
+                  vertical: sizing.screenHeight * 0.01,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(sizing.borderRadius),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(sizing.borderRadius),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFF4C66A),
+                    width: 2,
+                  ),
+                ),
+              ),
+              borderRadius: BorderRadius.circular(sizing.borderRadius),
+              dropdownColor: Colors.white,
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: sizing.bodyFontSize,
+                height: 1.3,
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: DhikrScheduleType.none,
+                  child: Text(LocaleKeys.schedule_type_none.tr()),
+                ),
+                DropdownMenuItem(
+                  value: DhikrScheduleType.daily,
+                  child: Text(LocaleKeys.daily.tr()),
+                ),
+                DropdownMenuItem(
+                  value: DhikrScheduleType.weekly,
+                  child: Text(LocaleKeys.schedule_type_weekly_days.tr()),
+                ),
+                DropdownMenuItem(
+                  value: DhikrScheduleType.specificDate,
+                  child: Text(LocaleKeys.schedule_type_specific_date.tr()),
+                ),
+              ],
+              onChanged: (val) {
+                if (val == null) return;
+                setState(() {
+                  _selectedType = val;
+                  // تنظيف القيم حسب النوع لتفادي “بيانات قديمة”
+                  if (_selectedType != DhikrScheduleType.weekly) {
+                    _selectedWeekdays.clear();
+                  }
+                  if (_selectedType != DhikrScheduleType.specificDate) {
+                    _selectedDate = null;
+                  }
+                });
+              },
+            ),
+
+            SizedBox(height: sizing.verticalGap * 0.6),
+
+            // ✅ Weekly chips (prefilled)
+            if (_selectedType == DhikrScheduleType.weekly) ...[
+              Text(
+                LocaleKeys.schedule_select_days_label.tr(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: sizing.bodyFontSize,
+                ),
+              ),
+              SizedBox(height: sizing.verticalGap * 0.4),
+              Wrap(
+                spacing: sizing.screenWidth * 0.02,
+                runSpacing: sizing.screenHeight * 0.008,
+                children: _weekdayLabels.entries.map((entry) {
+                  final day = entry.key;
+                  final label = entry.value;
+                  final isSelected = _selectedWeekdays.contains(day);
+
+                  return FilterChip(
+                    labelStyle: TextStyle(
+                      fontSize: sizing.bodyFontSize * 0.85,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    label: Text(label),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedWeekdays.add(day);
+                        } else {
+                          _selectedWeekdays.remove(day);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+
+            // ✅ Specific Date (prefilled)
+            if (_selectedType == DhikrScheduleType.specificDate) ...[
+              SizedBox(height: sizing.verticalGap * 0.6),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: _pickDate,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryButtonBackground,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: sizing.screenWidth * 0.03,
+                        vertical: sizing.screenHeight * 0.01,
+                      ),
+                    ),
+                    child: Text(
+                      LocaleKeys.schedule_select_date_label.tr(),
+                      style: TextStyle(
+                        fontSize: sizing.bodyFontSize,
+                        color: AppTheme.primaryButtonTextColor,
+                      ),
+                    ),
+                  ),
+                  const HorizontalSpace(width: 8),
+                  if (_selectedDate != null)
+                    Text(
+                      '${_selectedDate!.year}/${_selectedDate!.month}/${_selectedDate!.day}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryTextColor,
+                        fontSize: sizing.bodyFontSize,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+
+            SizedBox(height: sizing.verticalGap),
+
+            // ✅ Cancel / Save
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                SizedBox(
+                  width: sizing.buttonSize.width,
+                  height: sizing.buttonSize.height,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFFE8EEF7),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          sizing.borderRadius * 0.8,
+                        ),
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      LocaleKeys.common_cancel.tr(),
+                      style: TextStyle(
+                        fontSize: sizing.bodyFontSize * 1.05,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: sizing.buttonSize.width,
+                  height: sizing.buttonSize.height,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      backgroundColor: AppTheme.primaryButtonBackground,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          sizing.borderRadius * 0.8,
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      if (!_formKey.currentState!.validate()) return;
+
+                      final text = _textController.text.trim();
+                      final schedule = _buildSchedule();
+
+                      widget.onSubmit(text, schedule);
+                    },
+                    child: Text(
+                      LocaleKeys.common_save.tr(),
+                      style: TextStyle(
+                        fontSize: sizing.bodyFontSize * 1,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ============================================================================
+/// ✅ Schedule init helper (دي أهم 3 دوال لو DhikrSchedule عندك مختلف)
+/// ============================================================================
+class _ScheduleInit {
+  final DhikrScheduleType type;
+  final Set<int> weekdays;
+  final DateTime? date;
+
+  const _ScheduleInit({
+    required this.type,
+    required this.weekdays,
+    required this.date,
+  });
+
+  factory _ScheduleInit.fromSchedule(DhikrSchedule? schedule) {
+    // Default: daily (نفس فلسفتك الحالية)
+    if (schedule == null) {
+      return const _ScheduleInit(
+        type: DhikrScheduleType.daily,
+        weekdays: {},
+        date: null,
+      );
+    }
+
+    // ✅ عدّل هنا حسب موديل DhikrSchedule بتاعك
+    // 1) weekly
+    final w = _tryGetWeekdays(schedule);
+    if (w != null && w.isNotEmpty) {
+      return _ScheduleInit(
+        type: DhikrScheduleType.weekly,
+        weekdays: w.toSet(),
+        date: null,
+      );
+    }
+
+    // 2) specificDate
+    final d = _tryGetSpecificDate(schedule);
+    if (d != null) {
+      return _ScheduleInit(
+        type: DhikrScheduleType.specificDate,
+        weekdays: const {},
+        date: d,
+      );
+    }
+
+    // 3) daily fallback
+    return const _ScheduleInit(
+      type: DhikrScheduleType.daily,
+      weekdays: {},
+      date: null,
+    );
+  }
+
+  /// ✅ TODO: عدّلها حسب موديلك
+  static List<int>? _tryGetWeekdays(DhikrSchedule schedule) {
+    // لو عندك: schedule.weekdays
+    try {
+      final dynamic s = schedule;
+      final List<dynamic>? raw = s.weekdays as List<dynamic>?;
+      if (raw == null) return null;
+      return raw.map((e) => e as int).toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// ✅ TODO: عدّلها حسب موديلك
+  static DateTime? _tryGetSpecificDate(DhikrSchedule schedule) {
+    // لو عندك: schedule.date
+    try {
+      final dynamic s = schedule;
+      final DateTime? d = s.date as DateTime?;
+      return d;
+    } catch (_) {
+      return null;
+    }
   }
 }

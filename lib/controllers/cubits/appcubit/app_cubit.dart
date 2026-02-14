@@ -431,7 +431,6 @@ class AppCubit extends Cubit<AppState> {
       hijriDate = formatted;
 
       emit(AppChanged());
-      'formatted formatted'.log();
       return formatted;
     } catch (e, st) {
       debugPrint('Hijri offline error: $e');
@@ -617,17 +616,14 @@ class AppCubit extends Cubit<AppState> {
 
   bool? connectivity;
   void checkConnectivity() {
-    'start  checkConnectivity'.log();
     _connectivity.onConnectivityChanged.listen((
       List<ConnectivityResult> result,
     ) {
       if (result.contains(ConnectivityResult.none)) {
-        'result.contains(ConnectivityResult.none)'.log();
         connectivity = false;
 
         emit(AppInitial());
       } else {
-        '} else {'.log();
         connectivity = true;
 
         emit(AppChanged());
@@ -653,7 +649,6 @@ class AppCubit extends Cubit<AppState> {
         lon: latLng.longitude,
       ),
     );
-    'latLng: latlng: latlng; $latLng'.log();
     return latLng;
   }
 
@@ -669,7 +664,6 @@ class AppCubit extends Cubit<AppState> {
       }
       return result;
     } catch (e) {
-      'e: $e'.log();
       return null;
     }
   }
@@ -698,7 +692,6 @@ class AppCubit extends Cubit<AppState> {
           }
         }
         if (storeToMain) {
-          'storeToMain'.log();
           prayerTimes = result;
         }
         return result;
@@ -727,7 +720,6 @@ class AppCubit extends Cubit<AppState> {
   }) async {
     try {
       final hasNet = await _hasConnection;
-      'hasNet: $hasNet'.log();
       connectivity = hasNet;
 
       emit(FetchPrayerTimesLoading());
@@ -738,10 +730,7 @@ class AppCubit extends Cubit<AppState> {
         cityChanged = false;
       }
       if (CacheHelper.getCoordinates() == null && city != null) {
-        'CacheHelper.getCoordinates() == null && city != null'.log();
         await fetchCityCoordinate(city);
-        " fetch coordinate: fetch coordinate:${await fetchCityCoordinate(city)}"
-            .log();
       }
 
       final coords = CacheHelper.getCoordinates();
@@ -781,9 +770,7 @@ class AppCubit extends Cubit<AppState> {
           ),
         );
       }
-    } catch (e) {
-      'eeeeeeee$e'.log();
-    }
+    } catch (e) {}
     // ما تمنعش الصلاة بسبب النت
 
     // 4) الحاجات اللي محتاجة نت خليها اختيارية
@@ -1023,7 +1010,6 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> savePrayerDurations(List<int> prayersDuration) async {
-    'prayersDuration $prayersDuration'.log();
     emit(savePrayerDurationLoading());
     try {
       await PrayerDurationHiveHelper.savePrayerDurations(prayersDuration);
@@ -1041,7 +1027,6 @@ class AppCubit extends Cubit<AppState> {
       prayerCount: 5,
     );
 
-    'prayersDuration $prayersDuration'.log();
     emit(AppChanged());
   }
 
@@ -1064,12 +1049,9 @@ class AppCubit extends Cubit<AppState> {
   int getPrayerDurationForId(int prayerId) {
     final idx = AzkarTimeHelper.durationIndexForPrayerId(prayerId);
 
-    // 'idx ${idx}'.log();
-
     if (idx == null) return 7;
     // ''
     //     " prayersDuration${prayersDuration?[idx].toString()}"
-    // .log();
 
     return (prayersDuration != null && prayersDuration!.length > idx)
         ? prayersDuration![idx]

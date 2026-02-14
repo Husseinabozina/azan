@@ -38,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
     //   },
     //   builder: (context, state) {
     //     final cubit = UiRotationCubit();
-    //     cubit.isLandscape().toString().log();
 
     //     if (cubit.isLandscape()) {
     //       return HomeScreenLandscape();

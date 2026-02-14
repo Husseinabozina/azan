@@ -49,7 +49,6 @@ class PrayerGlassRow extends StatelessWidget {
 
   void _handleBackgroundChange(String s) {
     if (data.prayerName == LocaleKeys.fajr.tr() && s == LocaleKeys.fajr.tr()) {
-      'sssss'.log();
       if (CacheHelper.getBackgroundThemeIndex() == 0) {
         CacheHelper.setBackgroundThemeIndex(BackgroundThemes.all.length - 1);
       }

@@ -241,10 +241,6 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     _azkarOverlay = AzkarOverlayController();
 
     // ✅ Debugging
-    '🔍 Sound paths: azan=${cubit.getAzanSoundSource}, iqama=${cubit.getIqamaSoundSource}'
-        .log();
-    'UseMp3Azan=${CacheHelper.getUseMp3Azan()}, UseShortAzan=${CacheHelper.getUseShortAzan()}'
-        .log();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       homeScreenWork();
@@ -284,7 +280,6 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
     // ✅ تحقق من الـ source أولاً
     if (azanSource.isEmpty || iqamaSource.isEmpty) {
-      '⚠️ Sound source empty: azan=$azanSource, iqama=$iqamaSource'.log();
       return;
     }
 
@@ -295,18 +290,13 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
       // ===== أذان =====
       if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
-        '🔊 Playing Azan for ${prayer.title} at $now'.log();
-
         // ✅ await على النتيجة
         final success = await _soundPlayer.playAsset(azanSource);
 
         // ✅ ضف العلامة فقط لو نجح
         if (success) {
           _playedAdhanToday.add(id);
-          '✅ Azan played successfully for ${prayer.title}'.log();
-        } else {
-          '❌ Azan play failed for ${prayer.title}'.log();
-        }
+        } else {}
       }
 
       // ===== إقامة =====
@@ -334,17 +324,12 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
         }
 
         if (!_playedIqamaToday.contains(id) && _isSameMinute(iqamaTime, now)) {
-          '🔊 Playing Iqama for ${prayer.title} at $now'.log();
-
           // ✅ await
           final success = await _soundPlayer.playAsset(iqamaSource);
 
           if (success) {
             _playedIqamaToday.add(id);
-            '✅ Iqama played successfully for ${prayer.title}'.log();
-          } else {
-            '❌ Iqama play failed for ${prayer.title}'.log();
-          }
+          } else {}
         }
       }
     }
@@ -406,7 +391,6 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   //   required String tempText, // جاهز بالعربي/انجليزي
   // }) {
   //   final r = tempIconForCelsius(tempC);
-  //   " tempc tempc tempc tempc ${tempC.toString()}".log();
 
   //   return FittedBox(
   //     fit: BoxFit.scaleDown,
@@ -616,11 +600,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                             // ),
                             // Spacer(flex: 1),
                             GestureDetector(
-                              onTap: () {
-                                // AppCubit().prayersDuration.toString().log();
-                                "UI temp=${cubit.maxTemp} code=${cubit.todayWeather?.weatherCode}"
-                                    .log();
-                              },
+                              onTap: () {},
                               child: SizedBox(
                                 height: 42.h,
                                 child: FittedBox(
