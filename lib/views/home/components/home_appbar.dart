@@ -1,21 +1,18 @@
-import 'dart:io';
-
-import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
+import 'dart:typed_data';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:azan/core/utils/screenutil_flip_ext.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' as io;
 
 class HomeAppBar extends StatefulWidget {
@@ -28,6 +25,8 @@ class HomeAppBar extends StatefulWidget {
 
 class _HomeAppBarState extends State<HomeAppBar> {
   String? _logoPath;
+
+  // ✅ ده اللي هنستخدمه في build (بدون قراءة من disk)
   Uint8List? _logoBytes;
   bool _bytesIsSvg = false;
 
@@ -35,12 +34,48 @@ class _HomeAppBarState extends State<HomeAppBar> {
   void initState() {
     super.initState();
     _logoPath = CacheHelper.getMosqueLogoPath();
+
+    // ✅ اقرأ اللوجو مرة واحدة فقط
+    _loadLogoFromCache();
   }
 
   bool _exists(String? path) {
     if (kIsWeb) return false;
     if (path == null || path.isEmpty) return false;
     return io.File(path).existsSync();
+  }
+
+  Future<void> _loadLogoFromCache() async {
+    if (kIsWeb) return;
+
+    final path = CacheHelper.getMosqueLogoPath();
+    if (!_exists(path)) {
+      if (!mounted) return;
+      setState(() {
+        _logoPath = path;
+        _logoBytes = null;
+        _bytesIsSvg = false;
+      });
+      return;
+    }
+
+    try {
+      final lower = path!.toLowerCase();
+      final bytes = await io.File(path).readAsBytes(); // ✅ مرة واحدة
+      if (!mounted) return;
+
+      setState(() {
+        _logoPath = path;
+        _logoBytes = bytes;
+        _bytesIsSvg = lower.endsWith('.svg');
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _logoBytes = null;
+        _bytesIsSvg = false;
+      });
+    }
   }
 
   Future<void> _pickLogoFromDevice() async {
@@ -51,7 +86,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
     final res = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['png', 'jpg', 'jpeg', 'webp', 'svg'],
-      withData: kIsWeb, // ✅ مهم للويب
+      withData: kIsWeb,
     );
 
     if (!mounted) return;
@@ -68,6 +103,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
     final f = res.files.first;
     final ext = p.extension(f.name).toLowerCase();
 
+    // ✅ WEB: اعرض bytes مباشرة
     if (kIsWeb) {
       final bytes = f.bytes;
       if (bytes == null) return;
@@ -80,6 +116,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
       return;
     }
 
+    // ✅ Mobile/Desktop: خزّن الملف ثم اقرأه مرة واحدة
     if (f.path == null) return;
 
     final pickedPath = f.path!;
@@ -87,19 +124,18 @@ class _HomeAppBarState extends State<HomeAppBar> {
     final ts = DateTime.now().millisecondsSinceEpoch;
     final savedPath = p.join(dir.path, 'mosque_logo_$ts$ext');
 
-    await io.File(pickedPath).copy(savedPath); // ✅ io.File
+    await io.File(pickedPath).copy(savedPath);
     await CacheHelper.setMosqueLogoPath(savedPath);
 
     if (!mounted) return;
-    setState(() {
-      _logoPath = savedPath;
-      _logoBytes = null;
-      _bytesIsSvg = false;
-    });
+
+    // ✅ حدّث path ثم حمّل bytes مرة واحدة
+    _logoPath = savedPath;
+    await _loadLogoFromCache();
   }
 
   Widget _buildLogo(double logoH, double logoW) {
-    // ✅ WEB: ممنوع file، اعرض bytes لو موجودة وإلا default asset
+    // ✅ WEB
     if (kIsWeb) {
       if (_logoBytes != null) {
         return _bytesIsSvg
@@ -125,38 +161,30 @@ class _HomeAppBarState extends State<HomeAppBar> {
       );
     }
 
-    // ✅ Mobile/Desktop: اعرض من File path
-    final path = CacheHelper.getMosqueLogoPath();
-
-    if (_exists(path)) {
-      final lower = path!.toLowerCase();
-
-      // اقرأ bytes مرة واحدة هنا
-      final bytes = io.File(path).readAsBytesSync();
-
-      if (lower.endsWith('.svg')) {
-        return SvgPicture.memory(
-          bytes,
-          height: logoH,
-          width: logoW,
-          fit: BoxFit.cover,
-        );
-      }
-
-      return Image.memory(
-        bytes,
-        height: logoH,
-        width: logoW,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => SvgPicture.asset(
-          Assets.svg.logosvg,
-          height: logoH,
-          width: logoW,
-          fit: BoxFit.cover,
-        ),
-      );
+    // ✅ Mobile/Desktop: اعرض من الذاكرة فقط (بدون قراءة disk هنا!)
+    if (_logoBytes != null) {
+      return _bytesIsSvg
+          ? SvgPicture.memory(
+              _logoBytes!,
+              height: logoH,
+              width: logoW,
+              fit: BoxFit.cover,
+            )
+          : Image.memory(
+              _logoBytes!,
+              height: logoH,
+              width: logoW,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => SvgPicture.asset(
+                Assets.svg.logosvg,
+                height: logoH,
+                width: logoW,
+                fit: BoxFit.contain,
+              ),
+            );
     }
 
+    // fallback
     return SvgPicture.asset(
       Assets.svg.logosvg,
       height: logoH,
@@ -167,8 +195,6 @@ class _HomeAppBarState extends State<HomeAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    final _ = UiRotationCubit().isLandscape();
-
     const double gap = 10;
     final double startPadding = 10.w;
 
@@ -215,7 +241,6 @@ class _HomeAppBarState extends State<HomeAppBar> {
 
         final double groupOneLineWidth =
             startPadding + logoW + gap.w + oneLineMeasure.width;
-
         final bool shouldCenterGroup = groupOneLineWidth <= maxGroupWidth;
 
         final TextPainter twoLinesMeasure = TextPainter(
@@ -264,7 +289,6 @@ class _HomeAppBarState extends State<HomeAppBar> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           GestureDetector(
-                            // ✅ هنا: دوس على اللوجو → يفتح اختيار من الجهاز
                             onTap: _pickLogoFromDevice,
                             child: Container(
                               height: logoH,
@@ -273,7 +297,6 @@ class _HomeAppBarState extends State<HomeAppBar> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(2.r),
                               ),
-
                               child: _buildLogo(logoH, logoW),
                             ),
                           ),
@@ -355,7 +378,6 @@ class _AdaptiveTitleText extends StatelessWidget {
           maxLines: 2,
         );
 
-        // Find the largest font size that fits in <= 2 lines and within availableHeight
         while (currentFontSize >= minFontSize) {
           textPainter.text = TextSpan(
             text: text,
@@ -376,14 +398,12 @@ class _AdaptiveTitleText extends StatelessWidget {
           if (lines <= 2 && textHeight <= availableHeight) break;
 
           currentFontSize -= 0.5;
-
           if (currentFontSize < minFontSize) {
             currentFontSize = minFontSize;
             break;
           }
         }
 
-        // IMPORTANT: Don't force a tight height that could clip; let Text size itself.
         return Text(
           text,
           style: TextStyle(

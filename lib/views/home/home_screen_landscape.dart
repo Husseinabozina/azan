@@ -877,7 +877,10 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                           ),
                           behavior: HitTestBehavior.opaque,
                           onTap: _azkarOverlay.dismissForNow,
-                          child: AzkarView(azkarType: w.type),
+                          child: AzkarView(
+                            azkarType: w.type,
+                            // prayerId: w.prayerId,
+                          ),
                         );
                       }
 
