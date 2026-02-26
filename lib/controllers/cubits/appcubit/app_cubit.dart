@@ -19,6 +19,7 @@ import 'package:azan/core/models/next_Iqama.dart';
 import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/models/weather_day.dart';
 import 'package:azan/core/services/open_weather_service.dart';
+import 'package:azan/core/services/sytem_time_guard_service.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
@@ -43,6 +44,48 @@ class AppCubit extends Cubit<AppState> {
   AppCubit._internal(this._dio) : super(AppInitial()) {
     weatherService = OpenMeteoWeatherService(dio: _dio);
     _initOnce();
+  }
+
+  late final SystemTimeGuardService _systemTimeGuard;
+
+  Future<void> init() async {
+    _systemTimeGuard = SystemTimeGuardService(
+      onDeviceTimeChanged: _onDeviceTimeChanged,
+      onError: (e, st) {
+        // log error
+      },
+    );
+
+    _systemTimeGuard.startListening();
+  }
+
+  Future<void> _onDeviceTimeChanged(DeviceTimeChangeEvent event) async {
+    emit(AppInitial());
+    // ✅ هنا الدالة اللي إنت عاوزها
+    await handleDeviceTimeChanged(event);
+
+    // لو عندك UI محتاج refresh:
+    emit(AppChanged());
+  }
+
+  Future<void> handleDeviceTimeChanged(DeviceTimeChangeEvent event) async {
+    // مثال:
+    // 1) تحديث الوقت الحالي
+    // 2) إعادة حساب المواقيت
+    // 3) إعادة جدولة الإشعارات
+    // 4) تحديث التاريخ/الهجري لو عندك
+    print('Device time changed => $event');
+
+    // TODO: حط منطقك الحقيقي هنا
+    // await prayerService.recalculate();
+    // await notificationService.rescheduleAll();
+    // await azkarService.refresh();
+  }
+
+  @override
+  Future<void> close() async {
+    await _systemTimeGuard.stopListening();
+    return super.close();
   }
 
   static AppCubit? _instance;
@@ -1104,5 +1147,39 @@ class AppCubit extends Cubit<AppState> {
     emit(AppInitial());
     nextPrayerVar = prayer;
     emit(AppChanged());
+  }
+
+  // =========================
+  // Adhan → Iqama cycle state
+  // =========================
+
+  DateTime? currentAdhanTime;
+  DateTime? currentIqamaTime;
+  bool isBetweenAdhanAndIqama = false;
+  bool startAzanAtIqamaPhase = false;
+
+  void startAdhanCycle({
+    required Prayer prayer,
+    required DateTime adhanTime,
+    required DateTime iqamaTime,
+  }) {
+    currentPrayer = prayer;
+    currentAdhanTime = adhanTime;
+    currentIqamaTime = iqamaTime;
+    isBetweenAdhanAndIqama = false; // يبدأ الأذان أولاً
+    startAzanAtIqamaPhase = false;
+  }
+
+  void markBetweenAdhanAndIqama() {
+    if (currentIqamaTime == null) return;
+    isBetweenAdhanAndIqama = true;
+  }
+
+  Duration? remainingToIqama() {
+    if (!isBetweenAdhanAndIqama || currentIqamaTime == null) return null;
+    final now = DateTime.now();
+    final diff = currentIqamaTime!.difference(now);
+    if (diff.isNegative) return Duration.zero;
+    return diff;
   }
 }

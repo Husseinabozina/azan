@@ -40,7 +40,7 @@ import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 // import 'package:azan/core/utils/screenutil_flip_ext.dart';
 // import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -167,6 +167,16 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
 
+      // ✅ تحقق من الوصول لوقت الإقامة لفتح شاشة الإقامة مباشرة
+      if (cubit.isBetweenAdhanAndIqama &&
+          cubit.currentIqamaTime != null &&
+          !cubit.startAzanAtIqamaPhase &&
+          now.isAfter(cubit.currentIqamaTime!)) {
+        cubit.isBetweenAdhanAndIqama = false;
+        cubit.startAzanAtIqamaPhase = true;
+        cubit.showPrayerAzanPage = true;
+      }
+
       // ✅ setState في الآخر (مش مهم لو أخذت وقت)
       setState(() {});
 
@@ -257,13 +267,24 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     final prayers = cubit.prayers(context);
     for (final prayer in prayers) {
       final DateTime? adhanTime = prayer.dateTime;
-      if (adhanTime == null) continue;
+      if (adhanTime == null || cubit.iqamaMinutes == null) continue;
 
       if (_isSameMinute(adhanTime, DateTime.now())) {
-        setState(() {
-          cubit.currentPrayer = prayer;
-          CacheHelper.setCurrentPrayerKey(prayer.title);
+        final int id = prayer.id;
+        if (id <= 0 || id > cubit.iqamaMinutes!.length) {
+          continue;
+        }
+        final iqamaTime = adhanTime.add(
+          Duration(minutes: cubit.iqamaMinutes![id - 1]),
+        );
 
+        setState(() {
+          CacheHelper.setCurrentPrayerKey(prayer.title);
+          cubit.startAdhanCycle(
+            prayer: prayer,
+            adhanTime: adhanTime,
+            iqamaTime: iqamaTime,
+          );
           cubit.showPrayerAzanPage = true;
         });
       }
@@ -746,10 +767,10 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-
                                       children: [
                                         Text(
-                                          LocalizationHelper.isArAndArNumberEnable()
+                                          LocalizationHelper
+                                                  .isArAndArNumberEnable()
                                               ? DateHelper.toArabicDigits(
                                                   DateFormat(
                                                     'dd/MM/yyyy',
@@ -765,6 +786,43 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                             color: AppTheme.primaryTextColor,
                                           ),
                                         ),
+                                        // عداد بسيط لما بين الأذان والإقامة
+                                        if (cubit.isBetweenAdhanAndIqama)
+                                          Builder(
+                                            builder: (_) {
+                                              final d =
+                                                  cubit.remainingToIqama();
+                                              if (d == null ||
+                                                  d.inSeconds <= 0) {
+                                                return const SizedBox.shrink();
+                                              }
+                                              final text =
+                                                  d.formatDuration(); // نفس الإكستنشن المستخدم لباقي العدادات
+                                              final localized = LocalizationHelper
+                                                      .isArAndArNumberEnable()
+                                                  ? DateHelper.toArabicDigits(
+                                                      text,
+                                                    )
+                                                  : DateHelper.toWesternDigits(
+                                                      text,
+                                                    );
+                                              return Padding(
+                                                padding: EdgeInsets.only(
+                                                  top: 4.h,
+                                                ),
+                                                child: Text(
+                                                  '${LocaleKeys.remaining_for_iqamaa.tr()} $localized',
+                                                  style: TextStyle(
+                                                    fontSize: 16.sp,
+                                                    color: AppTheme
+                                                        .secondaryTextColor,
+                                                    fontFamily: CacheHelper
+                                                        .getTextsFontFamily(),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                       ],
                                     ),
                                   ),
@@ -1402,7 +1460,7 @@ class _AzkarSliderState extends State<AzkarSlider> {
                   return Padding(
                     padding: EdgeInsets.only(right: 16.w, left: 5.w),
                     child: AdaptiveTextWidget(
-                      text: text,
+                      text: "﴿ $text ﴾",
                       maxFontSize: widget.maxFontSize,
                       minFontSize: widget.minFontSize,
                       availableHeight: widget.height,
@@ -1463,6 +1521,7 @@ class AdaptiveTextWidget extends StatelessWidget {
   final String? fontFamily;
 
   const AdaptiveTextWidget({
+    super.key,
     required this.text,
     required this.maxFontSize,
     required this.minFontSize,
@@ -1475,71 +1534,57 @@ class AdaptiveTextWidget extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        double currentFontSize = maxFontSize;
-        int lines = 1;
+        final maxH =
+            constraints.maxHeight; // استخدم القيود الفعلية بدل availableHeight
 
-        // نجرب نحسب عدد الأسطر عند الحجم الأقصى
-        final textPainter = TextPainter(
+        double fs = maxFontSize;
+
+        const lineHeight = 1.0; // خليها واحدة هنا وهناك
+
+        final tp = TextPainter(
           textDirection: material.TextDirection.rtl,
           textAlign: TextAlign.center,
+          maxLines: 2,
+          ellipsis: '…',
         );
 
-        // نبدأ بالحجم الأقصى ونشوف كام سطر هيطلع
-        while (currentFontSize >= minFontSize) {
-          textPainter.text = TextSpan(
-            text: text,
-            style: TextStyle(
-              fontSize: currentFontSize,
-              fontWeight: FontWeight.bold,
-              height: 1, // line height
-              fontFamily: CacheHelper.getAzkarFontFamily(),
-            ),
+        while (fs >= minFontSize) {
+          final style = TextStyle(
+            fontSize: fs,
+            fontWeight: FontWeight.bold,
+            height: lineHeight,
+            fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
+            color: AppTheme.primaryTextColor,
           );
-          textPainter.layout(maxWidth: width);
 
-          lines = textPainter.computeLineMetrics().length;
-          final textHeight = textPainter.height;
+          tp.text = TextSpan(text: text, style: style);
+          tp.layout(maxWidth: width);
 
-          // لو السطور 2 أو أقل والنص داخل في المساحة المتاحة، خلاص كده تمام
-          if (lines <= 2 && textHeight <= availableHeight) {
-            break;
-          }
+          final fitsHeight =
+              tp.height <= maxH; // أو availableHeight لو مصمم عليها
+          final fitsLines = !tp.didExceedMaxLines;
 
-          // لو السطور أكتر من 2، نصغر الخط شوية
-          if (lines > 2) {
-            currentFontSize -= 1;
-          } else if (textHeight > availableHeight) {
-            // لو الارتفاع أكبر من المتاح، نصغر الخط
-            currentFontSize -= 0.5;
-          } else {
-            break;
-          }
+          if (fitsLines && fitsHeight) break;
 
-          // نتأكد إننا ما نزلناش عن الحد الأدنى
-          if (currentFontSize < minFontSize) {
-            currentFontSize = minFontSize;
-            break;
-          }
+          fs -= 0.5;
         }
 
-        // نرسم النص النهائي
-        return Container(
-          child: Center(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: currentFontSize,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryTextColor,
-                fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
+        // clamp
+        if (fs < minFontSize) fs = minFontSize;
 
-                // height: 1.5,
-              ),
-
-              textAlign: TextAlign.center,
-              textDirection: material.TextDirection.rtl,
-              maxLines: lines > 2 ? null : 2,
-              overflow: lines > 2 ? TextOverflow.visible : null,
+        return Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            textDirection: material.TextDirection.rtl,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: fs,
+              fontWeight: FontWeight.bold,
+              height: lineHeight, // نفس اللي في القياس
+              color: AppTheme.primaryTextColor,
+              fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
             ),
           ),
         );

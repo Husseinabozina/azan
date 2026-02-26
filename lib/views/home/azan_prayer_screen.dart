@@ -18,7 +18,7 @@ import 'package:azan/views/home/components/live_clock_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 
 class AzanPrayerScreen extends StatefulWidget {
   const AzanPrayerScreen({super.key, required this.currentPrayer});
@@ -38,7 +38,6 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
 
   late AppCubit appCubit;
 
-  Duration? _timeBeforeIqama;
   final Duration _timeBeforeAzanTerminate = Duration(
     minutes: CacheHelper.getAzanDuration(),
   );
@@ -53,16 +52,19 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
   void initState() {
     super.initState();
     appCubit = AppCubit.get(context);
-    // appCubit.getCurrentPrayerDuraion();
 
-    _timeBeforeIqama = Duration(
-      minutes: (appCubit.iqamaMinutes![widget.currentPrayer.id - 1] > 1)
-          ? appCubit.iqamaMinutes![widget.currentPrayer.id - 1] -
-                _timeBeforeDoaaTerminate.inMinutes -
-                _timeBeforeAzanTerminate.inMinutes
-          : appCubit.iqamaMinutes![widget.currentPrayer.id - 1],
-    );
+    // لو الفتح من الهوم عند وقت الإقامة مباشرة
+    if (appCubit.startAzanAtIqamaPhase) {
+      appCubit.startAzanAtIqamaPhase = false;
+      _azanTerminat = true;
+      _doaaTerminat = true;
+      _isIqamaTime = true;
+      // في هذا السيناريو، العداد بين الأذان والإقامة كان في الهوم بالفعل
+      iqamaaWork();
+      return;
+    }
 
+    // سيناريو الأذان العادي: نعرض الأذان ثم الدعاء ثم نعود للهوم
     _azanTimer = Timer(_timeBeforeAzanTerminate, () {
       if (!mounted) return;
       setState(() => _azanTerminat = true);
@@ -70,6 +72,10 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
       _doaaTimer = Timer(_timeBeforeDoaaTerminate, () {
         if (!mounted) return;
         setState(() => _doaaTerminat = true);
+
+        // بعد انتهاء الدعاء: نعلّم أن الفترة بين الأذان والإقامة بدأت ونغلق الشاشة
+        appCubit.markBetweenAdhanAndIqama();
+        appCubit.togglePrayerAzanPage();
       });
     });
   }
@@ -145,19 +151,25 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
         child: BlocConsumer<AppCubit, AppState>(
           listener: (context, state) {},
           builder: (context, state) {
-            return SizedBox(
+            return Container(
               width: 1.sw,
               height: 1.sh,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(CacheHelper.getSelectedBackground()),
+                  fit: BoxFit.fill,
+                ),
+              ),
               child: SafeArea(
                 child: Stack(
                   children: [
                     // Background
-                    Positioned.fill(
-                      child: Image.asset(
-                        CacheHelper.getSelectedBackground(),
-                        fit: BoxFit.fill,
-                      ),
-                    ),
+                    // Positioned.fill(
+                    //   child: Image.asset(
+                    //     CacheHelper.getSelectedBackground(),
+                    //     fit: BoxFit.fill,
+                    //   ),
+                    // ),
 
                     // ✅ Black screen during prayer
                     if (CacheHelper.getEnableHidingScreenDuringPrayer() &&
@@ -306,94 +318,12 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
                         ),
                       ),
 
-                    // ✅ Countdown to Iqama
-                    if (_doaaTerminat && !_isIqamaTime && !_isPrayerTime)
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 1500),
-                        opacity: _doaaTerminat ? 1 : 0,
-                        child: Center(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              // bottom: isLandscape ? 0 : m.centerBottomPad,
-                            ),
-                            child: SingleChildScrollView(
-                              // ScrollView للـ countdown
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  FittedBox(
-                                    // FittedBox للـ clock
-                                    fit: BoxFit.scaleDown,
-                                    child: LiveClockRow(
-                                      timeFontSize: m.countdownClockSize,
-                                      periodFontSize: m.countdownClockSize,
-                                      withIndicator: false,
-                                    ),
-                                  ),
-                                  VerticalSpace(height: m.gapS),
-                                  if (_timeBeforeIqama != null)
-                                    Container(
-                                      // color: Colors.red,
-                                      child: Column(
-                                        children: [
-                                          Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 20.w,
-                                            ),
-                                            child: Text(
-                                              LocaleKeys.remaining_for_iqamaa
-                                                  .tr(),
-                                              style: TextStyle(
-                                                fontSize: m.remainingTextSize,
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    AppTheme.primaryTextColor,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                          VerticalSpace(height: m.gapM),
-                                          ConstrainedBox(
-                                            // ConstrainedBox للـ ring عشان ميتجاوزش height
-                                            constraints: BoxConstraints(
-                                              maxHeight:
-                                                  0.5.sh, // max 40% من height
-                                            ),
-                                            child: IqamaVisualCountdown(
-                                              backgroundStrokeColor:
-                                                  AppTheme.accentColor,
-                                              progressColor:
-                                                  AppTheme.primaryTextColor,
-                                              dangerColor: Colors.red,
-                                              warningColor: Colors.yellow,
-                                              totalDuration: _timeBeforeIqama!,
-                                              size: isLandscape
-                                                  ? 0.5.sw
-                                                  : m.ringSize,
-                                              strokeWidth: m.ringStroke,
-                                              onFinished: () {
-                                                if (!mounted) return;
-                                                setState(
-                                                  () => _isIqamaTime = true,
-                                                );
-                                                iqamaaWork();
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    // ✅ Countdown to Iqama تم نقله للهوم، لذلك لا نعرضه هنا بعد الدعاء
 
                     // ✅ Drawer button when adhan terminated
                     // if (_azanTerminat)
                     Positioned(
-                      top: mq.padding.top + m.menuTop,
+                      top: m.menuTop,
                       left: m.menuLeft,
                       child: IconButton(
                         onPressed: () => scaffoldKey.currentState?.openDrawer(),
