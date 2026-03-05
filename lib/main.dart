@@ -1,27 +1,27 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
+import 'package:azan/core/helpers/slide_hive_helper.dart';
+import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/device_kind_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart' as flip;
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/codegen_loader.g.dart';
-import 'package:azan/views/home/components/azkar_view.dart';
-import 'package:azan/views/home/home_screen.dart';
+import 'package:azan/views/splash/splash_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   final dio = Dio(); // أو DioService بتاعك
   AppCubit.configure(dio: dio);
+  // await appCubit.init();
   kind = await DeviceKindHelper.detectBeforeRunApp();
 
   await CacheHelper.init();
@@ -31,11 +31,12 @@ void main() async {
   await EasyLocalization.ensureInitialized();
   await Hive.initFlutter();
   await DhikrHiveHelper.ensureInitialAzkar(azkar);
+  await SlideHiveHelper.ensureInitialSlides(ayat);
 
   runApp(
     EasyLocalization(
       path: 'assets/Lang',
-      supportedLocales: const [Locale('en'), Locale('ar')],
+      supportedLocales: const [Locale('en'), Locale('ar'), Locale('bn')],
       saveLocale: true,
       useOnlyLangCode: true,
       assetLoader: const CodegenLoader(),
@@ -81,7 +82,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider.value(
           value: cubit, //
         ),
-        BlocProvider(create: (context) => AppCubit()),
+        BlocProvider(create: (context) => AppCubit()..init()),
       ],
       child: BlocConsumer<UiRotationCubit, bool>(
         bloc: cubit,
@@ -136,15 +137,30 @@ class _MyAppState extends State<MyApp> {
             key: ValueKey('${designSize.width}x${designSize.height}'),
             designSize: designSize,
             minTextAdapt: true,
-            child: MaterialApp(
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: context.localizationDelegates,
-              supportedLocales: context.supportedLocales,
-              locale: context.locale,
-              theme: ThemeData(fontFamily: CacheHelper.getTextsFontFamily()),
-              home: HomeScreen(),
-              //  AzkarView(azkarType: AzkarType.evening),
-              // AzkarView(azkarType: AzkarType.afterPrayer),
+            child: Builder(
+              builder: (context) {
+                final baseTheme = ThemeData(
+                  fontFamily: CacheHelper.getTextsFontFamily(),
+                );
+
+                return MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  localizationsDelegates: context.localizationDelegates,
+                  supportedLocales: context.supportedLocales,
+                  locale: context.locale,
+                  theme: baseTheme.copyWith(
+                    textTheme: AppTheme.withDefaultTextShadow(
+                      baseTheme.textTheme,
+                    ),
+                    primaryTextTheme: AppTheme.withDefaultTextShadow(
+                      baseTheme.primaryTextTheme,
+                    ),
+                  ),
+                  home: const SplashScreen(),
+                  //  AzkarView(azkarType: AzkarType.evening),
+                  // AzkarView(azkarType: AzkarType.afterPrayer),
+                );
+              },
             ),
           );
 
