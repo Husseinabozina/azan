@@ -10,7 +10,8 @@ import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 class FridayPrayerSettingsScreen extends StatefulWidget {
   const FridayPrayerSettingsScreen({super.key});
@@ -25,6 +26,8 @@ class _FridayPrayerSettingsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      bottomNavigationBar: const GlobalCopyrightFooter(),
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {},
         builder: (context, state) {

@@ -40,49 +40,59 @@ class DialogSizing {
 
   /// احسب العرض المناسب للdialog (نسبة من الشاشة)
   double get dialogWidth {
+    // ✅ Material Design Guidelines: Max 640px للـ dialogs
+    const maxDialogWidth = 640.0;
+
+    double calculatedWidth;
     if (isLandscape) {
-      // في الlandscape: 60-70% من العرض
-      return screenWidth * 0.65;
+      // في الlandscape: 55% من العرض (أكبر شوية عشان ميبقاش صغير)
+      calculatedWidth = screenWidth * 0.55;
     } else {
-      // في الportrait: 85-90% من العرض
-      return screenWidth * 0.88;
+      // في الportrait: 88% من العرض
+      calculatedWidth = screenWidth * 0.88;
     }
+
+    // ✅ Clamp بين min و max
+    return calculatedWidth.clamp(320.0, maxDialogWidth);
   }
 
   /// احسب الارتفاع الأقصى للdialog
   double get dialogMaxHeight {
+    // ✅ Material Design: Max 85% من الشاشة
+    const maxDialogHeight = 650.0;
+
+    double calculatedHeight;
     if (isLandscape) {
-      // في الlandscape: 85% من الارتفاع (عشان الكيبورد)
-      return screenHeight * 0.85;
+      // في الlandscape: 80% من الارتفاع
+      calculatedHeight = screenHeight * 0.80;
     } else {
       // في الportrait: 70% من الارتفاع
-      return screenHeight * 0.70;
+      calculatedHeight = screenHeight * 0.70;
     }
+
+    // ✅ Clamp بين min و max
+    return calculatedHeight.clamp(350.0, maxDialogHeight);
   }
 
   /// padding داخلي للdialog
   EdgeInsets get dialogPadding {
-    if (isLandscape) {
-      return EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.025, // ~2.5%
-        vertical: screenHeight * 0.015, // ~1.5%
-      );
-    } else {
-      return EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.04, // ~4%
-        vertical: screenHeight * 0.015, // ~1.5%
-      );
-    }
+    return EdgeInsets.symmetric(
+      horizontal: isLandscape ? screenWidth * 0.025 : screenWidth * 0.04,
+      vertical: screenHeight * 0.025,
+    );
   }
 
   /// inset للdialog من حواف الشاشة
   EdgeInsets get dialogInset {
     if (isLandscape) {
+      // ✅ في landscape: margins متوسطة عشان الdialog يكون واسع كفاية
+      final horizontalInset = screenWidth * 0.10; // 10% من كل جانب
       return EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.08,
-        vertical: screenHeight * 0.05,
+        horizontal: horizontalInset,
+        vertical: screenHeight * 0.08,
       );
     } else {
+      // ✅ في portrait: margins أصغر
       return EdgeInsets.symmetric(
         horizontal: screenWidth * 0.06,
         vertical: screenHeight * 0.08,
@@ -93,52 +103,51 @@ class DialogSizing {
   /// حجم الخط للعناوين
   double get titleFontSize {
     if (isLandscape) {
-      // في landscape: نستخدم العرض عشان الشاشة أوسع
       final scale = screenWidth / 960.0;
-      return 18.0 * scale; // ✅ أكبر من portrait
+      return 20.0 * scale; // ✅ أكبر شوية
     } else {
-      // في portrait: نستخدم العرض
       final scale = screenWidth / 393.0;
-      return 16.0 * scale;
+      return 18.0 * scale;
     }
   }
 
   /// حجم الخط للنصوص العادية
   double get bodyFontSize {
     if (isLandscape) {
-      // في landscape: نستخدم العرض
       final scale = screenWidth / 960.0;
-      return 14.0 * scale; // ✅ أكبر من portrait
+      return 16.0 * scale; // ✅ أكبر شوية
     } else {
-      // في portrait: نستخدم العرض
       final scale = screenWidth / 393.0;
-      return 13.0 * scale;
+      return 15.0 * scale;
     }
   }
 
   /// حجم الأزرار
   Size get buttonSize {
     if (isLandscape) {
-      // في landscape: أزرار أكبر عشان الشاشة واسعة
-      return Size(screenWidth * 0.14, screenHeight * 0.10);
+      // ✅ في landscape: أزرار أصغر شوية
+      return Size(screenWidth * 0.08, screenHeight * 0.06);
     } else {
-      // في portrait: أزرار عادية
-      return Size(screenWidth * 0.22, screenHeight * 0.048);
+      // ✅ في portrait: أزرار عادية
+      return Size(screenWidth * 0.22, screenHeight * 0.055);
     }
   }
 
   /// المسافات الرأسية
   double get verticalGap {
-    return isLandscape ? screenHeight * 0.02 : screenHeight * 0.025;
+    return isLandscape ? screenHeight * 0.03 : screenHeight * 0.035;
   }
 
   /// border radius
   double get borderRadius {
-    final baseRadius = isLandscape ? 16.0 : 18.0;
+    final baseRadius = isLandscape ? 18.0 : 20.0;
     final scale =
         math.min(screenWidth, screenHeight) / (isLandscape ? 960 : 393);
     return baseRadius * scale;
   }
+  
+  /// TextField Height
+  double get textFieldHeight => isLandscape ? 48.0 : 52.0;
 }
 
 /// ============================================================================
@@ -256,23 +265,40 @@ class DialogTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final sizing = DialogConfig.getSizing(context);
 
-    return TextField(
-      controller: controller,
-      textAlign: textAlign,
-      maxLines: maxLines,
-      style: TextStyle(color: Colors.black, fontSize: sizing.bodyFontSize),
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white,
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: sizing.screenWidth * 0.035,
-          vertical: sizing.screenHeight * 0.015,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius),
-          borderSide: BorderSide.none,
+    return SizedBox(
+      height: sizing.textFieldHeight,
+      child: TextField(
+        controller: controller,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        style: TextStyle(color: Colors.black, fontSize: sizing.bodyFontSize),
+        decoration: InputDecoration(
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: sizing.screenWidth * 0.035,
+            vertical: sizing.textFieldHeight * 0.3,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
+            borderSide: BorderSide(
+              color: Colors.grey.shade300,
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
+            borderSide: BorderSide(
+              color: AppTheme.accentColor,
+              width: 2,
+            ),
+          ),
         ),
       ),
     );

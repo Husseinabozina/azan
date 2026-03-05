@@ -1,4 +1,3 @@
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:just_audio/just_audio.dart';
 
 class SimpleSoundPlayer {
@@ -10,6 +9,9 @@ class SimpleSoundPlayer {
   final AudioPlayer _player = AudioPlayer();
   int _token = 0;
   bool _isPlaying = false;
+  Duration? _lastLoadedDuration;
+
+  Duration? get lastLoadedDuration => _player.duration ?? _lastLoadedDuration;
 
   Future<bool> playAsset(String path) async => _playAsset(path);
 
@@ -35,6 +37,7 @@ class SimpleSoundPlayer {
         return false;
       }
 
+      _lastLoadedDuration = null;
       await _player.stop();
 
       // ✅ تحقق مرة أخرى بعد stop (الأهم!)
@@ -43,6 +46,7 @@ class SimpleSoundPlayer {
       }
 
       await _player.setAsset(path);
+      _lastLoadedDuration = _player.duration;
 
       // ✅ تحقق مرة أخرى بعد setAsset
       if (myToken != _token) {
@@ -51,6 +55,9 @@ class SimpleSoundPlayer {
 
       _isPlaying = true;
       await _player.play();
+      if (myToken == _token) {
+        _isPlaying = false;
+      }
 
       return true;
     } catch (e, st) {
@@ -62,7 +69,6 @@ class SimpleSoundPlayer {
   Future<void> dispose() async {
     try {
       await stop();
-      await _player.dispose();
     } catch (e) {}
   }
 }

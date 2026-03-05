@@ -1,15 +1,12 @@
 import 'dart:async';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
-import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/simple_sound_player.dart';
 import 'package:azan/core/models/next_Iqama.dart';
-import 'package:azan/core/models/prayer.dart';
-import 'package:azan/core/models/prayer_display_data.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
@@ -23,9 +20,9 @@ import 'package:azan/views/home/components/azkar_view.dart';
 import 'package:azan/views/home/components/clock_and_left_time_widget.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
-import 'package:azan/views/home/components/landscape_top.dart';
-import 'package:azan/views/home/components/live_clock_row.dart';
+import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
+import 'package:azan/views/home/components/iqama_progress_bar.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -76,6 +73,13 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
       a.hour == b.hour &&
       a.minute == b.minute;
 
+  void _syncHomeBlackScreenFlag(bool visible) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      cubit.setHomeBlackScreenVisible(visible);
+    });
+  }
+
   Future<void> _assignHijriDate() async {
     await cubit.getTodayHijriDate(context);
   }
@@ -97,6 +101,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     unawaited(cubit.initializePrayerTimes(city: city, context: context));
     unawaited(cubit.getIqamaTime());
     unawaited(cubit.assignAdhkar());
+    unawaited(cubit.assignSlides());
 
     // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
     unawaited(
@@ -136,15 +141,16 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
       final now = DateTime.now();
 
       // ✅ اعمل الحاجات المهمة الأولى (بدون setState)
-      await _checkAndPlayPrayerSound(now); // ✅ await!
+      _checkAndPlayPrayerSound(now);
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
 
       // ✅ تحقق من الوصول لوقت الإقامة لفتح شاشة الإقامة مباشرة
+      final remainingToIqama = cubit.remainingToIqama();
       if (cubit.isBetweenAdhanAndIqama &&
-          cubit.currentIqamaTime != null &&
           !cubit.startAzanAtIqamaPhase &&
-          now.isAfter(cubit.currentIqamaTime!)) {
+          remainingToIqama != null &&
+          remainingToIqama <= Duration.zero) {
         cubit.isBetweenAdhanAndIqama = false;
         cubit.startAzanAtIqamaPhase = true;
         cubit.showPrayerAzanPage = true;
@@ -211,6 +217,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     );
 
     unawaited(cubit.assignAdhkar());
+    unawaited(cubit.assignSlides());
 
     // ✅ شغل التايمرز بعد ما الأساسيات خلصت
     _startTimers();
@@ -236,19 +243,31 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
   void performAdhanActions(BuildContext context) {
     if (cubit.prayerTimes == null) return;
 
+    final azanSource = cubit.getAzanSoundSource;
     final prayers = cubit.prayers(context);
     for (final prayer in prayers) {
       final DateTime? adhanTime = prayer.dateTime;
-      if (adhanTime == null || cubit.iqamaMinutes == null) continue;
+      if (adhanTime == null) continue;
 
       if (_isSameMinute(adhanTime, DateTime.now())) {
         final int id = prayer.id;
-        if (id <= 0 || id > cubit.iqamaMinutes!.length) {
-          continue;
+        int iqamaOffsetMinutes = 10;
+        final iqamaMinutes = cubit.iqamaMinutes;
+        if (iqamaMinutes != null && id > 0 && id <= iqamaMinutes.length) {
+          iqamaOffsetMinutes = iqamaMinutes[id - 1];
         }
-        final iqamaTime = adhanTime.add(
-          Duration(minutes: cubit.iqamaMinutes![id - 1]),
-        );
+        final iqamaTime = adhanTime.add(Duration(minutes: iqamaOffsetMinutes));
+
+        if (!_playedAdhanToday.contains(id) && azanSource.isNotEmpty) {
+          _playedAdhanToday.add(id);
+          unawaited(
+            _soundPlayer.playAsset(azanSource).then((success) {
+              if (!success) {
+                _playedAdhanToday.remove(id);
+              }
+            }),
+          );
+        }
 
         setState(() {
           CacheHelper.setCurrentPrayerKey(prayer.title);
@@ -263,16 +282,15 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     }
   }
 
-  Future<void> _checkAndPlayPrayerSound(DateTime now) async {
+  void _checkAndPlayPrayerSound(DateTime now) {
     if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
 
     final prayers = cubit.prayers(context);
     final iqamaMinutes = cubit.iqamaMinutes!;
-    final azanSource = cubit.getAzanSoundSource;
     final iqamaSource = cubit.getIqamaSoundSource;
 
     // ✅ تحقق من الـ source أولاً
-    if (azanSource.isEmpty || iqamaSource.isEmpty) {
+    if (iqamaSource.isEmpty) {
       return;
     }
 
@@ -280,17 +298,6 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
       final int id = prayer.id;
       final DateTime? adhanTime = prayer.dateTime;
       if (adhanTime == null) continue;
-
-      // ===== أذان =====
-      if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
-        // ✅ await على النتيجة
-        final success = await _soundPlayer.playAsset(azanSource);
-
-        // ✅ ضف العلامة فقط لو نجح
-        if (success) {
-          _playedAdhanToday.add(id);
-        } else {}
-      }
 
       // ===== إقامة =====
       if (iqamaMinutes.length >= id) {
@@ -317,12 +324,15 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
         }
 
         if (!_playedIqamaToday.contains(id) && _isSameMinute(iqamaTime, now)) {
-          // ✅ await
-          final success = await _soundPlayer.playAsset(iqamaSource);
-
-          if (success) {
-            _playedIqamaToday.add(id);
-          } else {}
+          // احجز العلامة فورًا لمنع إعادة التشغيل في نفس الدقيقة
+          _playedIqamaToday.add(id);
+          unawaited(
+            _soundPlayer.playAsset(iqamaSource).then((success) {
+              if (!success) {
+                _playedIqamaToday.remove(id);
+              }
+            }),
+          );
         }
       }
     }
@@ -554,6 +564,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     _minuteTimer?.cancel();
     _soundPlayer.dispose();
     _azkarOverlay.dispose();
+    cubit.setHomeBlackScreenVisible(false);
     super.dispose();
   }
 
@@ -573,404 +584,444 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
 
       return iqamaTime.isBefore(now);
     }).toList();
-    return Scaffold(
-      key: scaffoldKey,
-      drawer: CustomDrawer(context: context),
+    final theme = Theme.of(context);
+    final noShadowTheme = theme.copyWith(
+      textTheme: AppTheme.withoutTextShadow(theme.textTheme),
+      primaryTextTheme: AppTheme.withoutTextShadow(theme.primaryTextTheme),
+    );
+    return Theme(
+      data: noShadowTheme,
+      child: Scaffold(
+        extendBody: true,
+        bottomNavigationBar: const GlobalCopyrightFooter(),
+        key: scaffoldKey,
+        drawer: CustomDrawer(context: context),
 
-      body: BlocConsumer<AppCubit, AppState>(
-        listener: (context, state) {},
-        builder: (context, state) {
-          final prayers = cubit.prayers(context);
-          final iqamaMinutes = cubit.iqamaMinutes;
-          final nextFajrPrayer = cubit.nextFajrPrayer?.time24 ?? '--:--';
+        body: BlocConsumer<AppCubit, AppState>(
+          listener: (context, state) {},
+          builder: (context, state) {
+            final prayers = cubit.prayers(context);
+            final iqamaMinutes = cubit.iqamaMinutes;
+            final nextFajrPrayer = cubit.nextFajrPrayer?.time24 ?? '--:--';
 
-          // 1) الصفوف الأساسية (الصلوات المعتادة)
-          final List<PrayerRowData> rows = List.generate(prayers.length, (
-            index,
-          ) {
-            final p = prayers[index];
+            // 1) الصفوف الأساسية (الصلوات المعتادة)
+            final List<PrayerRowData> rows = List.generate(prayers.length, (
+              index,
+            ) {
+              final p = prayers[index];
 
-            final dimmed =
-                index < pastIqamaFlags.length && pastIqamaFlags[index];
+              final dimmed =
+                  index < pastIqamaFlags.length && pastIqamaFlags[index];
 
-            final baseTimeStr = CacheHelper.getUse24HoursFormat()
-                ? (p.time24 ?? p.time)
-                : (p.time ?? p.time24);
+              final baseTimeStr = CacheHelper.getUse24HoursFormat()
+                  ? (p.time24 ?? p.time)
+                  : (p.time ?? p.time24);
 
-            final adhanStr = baseTimeStr != null
-                ? DateHelper.displayHHmmNoPeriod(baseTimeStr, context)
-                : '--:--';
+              final adhanStr = baseTimeStr != null
+                  ? DateHelper.displayHHmmNoPeriod(baseTimeStr, context)
+                  : '--:--';
 
-            final idx = p.id - 1;
+              final idx = p.id - 1;
 
-            final iqamaStr =
-                (baseTimeStr != null &&
-                    iqamaMinutes != null &&
-                    idx >= 0 &&
-                    idx < iqamaMinutes.length)
-                ? DateHelper.addMinutesDisplayHHmmNoPeriod(
-                    baseTimeStr,
-                    iqamaMinutes[idx],
-                    context,
-                  )
-                : '--:--';
+              final iqamaStr =
+                  (baseTimeStr != null &&
+                      iqamaMinutes != null &&
+                      idx >= 0 &&
+                      idx < iqamaMinutes.length)
+                  ? DateHelper.addMinutesDisplayHHmmNoPeriod(
+                      baseTimeStr,
+                      iqamaMinutes[idx],
+                      context,
+                    )
+                  : '--:--';
 
-            return PrayerRowData(
-              prayerName: p.title,
-              adhanTime: adhanStr,
-              iqamaTime: iqamaStr,
-              dimmed: dimmed,
-              nextFajrPrayer: nextFajrPrayer,
-            );
-          });
+              return PrayerRowData(
+                prayerName: p.title,
+                adhanTime: adhanStr,
+                iqamaTime: iqamaStr,
+                dimmed: dimmed,
+                nextFajrPrayer: nextFajrPrayer,
+              );
+            });
 
-          // ===============================
-          // 2) صفوف العيد (اختياريًا)
-          // ===============================
-          List<PrayerRowData> eidRows = [];
+            // ===============================
+            // 2) صفوف العيد (اختياريًا)
+            // ===============================
+            List<PrayerRowData> eidRows = [];
 
-          PrayerRowData? buildEidRow({
-            required String? rawEid,
-            required bool shouldShow,
-            required String fallbackName,
-          }) {
-            if (!shouldShow || rawEid == null || rawEid.length < 2) return null;
+            PrayerRowData? buildEidRow({
+              required String? rawEid,
+              required bool shouldShow,
+              required String fallbackName,
+            }) {
+              if (!shouldShow || rawEid == null || rawEid.length < 2)
+                return null;
 
-            final rawTime = rawEid.trim();
-            if (rawTime.isEmpty || rawTime == '--:--') return null;
+              final rawTime = rawEid.trim();
+              if (rawTime.isEmpty || rawTime == '--:--') return null;
 
-            // نفس منطق تنسيق الوقت المستخدم عندك
-            final eidTime = DateHelper.displayHHmmNoPeriod(rawTime, context);
+              // نفس منطق تنسيق الوقت المستخدم عندك
+              final eidTime = DateHelper.displayHHmmNoPeriod(rawTime, context);
 
-            // dimmed منطقي: لو وقت العيد عدى -> نعتبره dimmed
-            bool eidDimmed = false;
-            try {
-              // هنقارن كـ HH:mm محلي مبسط لو أمكن
-              // لو عندك helper يحول string -> DateTime لليوم الحالي استخدمه بدل ده
-              final now = DateTime.now();
+              // dimmed منطقي: لو وقت العيد عدى -> نعتبره dimmed
+              bool eidDimmed = false;
+              try {
+                // هنقارن كـ HH:mm محلي مبسط لو أمكن
+                // لو عندك helper يحول string -> DateTime لليوم الحالي استخدمه بدل ده
+                final now = DateTime.now();
 
-              // نجرب نفهم "HH:mm" (أو صيغة مشابهة بعد display)
-              final parts = eidTime.split(':');
-              if (parts.length >= 2) {
-                final h = int.tryParse(
-                  parts[0].replaceAll(RegExp(r'[^0-9]'), ''),
-                );
-                final m = int.tryParse(
-                  parts[1].replaceAll(RegExp(r'[^0-9]'), ''),
-                );
-                if (h != null && m != null) {
-                  final eidDateTime = DateTime(
-                    now.year,
-                    now.month,
-                    now.day,
-                    h,
-                    m,
+                // نجرب نفهم "HH:mm" (أو صيغة مشابهة بعد display)
+                final parts = eidTime.split(':');
+                if (parts.length >= 2) {
+                  final h = int.tryParse(
+                    parts[0].replaceAll(RegExp(r'[^0-9]'), ''),
                   );
-                  eidDimmed = now.isAfter(eidDateTime);
+                  final m = int.tryParse(
+                    parts[1].replaceAll(RegExp(r'[^0-9]'), ''),
+                  );
+                  if (h != null && m != null) {
+                    final eidDateTime = DateTime(
+                      now.year,
+                      now.month,
+                      now.day,
+                      h,
+                      m,
+                    );
+                    eidDimmed = now.isAfter(eidDateTime);
+                  }
                 }
+              } catch (_) {
+                eidDimmed = false;
               }
-            } catch (_) {
-              eidDimmed = false;
+
+              return PrayerRowData(
+                prayerName:
+                    fallbackName, // "عيد الفطر" أو "عيد الأضحى" أو "صلاة العيد"
+                adhanTime: eidTime,
+                iqamaTime:
+                    '', // فاضي زي ما طلبت (ممكن '--:--' لو تفضل ثبات الشكل)
+                dimmed: eidDimmed,
+                nextFajrPrayer: nextFajrPrayer,
+              );
             }
 
-            return PrayerRowData(
-              prayerName:
-                  fallbackName, // "عيد الفطر" أو "عيد الأضحى" أو "صلاة العيد"
-              adhanTime: eidTime,
-              iqamaTime:
-                  '', // فاضي زي ما طلبت (ممكن '--:--' لو تفضل ثبات الشكل)
-              dimmed: eidDimmed,
-              nextFajrPrayer: nextFajrPrayer,
+            final adhaRow = buildEidRow(
+              rawEid: CacheHelper.getAdhaEid(),
+              shouldShow: CacheHelper.getShowAdhaEid() && _isAdhaDayHijri,
+              fallbackName: LocaleKeys.eid_al_adha.tr(),
             );
-          }
 
-          final adhaRow = buildEidRow(
-            rawEid: CacheHelper.getAdhaEid(),
-            shouldShow: CacheHelper.getShowAdhaEid() && _isAdhaDayHijri,
-            fallbackName: LocaleKeys.eid_al_adha.tr(),
-          );
+            final fitrRow = buildEidRow(
+              rawEid: CacheHelper.getFitrEid(),
+              shouldShow: CacheHelper.getShowFitrEid() && _isFitrDayHijri,
+              fallbackName: LocaleKeys.eid_al_fitr.tr(),
+            );
 
-          final fitrRow = buildEidRow(
-            rawEid: CacheHelper.getFitrEid(),
-            shouldShow: CacheHelper.getShowFitrEid() && _isFitrDayHijri,
-            fallbackName: LocaleKeys.eid_al_fitr.tr(),
-          );
+            if (fitrRow != null) eidRows.add(fitrRow);
+            if (adhaRow != null) eidRows.add(adhaRow);
 
-          if (fitrRow != null) eidRows.add(fitrRow);
-          if (adhaRow != null) eidRows.add(adhaRow);
+            // ===============================
+            // 3) إدراج العيد بعد الشروق
+            // ===============================
+            if (eidRows.isNotEmpty) {
+              // الأفضل تعتمد على id=2 للشروق عندك
+              final sunriseIndex = prayers.indexWhere((p) => p.id == 2);
 
-          // ===============================
-          // 3) إدراج العيد بعد الشروق
-          // ===============================
-          if (eidRows.isNotEmpty) {
-            // الأفضل تعتمد على id=2 للشروق عندك
-            final sunriseIndex = prayers.indexWhere((p) => p.id == 2);
-
-            if (sunriseIndex != -1) {
-              final insertAt = sunriseIndex + 1;
-              rows.insertAll(insertAt, eidRows);
-            } else {
-              // fallback لو الشروق مش موجود لأي سبب
-              rows.addAll(eidRows);
+              if (sunriseIndex != -1) {
+                final insertAt = sunriseIndex + 1;
+                rows.insertAll(insertAt, eidRows);
+              } else {
+                // fallback لو الشروق مش موجود لأي سبب
+                rows.addAll(eidRows);
+              }
             }
-          }
-          return SizedBox(
-            height: 1.sh,
-            width: 1.sw,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: Image.asset(
-                    CacheHelper.getSelectedBackground(),
-                    fit: BoxFit.cover,
+            return SizedBox(
+              height: 1.sh,
+              width: 1.sw,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      CacheHelper.getSelectedBackground(),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
-                SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final double height = constraints.maxHeight;
-                      final double width = constraints.maxWidth;
+                  SafeArea(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final double height = constraints.maxHeight;
+                        final double width = constraints.maxWidth;
 
-                      // ✅ كل حاجة responsive من الـ width و height
-                      final double hPadding = width * 0.008; // 0.8% من العرض
-                      final double itemSpacing = width * 0.006; // 0.6% من العرض
+                        // ✅ كل حاجة responsive من الـ width و height
+                        final double hPadding = width * 0.008; // 0.8% من العرض
+                        final double itemSpacing =
+                            width * 0.006; // 0.6% من العرض
 
-                      final topH = height * 0.10;
-                      final liveClockRowH = height * 0.28;
-                      final ayatH = height * 0.11;
-                      final prayerRowH = height * 0.31;
+                        final appBarH = height * 0.09;
+                        final liveClockRowH = height * 0.32;
+                        final ayatH = height * 0.11;
+                        final prayerRowH = height * 0.31;
 
-                      final double totalSpacing =
-                          (rows.length - 1) * itemSpacing;
-                      final double itemWidth =
-                          (width - totalSpacing - (hPadding * 2)) / rows.length;
-                      // final double height = constraints.maxHeight; // ✅ after SafeArea
-                      //   final double width = constraints.maxWidth;   // ✅ after SafeArea
+                        final double totalSpacing =
+                            (rows.length - 1) * itemSpacing;
+                        final double itemWidth =
+                            (width - totalSpacing - (hPadding * 2)) /
+                            rows.length;
+                        // final double height = constraints.maxHeight; // ✅ after SafeArea
+                        //   final double width = constraints.maxWidth;   // ✅ after SafeArea
 
-                      // Your design is 960x540, SafeArea already handled
-                      // So scale against your design size
-                      final double scaleW = width / 960.0;
-                      final double scaleH = height / 540.0;
+                        // Your design is 960x540, SafeArea already handled
+                        // So scale against your design size
+                        final double scaleW = width / 960.0;
+                        final double scaleH = height / 540.0;
 
-                      // Use the smaller scale to avoid overflow
-                      final double scale = scaleW < scaleH ? scaleW : scaleH;
-                      final double azkarH = height * 0.1;
-                      final double footerH = height * 0.050;
-                      return Column(
-                        children: [
-                          SizedBox(
-                            // color: Colors.red,
-                            height: 70 * scale,
-                            child: LandscapeTop(
-                              onDrawerTap: () =>
-                                  scaffoldKey.currentState?.openDrawer(),
-                              height: topH,
-                              gregDate: '2026/2/17',
-                              hijriDate: cubit.hijriDate ?? '',
-                              titleFontSize: 20 * scale,
-                              hijiriFontSize: 25 * scale,
-                            ),
-                          ),
-                          Container(
-                            // color: Colors.yellow,
-                            height: liveClockRowH,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: ClockAndLeftTimeWidget(
-                                    nextPrayerFuture: _nextPrayerFuture,
-                                    width: width,
-                                    letfTimeText: "",
-                                  ),
+                        // Use the smaller scale to avoid overflow
+                        final double scale = scaleW < scaleH ? scaleW : scaleH;
+                        final double azkarH = height * 0.1;
+                        final double footerH = height * 0.050;
+                        return Column(
+                          children: [
+                            SizedBox(
+                              height: appBarH,
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.only(
+                                  start: 4.w,
+                                  end: 4.w,
                                 ),
-                                if (cubit.isBetweenAdhanAndIqama)
-                                  Builder(
-                                    builder: (_) {
-                                      final d = cubit.remainingToIqama();
-                                      if (d == null || d.inSeconds <= 0) {
-                                        return const SizedBox.shrink();
-                                      }
-                                      final text = d.formatDuration();
-                                      final localized =
-                                          LocalizationHelper
-                                                  .isArAndArNumberEnable()
-                                              ? DateHelper.toArabicDigits(text)
-                                              : DateHelper.toWesternDigits(
-                                                  text,
-                                                );
-                                      return Padding(
-                                        padding: EdgeInsets.only(top: 4.h),
-                                        child: AutoSizeText(
-                                          '${LocaleKeys.remaining_for_iqamaa.tr()} $localized',
-                                          maxLines: 1,
-                                          minFontSize: 10,
-                                          style: TextStyle(
-                                            fontSize: 18.sp,
-                                            color:
-                                                AppTheme.secondaryTextColor,
-                                            fontFamily:
-                                                CacheHelper.getTextsFontFamily(),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                              ],
+                                child: HomeAppBar(
+                                  onDrawerTap: () =>
+                                      scaffoldKey.currentState?.openDrawer(),
+                                  titleFontSize: 20 * scale,
+                                ),
+                              ),
                             ),
-                          ),
-
-                          RotatingAyahBanner(
-                            maxLines: 1,
-                            ayat: ayat, // ✅ اللي انت جايبه
-                            height: ayatH,
-                            // availableHeight: 90.h, // لو عايز نفس منطقك القديم
-                            maxFontSize: 30.sp,
-                            minFontSize: 12.sp,
-                            interval: const Duration(
-                              seconds: 20,
-                            ), // أو CacheHelper.getSliderTime()
-                            fontFamily: CacheHelper.getAzkarFontFamily(),
-                            textColor: AppTheme.primaryTextColor,
-                          ),
-                          Spacer(),
-
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: hPadding,
-                            ), // ✅ raw
-                            child: Row(
-                              // mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(rows.length, (index) {
-                                return Padding(
-                                  padding: EdgeInsetsDirectional.only(
-                                    end: index != rows.length - 1
-                                        ? itemSpacing
-                                        : 0,
-                                  ),
-                                  child: PrayerLandScapeItem(
-                                    row: rows[index],
-                                    width: itemWidth,
-                                    height: prayerRowH,
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-
-                          AzkarSlider(
-                            adhkar: cubit.todaysAdkar != null
-                                ? cubit.todaysAdkar!.map((e) => e.text).toList()
-                                : [],
-                            height: azkarH,
-
-                            maxFontSize: scale * 26,
-                            minFontSize: scale * 19,
-                          ),
-                          GestureDetector(
-                            onTap: () {},
-                            child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                            Container(
+                              height: liveClockRowH,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: width * 0.01,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  AutoSizeText(
-                                    LocaleKeys.copy_right_for_sadja.tr(),
-                                    maxLines: 1,
-                                    minFontSize: 12,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 20.sp,
-                                      color: AppTheme.primaryTextColor,
+                                  Expanded(
+                                    child: ClockAndLeftTimeWidget(
+                                      nextPrayerFuture: _nextPrayerFuture,
+                                      width: width,
+                                      letfTimeText: "",
+                                      isIqamaActive:
+                                          cubit.isBetweenAdhanAndIqama,
+                                      onHijriTap: () async {
+                                        await CacheHelper.stepHijriOffsetCycle();
+                                        await AppCubit.get(
+                                          context,
+                                        ).getTodayHijriDate(context);
+                                        if (!mounted) return;
+                                        setState(() {});
+                                      },
                                     ),
                                   ),
-                                  HorizontalSpace(width: 8),
-                                  AutoSizeText(
-                                    AppCubit.get(context).getCity() != null
-                                        ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
-                                        : "",
-                                    maxLines: 1,
-                                    minFontSize: 8, // ✅ raw
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      color: AppTheme.primaryTextColor,
-                                      fontWeight: FontWeight.bold,
+                                  if (cubit.isBetweenAdhanAndIqama)
+                                    Builder(
+                                      builder: (_) {
+                                        final d = cubit.remainingToIqama();
+                                        if (d == null || d.inSeconds <= 0) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        final text = d.formatDuration();
+                                        final localized =
+                                            LocalizationHelper.isArAndArNumberEnable()
+                                            ? DateHelper.toArabicDigits(text)
+                                            : DateHelper.toWesternDigits(text);
+                                        return Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 6.h,
+                                          ),
+                                          child: Center(
+                                            child: IqamaProgressBar(
+                                              progress: cubit.iqamaProgress(),
+                                              label:
+                                                  '${LocaleKeys.remaining_for_iqamaa.tr()} $localized',
+                                              height: 28 * scale,
+                                              width: width * 0.4,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                        ],
+
+                            if (CacheHelper.getSlidesEnabled())
+                              RotatingAyahBanner(
+                                maxLines: 1,
+                                ayat:
+                                    (cubit.todaysSlides != null &&
+                                        cubit.todaysSlides!.isNotEmpty)
+                                    ? cubit.todaysSlides!
+                                          .map((e) => e.text)
+                                          .toList()
+                                    : ayat,
+                                height: ayatH,
+                                maxFontSize: 30.sp,
+                                minFontSize: 12.sp,
+                                interval: Duration(
+                                  seconds:
+                                      CacheHelper.getSlidesDisplaySeconds(),
+                                ),
+                                randomOrder: CacheHelper.getSlidesRandomOrder(),
+                                fontFamily: CacheHelper.getAzkarFontFamily(),
+                                textColor: AppTheme.primaryTextColor,
+                              ),
+                            Spacer(),
+
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: hPadding,
+                              ), // ✅ raw
+                              child: Row(
+                                // mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(rows.length, (index) {
+                                  return Padding(
+                                    padding: EdgeInsetsDirectional.only(
+                                      end: index != rows.length - 1
+                                          ? itemSpacing
+                                          : 0,
+                                    ),
+                                    child: PrayerLandScapeItem(
+                                      row: rows[index],
+                                      width: itemWidth,
+                                      height: prayerRowH,
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+
+                            AzkarSlider(
+                              adhkar: cubit.todaysAdkar != null
+                                  ? cubit.todaysAdkar!
+                                        .map((e) => e.text)
+                                        .toList()
+                                  : [],
+                              height: azkarH,
+
+                              maxFontSize: scale * 26,
+                              minFontSize: scale * 19,
+                              fontFamily: CacheHelper.getAzkarFontFamily(),
+                            ),
+                            SizedBox(height: 4.h),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+
+                  FutureBuilder<bool>(
+                    future: _hideFuture,
+                    builder: (context, snapshot) {
+                      final shouldHide =
+                          CacheHelper.getHideScreenAfterIshaaEnabled() &&
+                          (snapshot.data == true);
+
+                      final azanActive =
+                          (cubit.currentPrayer != null &&
+                          cubit.currentPrayer!.id != 2 &&
+                          cubit.showPrayerAzanPage);
+                      final remainingToIqama = cubit.remainingToIqama();
+                      final showLastMinuteCountdown =
+                          CacheHelper.getShowIqamaCountdownLastMinuteOnly() &&
+                          cubit.isBetweenAdhanAndIqama &&
+                          remainingToIqama != null &&
+                          remainingToIqama > Duration.zero &&
+                          remainingToIqama <= const Duration(seconds: 60);
+                      final hideFooterOnBlack =
+                          shouldHide ||
+                          showLastMinuteCountdown ||
+                          cubit.isAzanBlackScreenVisible;
+                      _syncHomeBlackScreenFlag(hideFooterOnBlack);
+                      final remainingSeconds = showLastMinuteCountdown
+                          ? ((remainingToIqama.inMilliseconds + 999) ~/ 1000)
+                                .clamp(1, 60)
+                          : 0;
+                      final secondsText = showLastMinuteCountdown
+                          ? (LocalizationHelper.isArAndArNumberEnable()
+                                ? DateHelper.toArabicDigits(
+                                    remainingSeconds.toString(),
+                                  )
+                                : remainingSeconds.toString())
+                          : '';
+
+                      return ValueListenableBuilder<AzkarWindow?>(
+                        valueListenable: _azkarOverlay,
+                        builder: (_, w, __) {
+                          Widget overlay = const SizedBox.shrink();
+
+                          // 1) أعلى أولوية: AzanPrayerScreen
+                          if (azanActive) {
+                            overlay = AzanPrayerScreen(
+                              key: const ValueKey('azan-test'),
+                              currentPrayer: cubit.currentPrayer!,
+                            );
+                          }
+                          // 2) ثاني أولوية: black screen
+                          else if (showLastMinuteCountdown) {
+                            overlay = IqamaLastMinuteCountdownOverlay(
+                              secondsText: secondsText,
+                            );
+                          }
+                          // 3) ثالث أولوية: black screen
+                          else if (shouldHide) {
+                            overlay = Container(
+                              key: const ValueKey('black_screen'),
+                              height: 1.sh,
+                              width: 1.sw,
+                              color: Colors.black,
+                            );
+                          }
+                          // 4) رابع أولوية: Azkar
+                          else if (w != null) {
+                            overlay = GestureDetector(
+                              key: ValueKey(
+                                'azkar-${w.type.name}-${w.prayerId ?? 0}',
+                              ),
+                              behavior: HitTestBehavior.opaque,
+                              onTap: _azkarOverlay.dismissForNow,
+                              child: AzkarView(
+                                azkarType: w.type,
+                                // prayerId: w.prayerId,
+                              ),
+                            );
+                          }
+
+                          return AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 1500),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: (child, anim) {
+                              final scale = Tween<double>(
+                                begin: 0.985,
+                                end: 1.0,
+                              ).animate(anim);
+                              return FadeTransition(
+                                opacity: anim,
+                                child: ScaleTransition(
+                                  scale: scale,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: overlay,
+                          );
+                        },
                       );
                     },
                   ),
-                ),
-
-                FutureBuilder<bool>(
-                  future: _hideFuture,
-                  builder: (context, snapshot) {
-                    final shouldHide =
-                        CacheHelper.getHideScreenAfterIshaaEnabled() &&
-                        (snapshot.data == true);
-
-                    final azanActive =
-                        (cubit.currentPrayer != null &&
-                        cubit.currentPrayer!.id != 2 &&
-                        cubit.showPrayerAzanPage);
-
-                    return ValueListenableBuilder<AzkarWindow?>(
-                      valueListenable: _azkarOverlay,
-                      builder: (_, w, __) {
-                        Widget overlay = const SizedBox.shrink();
-
-                        // 1) أعلى أولوية: AzanPrayerScreen
-                        if (azanActive) {
-                          overlay = AzanPrayerScreen(
-                            key: const ValueKey('azan-test'),
-                            currentPrayer: cubit.currentPrayer!,
-                          );
-                        }
-                        // 2) ثاني أولوية: black screen
-                        else if (shouldHide) {
-                          overlay = Container(
-                            key: const ValueKey('black_screen'),
-                            height: 1.sh,
-                            width: 1.sw,
-                            color: Colors.black,
-                          );
-                        }
-                        // 3) ثالث أولوية: Azkar
-                        else if (w != null) {
-                          overlay = GestureDetector(
-                            key: ValueKey(
-                              'azkar-${w.type.name}-${w.prayerId ?? 0}',
-                            ),
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _azkarOverlay.dismissForNow,
-                            child: AzkarView(
-                              azkarType: w.type,
-                              // prayerId: w.prayerId,
-                            ),
-                          );
-                        }
-
-                        return AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 1500),
-                          switchInCurve: Curves.easeOutCubic,
-                          switchOutCurve: Curves.easeInCubic,
-                          transitionBuilder: (child, anim) =>
-                              FadeTransition(opacity: anim, child: child),
-                          child: overlay,
-                        );
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

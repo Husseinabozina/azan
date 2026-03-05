@@ -16,17 +16,20 @@ import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
+import 'package:azan/views/about_app/about_app_screen.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
 import 'package:azan/views/set_azan_iqama/set_azan_iqama_screen.dart';
 import 'package:azan/views/set_hide_screen/set_hide_screen.dart';
 import 'package:azan/views/set_iqama/set_iqama_screen.dart';
+import 'package:azan/views/slides/slides_screen.dart';
+import 'package:azan/views/weather_status/weather_status_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -101,6 +104,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
               title: LocaleKeys.edit_mosque_azkar.tr(),
               onTap: () {
                 AppNavigator.push(context, AdhkarScreen());
+              },
+            ),
+            _DrawerEntry(
+              title: LocaleKeys.view_slides.tr(),
+              onTap: () {
+                AppNavigator.push(context, SlidesScreen());
               },
             ),
             _DrawerEntry(
@@ -254,6 +263,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
             ),
 
+            _DrawerEntry(
+              title: LocaleKeys.about_app.tr(),
+              onTap: () {
+                AppNavigator.push(context, AboutAppScreen());
+              },
+            ),
+            _DrawerEntry(
+              title: LocaleKeys.weather_status.tr(),
+              onTap: () {
+                AppNavigator.push(context, WeatherStatusScreen());
+              },
+            ),
             if (isLargeScreen(kind))
               _DrawerEntry(
                 title: '${LocaleKeys.change_to.tr()} $targetLabel',
@@ -273,9 +294,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
           // Entry إضافي للغة (شكل خاص)
           final languageTile = LanguageDrawerTile(
             r: r,
-            currentLanguage: LocalizationHelper.isArabic()
+            currentLanguage: LocalizationHelper.localCode() == 'ar'
                 ? LocaleKeys.arabic.tr()
-                : LocaleKeys.english.tr(),
+                : (LocalizationHelper.localCode() == 'bn'
+                      ? 'বাংলা'
+                      : LocaleKeys.english.tr()),
             onTap: () {
               showChangeLanguageDialog(
                 context,

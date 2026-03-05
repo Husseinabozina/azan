@@ -3,23 +3,19 @@ import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/horizontal_space.dart';
-import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/gen/assets.gen.dart';
-import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:azan/views/adhkar/components/dhikr_tile.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/home_screen_landscape.dart';
-import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 class AdhkarScreen extends StatefulWidget {
   const AdhkarScreen({super.key});
@@ -30,12 +26,16 @@ class AdhkarScreen extends StatefulWidget {
 
 class _AdhkarScreenState extends State<AdhkarScreen> {
   late AppCubit cubit;
+  late bool _sliderEnabled;
+  late int _sliderTime;
 
   @override
   void initState() {
     super.initState();
     cubit = AppCubit.get(context);
     cubit.assignAdhkar();
+    _sliderEnabled = CacheHelper.getSliderOpened();
+    _sliderTime = CacheHelper.getSliderTime();
   }
 
   bool _isLandscape(BuildContext context) => UiRotationCubit().isLandscape();
@@ -47,11 +47,24 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
     AppNavigator.pushAndRemoveUntil(context, home);
   }
 
+  void _setSliderEnabled(bool enabled) {
+    setState(() => _sliderEnabled = enabled);
+    CacheHelper.setSliderOpened(enabled);
+  }
+
+  void _setSliderTime(int seconds) {
+    final clamped = seconds.clamp(1, 120);
+    setState(() => _sliderTime = clamped);
+    CacheHelper.setSliderTime(clamped);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isLandscape = _isLandscape(context);
 
     return Scaffold(
+      extendBody: true,
+      bottomNavigationBar: const GlobalCopyrightFooter(),
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {},
         builder: (context, state) {
@@ -95,24 +108,25 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                                     flex: 4,
                                     child: _GlassPanel(
                                       padding: EdgeInsets.all(16.r),
-                                      child: _SettingsPanel(
-                                        onAdd: () {
-                                          showAddDhikrDialog(
-                                            context,
-                                            onConfirm: (text, schedule) {
-                                              DhikrHiveHelper.addDhikr(
-                                                text,
-                                                schedule: schedule,
-                                              );
-                                              cubit.assignAdhkar();
-                                            },
-                                          );
-                                        },
-                                        sliderValue:
-                                            CacheHelper.getSliderOpened(),
-                                        onSliderToggle: (value) {
-                                          cubit.toggleSlider();
-                                        },
+                                      child: SingleChildScrollView(
+                                        child: _SettingsPanel(
+                                          onAdd: () {
+                                            showAddDhikrDialog(
+                                              context,
+                                              onConfirm: (text, schedule) {
+                                                DhikrHiveHelper.addDhikr(
+                                                  text,
+                                                  schedule: schedule,
+                                                );
+                                                cubit.assignAdhkar();
+                                              },
+                                            );
+                                          },
+                                          sliderValue: _sliderEnabled,
+                                          onSliderToggle: _setSliderEnabled,
+                                          sliderTime: _sliderTime,
+                                          onSliderTime: _setSliderTime,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -143,10 +157,10 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
                                     },
                                   );
                                 },
-                                sliderValue: CacheHelper.getSliderOpened(),
-                                onSliderToggle: (value) {
-                                  cubit.toggleSlider();
-                                },
+                                sliderValue: _sliderEnabled,
+                                onSliderToggle: _setSliderEnabled,
+                                sliderTime: _sliderTime,
+                                onSliderTime: _setSliderTime,
                               ),
                       ),
                     ],
@@ -198,12 +212,16 @@ class _PortraitLayout extends StatelessWidget {
     required this.onAdd,
     required this.sliderValue,
     required this.onSliderToggle,
+    required this.sliderTime,
+    required this.onSliderTime,
   });
 
   final List<dynamic> adhkar;
   final VoidCallback onAdd;
   final bool sliderValue;
   final ValueChanged<bool> onSliderToggle;
+  final int sliderTime;
+  final ValueChanged<int> onSliderTime;
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +234,8 @@ class _PortraitLayout extends StatelessWidget {
             onAdd: onAdd,
             sliderValue: sliderValue,
             onSliderToggle: onSliderToggle,
+            sliderTime: sliderTime,
+            onSliderTime: onSliderTime,
           ),
           SizedBox(height: 14.h),
 
@@ -235,11 +255,15 @@ class _SettingsPanel extends StatelessWidget {
     required this.onAdd,
     required this.sliderValue,
     required this.onSliderToggle,
+    required this.sliderTime,
+    required this.onSliderTime,
   });
 
   final VoidCallback onAdd;
   final bool sliderValue;
   final ValueChanged<bool> onSliderToggle;
+  final int sliderTime;
+  final ValueChanged<int> onSliderTime;
 
   @override
   Widget build(BuildContext context) {
@@ -247,21 +271,19 @@ class _SettingsPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          LocaleKeys.mosque_azkar.tr(),
+          'mosque_announcements_bottom_title'.tr(),
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryTextColor,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
         SizedBox(height: 8.h),
         Text(
-          LocaleKeys.azkar_note.tr(),
+          'mosque_announcements_note'.tr(),
           style: TextStyle(fontSize: 14.sp, color: AppTheme.secondaryTextColor),
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
+          maxLines: 5,
+          overflow: TextOverflow.fade,
         ),
         SizedBox(height: 12.h),
 
@@ -277,7 +299,7 @@ class _SettingsPanel extends StatelessWidget {
             HorizontalSpace(width: 8.w),
             Expanded(
               child: Text(
-                LocaleKeys.enable_slider.tr(),
+                'enable_slider'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppTheme.primaryTextColor,
@@ -290,6 +312,13 @@ class _SettingsPanel extends StatelessWidget {
           ],
         ),
         SizedBox(height: 14.h),
+        _DurationPicker(
+          value: sliderTime,
+          onChanged: onSliderTime,
+          title: 'announcement_display_duration'.tr(),
+          unit: 'second'.tr(),
+        ),
+        SizedBox(height: 14.h),
 
         // Add button
         AppButton(
@@ -299,7 +328,7 @@ class _SettingsPanel extends StatelessWidget {
           radius: 22.r,
           onPressed: onAdd,
           child: Text(
-            LocaleKeys.add_message.tr(),
+            'add_message'.tr(),
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.bold,
@@ -308,6 +337,93 @@ class _SettingsPanel extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DurationPicker extends StatelessWidget {
+  const _DurationPicker({
+    required this.value,
+    required this.onChanged,
+    required this.title,
+    required this.unit,
+  });
+
+  final int value;
+  final ValueChanged<int> onChanged;
+  final String title;
+  final String unit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.primaryTextColor,
+          ),
+        ),
+        SizedBox(height: 8.h),
+        Wrap(
+          spacing: 10.w,
+          runSpacing: 8.h,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _StepperButton(
+              icon: Icons.remove,
+              onTap: () => onChanged(value - 1),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.22),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.18),
+                  width: 1.w,
+                ),
+              ),
+              child: Text(
+                '$value $unit',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primaryTextColor,
+                ),
+              ),
+            ),
+            _StepperButton(icon: Icons.add, onTap: () => onChanged(value + 1)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StepperButton extends StatelessWidget {
+  const _StepperButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14.r),
+      child: Container(
+        width: 36.r,
+        height: 36.r,
+        decoration: BoxDecoration(
+          color: AppTheme.primaryButtonBackground,
+          borderRadius: BorderRadius.circular(14.r),
+        ),
+        child: Icon(icon, size: 20.r, color: AppTheme.primaryButtonTextColor),
+      ),
     );
   }
 }

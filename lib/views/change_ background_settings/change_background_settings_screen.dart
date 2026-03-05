@@ -8,7 +8,8 @@ import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 /// ===============================
 /// BackgroundThemes: List of all backgrounds (same list you already use)
@@ -234,6 +235,8 @@ class _ChangeBackgroundSettingsScreenState
     final bool showRight = mode != BackgroundChangeMode.manual;
 
     return Scaffold(
+      extendBody: true,
+      bottomNavigationBar: const GlobalCopyrightFooter(),
       body: Stack(
         children: [
           Image.asset(
@@ -419,6 +422,36 @@ class _ChangeBackgroundSettingsScreenState
   }
 }
 
+class _BackgroundSettingsPalette {
+  _BackgroundSettingsPalette._();
+
+  static bool get _isLightBase =>
+      ThemeData.estimateBrightnessForColor(AppTheme.darkBlue) ==
+      Brightness.light;
+
+  static Color get onBackground => AppTheme.secondaryTextColor;
+
+  static Color get onBackgroundMuted =>
+      onBackground.withOpacity(_isLightBase ? 0.82 : 0.75);
+
+  static Color get panelFill => _isLightBase
+      ? Colors.white.withOpacity(0.58)
+      : Colors.black.withOpacity(0.35);
+
+  static Color get surfaceFill => _isLightBase
+      ? Colors.white.withOpacity(0.46)
+      : Colors.black.withOpacity(0.22);
+
+  static Color get stroke =>
+      (_isLightBase ? Colors.black : Colors.white).withOpacity(0.14);
+
+  static Color get divider =>
+      (_isLightBase ? Colors.black : Colors.white).withOpacity(0.18);
+
+  static Color get previewBorder =>
+      (_isLightBase ? Colors.black : Colors.white).withOpacity(0.28);
+}
+
 /// ===============================
 /// TopBar (uses your CustomAppbar style)
 /// ===============================
@@ -439,7 +472,11 @@ class TopBar extends StatelessWidget {
             SizedBox(width: 10.w),
             IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.menu, color: Colors.white, size: 26.r),
+              icon: Icon(
+                Icons.menu,
+                color: _BackgroundSettingsPalette.onBackground,
+                size: 26.r,
+              ),
             ),
             Expanded(
               child: Center(
@@ -448,14 +485,18 @@ class TopBar extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17.sp,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: _BackgroundSettingsPalette.onBackground,
                   ),
                 ),
               ),
             ),
             IconButton(
               onPressed: onClose,
-              icon: Icon(Icons.close, color: Colors.white, size: 26.r),
+              icon: Icon(
+                Icons.close,
+                color: _BackgroundSettingsPalette.onBackground,
+                size: 26.r,
+              ),
             ),
             SizedBox(width: 10.w),
           ],
@@ -756,9 +797,9 @@ class PanelScroll extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(10.r),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.35),
+        color: _BackgroundSettingsPalette.panelFill,
         borderRadius: BorderRadius.circular(18.r),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1),
+        border: Border.all(color: _BackgroundSettingsPalette.stroke, width: 1),
       ),
       child: child,
     );
@@ -832,7 +873,7 @@ class BackgroundPreviewSelector extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(r),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.28),
+                          color: _BackgroundSettingsPalette.previewBorder,
                           width: 1.5.w,
                         ),
                       ),
@@ -851,7 +892,7 @@ class BackgroundPreviewSelector extends StatelessWidget {
           style: TextStyle(
             fontSize: 22.sp,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: _BackgroundSettingsPalette.onBackground,
           ),
         ),
 
@@ -859,11 +900,19 @@ class BackgroundPreviewSelector extends StatelessWidget {
 
         IconButton(
           onPressed: onPrev,
-          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18.r),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: _BackgroundSettingsPalette.onBackground,
+            size: 18.r,
+          ),
         ),
         IconButton(
           onPressed: onNext,
-          icon: Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18.r),
+          icon: Icon(
+            Icons.arrow_forward_ios,
+            color: _BackgroundSettingsPalette.onBackground,
+            size: 18.r,
+          ),
         ),
       ],
     );
@@ -883,7 +932,10 @@ class BackgroundModeSection extends StatelessWidget {
   final BackgroundChangeMode mode;
   final ValueChanged<BackgroundChangeMode> onChanged;
 
-  TextStyle get _t => TextStyle(color: Colors.white, fontSize: 15.sp);
+  TextStyle get _t => TextStyle(
+    color: _BackgroundSettingsPalette.onBackground,
+    fontSize: 15.sp,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -930,7 +982,7 @@ class BackgroundModeSection extends StatelessWidget {
               onChanged: (v) {
                 if (v != null) onChanged(v);
               },
-              activeColor: Colors.white,
+              activeColor: AppTheme.accentColor,
             ),
             Expanded(
               child: Column(
@@ -944,7 +996,7 @@ class BackgroundModeSection extends StatelessWidget {
                         subtitle,
                         style: _t.copyWith(
                           fontSize: 12.sp,
-                          color: Colors.white.withOpacity(0.7),
+                          color: _BackgroundSettingsPalette.onBackgroundMuted,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -1062,15 +1114,15 @@ class RandomPoolSection extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.all(12.r),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.22),
+            color: _BackgroundSettingsPalette.surfaceFill,
             borderRadius: BorderRadius.circular(14.r),
-            border: Border.all(color: Colors.white.withOpacity(0.12)),
+            border: Border.all(color: _BackgroundSettingsPalette.stroke),
           ),
           child: Text(
             text,
             textDirection: TextDirection.ltr,
             style: TextStyle(
-              color: Colors.white,
+              color: _BackgroundSettingsPalette.onBackground,
               fontSize: 15.sp,
               fontWeight: FontWeight.w700,
             ),
@@ -1096,9 +1148,9 @@ class _RowWithDividers extends StatelessWidget {
       margin: EdgeInsets.only(top: 10.h),
       padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.22),
+        color: _BackgroundSettingsPalette.surfaceFill,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: Colors.white.withOpacity(0.12)),
+        border: Border.all(color: _BackgroundSettingsPalette.stroke),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1116,7 +1168,7 @@ class _RowWithDividers extends StatelessWidget {
           Container(
             width: 1,
             height: 28.h,
-            color: Colors.white.withOpacity(0.15),
+            color: _BackgroundSettingsPalette.divider,
           ),
         );
       }
@@ -1154,7 +1206,7 @@ class _MiniSelectBox extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.92),
+              color: _BackgroundSettingsPalette.onBackground.withOpacity(0.95),
               fontSize: 13.sp,
               fontWeight: FontWeight.w700,
             ),
@@ -1163,7 +1215,7 @@ class _MiniSelectBox extends StatelessWidget {
           Text(
             "$value",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.85),
+              color: _BackgroundSettingsPalette.onBackground.withOpacity(0.85),
               fontSize: 14.sp,
               fontWeight: FontWeight.w800,
             ),

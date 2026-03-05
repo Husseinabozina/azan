@@ -1,6 +1,6 @@
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 
 class CustomCheckbox extends StatelessWidget {
   final bool value;

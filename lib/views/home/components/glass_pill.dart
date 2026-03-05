@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:flutter/material.dart';
 
 class GlassPill extends StatelessWidget {

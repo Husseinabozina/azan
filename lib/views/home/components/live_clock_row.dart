@@ -8,7 +8,7 @@ import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 
 class LiveClockRow extends StatefulWidget {
   final double timeFontSize;
@@ -112,11 +112,13 @@ class _LiveClockRowState extends State<LiveClockRow> {
           if (widget.withIndicator)
             Text(
               period ?? '',
+
               style: TextStyle(
                 fontFamily: CacheHelper.getTimeFontFamily(),
                 fontWeight: FontWeight.bold,
 
                 fontSize: widget.periodFontSize,
+
                 color: widget.textColor ?? AppTheme.primaryTextColor,
               ),
             ),

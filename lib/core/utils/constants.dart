@@ -31,36 +31,27 @@ const String amiriFont = "Amiri";
 const String amiriBoldFont = "AmiriBold";
 const String andalusFont = "Andalus";
 
-// نفس توزيع السكرين شوت بالظبط
-const List<String> azkarFonts = [ksaFont, tahaFont, sultanFont, fodaFont];
-
-const List<String> timeFonts = [
+// جميع الخطوط المتاحة داخل التطبيق في مكان واحد.
+const List<String> allAppFonts = [
   freeSerifBoldFont,
   freeSansFont,
   freeSansBoldFont,
   fontoFont,
-  sultanFont,
   stcFont,
-];
-
-const List<String> timesFonts = [
-  freeSerifBoldFont,
-  freeSansFont,
-  freeSansBoldFont,
-  fontoFont,
-  sultanFont,
-  stcFont,
-];
-
-const List<String> textsFonts = [
   amiriFont,
   amiriBoldFont,
   andalusFont,
   ksaFont,
   tahaFont,
-  stcFont,
+  sultanFont,
   fodaFont,
 ];
+
+// نفس قائمة الخطوط لكل الأقسام (الوقت/الساعة/النصوص/الأذكار).
+const List<String> azkarFonts = allAppFonts;
+const List<String> timeFonts = allAppFonts;
+const List<String> timesFonts = allAppFonts;
+const List<String> textsFonts = allAppFonts;
 var kind;
 
 bool isLargeScreen(DeviceKind kind) {

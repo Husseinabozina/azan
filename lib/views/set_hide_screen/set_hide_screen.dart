@@ -17,7 +17,8 @@ import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 class SetHideScreen extends StatefulWidget {
   const SetHideScreen({super.key});
@@ -77,6 +78,8 @@ class _SetHideScreenState extends State<SetHideScreen> {
     ];
 
     return Scaffold(
+      extendBody: true,
+      bottomNavigationBar: const GlobalCopyrightFooter(),
       key: scaffoldKey,
       drawer: CustomDrawer(context: context),
       body: BlocConsumer<AppCubit, AppState>(
@@ -582,7 +585,7 @@ class _LandscapeRowBody extends StatelessWidget {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              // crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 header,
                 SizedBox(height: 10.h),
@@ -600,7 +603,7 @@ class _LandscapeRowBody extends StatelessWidget {
             Icons.tune_rounded,
           ),
           child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SettingTileDense(
                 title: LocaleKeys.enable_hiding_screen_during_prayer.tr(),
@@ -621,6 +624,9 @@ class _LandscapeRowBody extends StatelessWidget {
               ),
               SizedBox(height: 12.h),
               Container(
+                // color: Colors.red,
+                width: (contentMaxW / 2) * 0.65,
+                // color: Colors.red,
                 // width: 20.sw,
                 // color: Colors.red,
                 child: _TwoLineCheckboxDense(
@@ -632,12 +638,16 @@ class _LandscapeRowBody extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 12.h),
-              _TwoLineCheckboxDense(
-                value: hideAfterIshaa,
-                title: LocaleKeys.hide_screen_after_Ishaa_by.tr(),
-                minutes: hideAfterIshaaMinutes,
-                onChanged: onToggleIshaa,
-                onMinutesChanged: onIshaaMinutesChanged,
+              Container(
+                // color: Colors.red,
+                width: (contentMaxW / 2) * 0.65,
+                child: _TwoLineCheckboxDense(
+                  value: hideAfterIshaa,
+                  title: LocaleKeys.hide_screen_after_Ishaa_by.tr(),
+                  minutes: hideAfterIshaaMinutes,
+                  onChanged: onToggleIshaa,
+                  onMinutesChanged: onIshaaMinutesChanged,
+                ),
               ),
             ],
           ),
@@ -648,29 +658,33 @@ class _LandscapeRowBody extends StatelessWidget {
             LocaleKeys.prayer_duration_for_hiding_screen.tr(),
             Icons.timer_outlined,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ...List.generate(prayerTitles.length, (i) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 10.h),
-                  child: _PrayerDurationRow(
-                    title: prayerTitles[i],
-                    value: durations.length > i ? durations[i] : 10,
-                    onPlus: () => onPlus(i),
-                    onMinus: () => onMinus(i),
-                  ),
-                );
-              }),
-              SizedBox(height: 6.h),
-              PlusAndMinusWidget(
-                duration: LocaleKeys.min.tr(),
-                onChange: onSetAzanDuration,
-                value: azanDuration,
-                title: LocaleKeys.azan_duration.tr(),
-                mainAxisAlignment: MainAxisAlignment.end,
-              ),
-            ],
+          child: Container(
+            // color: Colors.amber,
+            width: (contentMaxW / 2) * 0.50,
+            child: Column(
+              // crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ...List.generate(prayerTitles.length, (i) {
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 10.h),
+                    child: _PrayerDurationRow(
+                      title: prayerTitles[i],
+                      value: durations.length > i ? durations[i] : 10,
+                      onPlus: () => onPlus(i),
+                      onMinus: () => onMinus(i),
+                    ),
+                  );
+                }),
+                SizedBox(height: 6.h),
+                PlusAndMinusWidget(
+                  duration: LocaleKeys.min.tr(),
+                  onChange: onSetAzanDuration,
+                  value: azanDuration,
+                  title: LocaleKeys.azan_duration.tr(),
+                  mainAxisAlignment: MainAxisAlignment.start,
+                ),
+              ],
+            ),
           ),
         );
 
@@ -683,14 +697,14 @@ class _LandscapeRowBody extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(child: isRtl ? rightDurations : leftSettings),
+                    Expanded(child: rightDurations),
                     SizedBox(width: gap),
                     Container(
                       width: dividerW,
                       color: Colors.white.withOpacity(0.10),
                     ),
                     SizedBox(width: gap),
-                    Expanded(child: isRtl ? leftSettings : rightDurations),
+                    Expanded(child: leftSettings),
                   ],
                 ),
               ),
@@ -785,24 +799,25 @@ class SettingTileDense extends StatelessWidget {
       size: 20.r,
     );
 
-    final label = Expanded(
-      child: Text(
-        title,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        textAlign: isRtl ? TextAlign.end : TextAlign.start,
-        style: TextStyle(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.secondaryTextColor,
-        ),
+    final label = Text(
+      title,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      // textAlign: isRtl ? TextAlign.end : TextAlign.start,
+      style: TextStyle(
+        fontSize: 13.sp,
+        fontWeight: FontWeight.bold,
+        color: AppTheme.secondaryTextColor,
       ),
     );
 
     return Row(
-      children: isRtl
-          ? [label, HorizontalSpace(width: 8.w), checkbox]
-          : [checkbox, HorizontalSpace(width: 8.w), label],
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        checkbox,
+        HorizontalSpace(width: 8.w),
+        label,
+      ],
     );
   }
 }
@@ -833,48 +848,52 @@ class _TwoLineCheckbox extends StatelessWidget {
           size: 22.r,
         ),
         HorizontalSpace(width: 10.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.secondaryTextColor,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _MiniStepButton(
-                    icon: Icons.add,
-                    onTap: () => onMinutesChanged((minutes + 1).clamp(0, 999)),
-                  ),
-                  HorizontalSpace(width: 8.w),
-                  _MiniStepButton(
-                    icon: Icons.remove,
-                    onTap: () => onMinutesChanged((minutes - 1).clamp(0, 999)),
-                  ),
-                  HorizontalSpace(width: 12.w),
-                  Text(
-                    minutes.toString(),
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryTextColor,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.end,
+          style: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.secondaryTextColor,
           ),
         ),
+        Spacer(),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _MiniStepButton(
+              icon: Icons.add,
+              onTap: () => onMinutesChanged((minutes + 1).clamp(0, 999)),
+            ),
+            HorizontalSpace(width: 8),
+
+            Text(
+              minutes.toString(),
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryTextColor,
+              ),
+            ),
+            HorizontalSpace(width: 8),
+            _MiniStepButton(
+              icon: Icons.remove,
+              onTap: () => onMinutesChanged((minutes - 1).clamp(0, 999)),
+            ),
+            HorizontalSpace(width: 12),
+          ],
+        ),
+        // Expanded(
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }
@@ -898,7 +917,8 @@ class _TwoLineCheckboxDense extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      // mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
         CustomCheckbox(
           value: value,
@@ -907,54 +927,62 @@ class _TwoLineCheckboxDense extends StatelessWidget {
           size: 20.r,
         ),
         HorizontalSpace(width: 8.w),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                fontSize: 13.sp,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.secondaryTextColor,
-              ),
+
+        // Spacer(),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            // textAlign: TextAlign.end,
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.secondaryTextColor,
             ),
-            SizedBox(height: 6.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _MiniStepButtonDense(
-                  icon: Icons.add,
-                  onTap: () => onMinutesChanged((minutes + 1).clamp(0, 999)),
-                ),
-                HorizontalSpace(width: 8.w),
-                _MiniStepButtonDense(
-                  icon: Icons.remove,
-                  onTap: () => onMinutesChanged((minutes - 1).clamp(0, 999)),
-                ),
-                HorizontalSpace(width: 10.w),
-                SizedBox(
-                  width: 34.w,
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        minutes.toString(),
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                      ),
+          ),
+        ),
+        HorizontalSpace(width: 6),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          // mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _MiniStepButtonDense(
+              icon: Icons.add,
+              onTap: () => onMinutesChanged((minutes + 1).clamp(0, 999)),
+            ),
+            HorizontalSpace(width: 2),
+
+            SizedBox(
+              width: 34.w,
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    minutes.toString(),
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryTextColor,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
+            HorizontalSpace(width: 2),
+            _MiniStepButtonDense(
+              icon: Icons.remove,
+              onTap: () => onMinutesChanged((minutes - 1).clamp(0, 999)),
+            ),
+            HorizontalSpace(width: 10.w),
           ],
         ),
+        // Column(
+        //   crossAxisAlignment: CrossAxisAlignment.end,
+        //   children: [
+
+        //   ],
+        // ),
       ],
     );
   }
@@ -1131,20 +1159,21 @@ class _PrayerDurationRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       // textDirection: TextDirection.rtl,
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryTextColor,
-            ),
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.end,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
           ),
         ),
+        Spacer(),
         SizedBox(width: 10.w),
         _SmallBtn(icon: Icons.add, onTap: onPlus),
         SizedBox(width: 8.w),

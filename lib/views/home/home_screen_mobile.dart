@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 import 'package:adhan/adhan.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -6,7 +7,6 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
-import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
@@ -28,11 +28,13 @@ import 'package:azan/views/home/components/azkar_view.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/home_star_hint.dart';
+import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
 import 'package:azan/views/home/components/prayer_times_header_row.dart';
 import 'package:azan/views/home/components/prayer_times_table.dart';
 import 'package:azan/views/home/home_screen.dart';
+import 'package:azan/views/home/components/iqama_progress_bar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:azan/core/theme/app_theme.dart';
@@ -93,6 +95,13 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       a.hour == b.hour &&
       a.minute == b.minute;
 
+  void _syncHomeBlackScreenFlag(bool visible) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      cubit.setHomeBlackScreenVisible(visible);
+    });
+  }
+
   Future<void> _assignHijriDate() async {
     await cubit.getTodayHijriDate(context);
   }
@@ -114,6 +123,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     unawaited(cubit.initializePrayerTimes(city: city, context: context));
     unawaited(cubit.getIqamaTime());
     unawaited(cubit.assignAdhkar());
+    unawaited(cubit.assignSlides());
 
     // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
     unawaited(
@@ -163,15 +173,16 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       final now = DateTime.now();
 
       // ✅ اعمل الحاجات المهمة الأولى (بدون setState)
-      await _checkAndPlayPrayerSound(now); // ✅ await!
+      _checkAndPlayPrayerSound(now);
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
 
       // ✅ تحقق من الوصول لوقت الإقامة لفتح شاشة الإقامة مباشرة
+      final remainingToIqama = cubit.remainingToIqama();
       if (cubit.isBetweenAdhanAndIqama &&
-          cubit.currentIqamaTime != null &&
           !cubit.startAzanAtIqamaPhase &&
-          now.isAfter(cubit.currentIqamaTime!)) {
+          remainingToIqama != null &&
+          remainingToIqama <= Duration.zero) {
         cubit.isBetweenAdhanAndIqama = false;
         cubit.startAzanAtIqamaPhase = true;
         cubit.showPrayerAzanPage = true;
@@ -239,6 +250,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     );
 
     unawaited(cubit.assignAdhkar());
+    unawaited(cubit.assignSlides());
 
     // ✅ شغل التايمرز بعد ما الأساسيات خلصت
     _startTimers();
@@ -264,19 +276,37 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   void performAdhanActions(BuildContext context) {
     if (cubit.prayerTimes == null) return;
 
+    final azanSource = cubit.getAzanSoundSource;
     final prayers = cubit.prayers(context);
     for (final prayer in prayers) {
       final DateTime? adhanTime = prayer.dateTime;
-      if (adhanTime == null || cubit.iqamaMinutes == null) continue;
+      if (adhanTime == null) continue;
 
       if (_isSameMinute(adhanTime, DateTime.now())) {
         final int id = prayer.id;
-        if (id <= 0 || id > cubit.iqamaMinutes!.length) {
-          continue;
+        int iqamaOffsetMinutes = 10;
+        final iqamaMinutes = cubit.iqamaMinutes;
+        if (iqamaMinutes != null && id > 0 && id <= iqamaMinutes.length) {
+          iqamaOffsetMinutes = iqamaMinutes[id - 1];
         }
-        final iqamaTime = adhanTime.add(
-          Duration(minutes: cubit.iqamaMinutes![id - 1]),
-        );
+        final iqamaTime = adhanTime.add(Duration(minutes: iqamaOffsetMinutes));
+
+        if (!_playedAdhanToday.contains(id) && azanSource.isNotEmpty) {
+          _playedAdhanToday.add(id);
+          unawaited(
+            _soundPlayer.playAsset(azanSource).then((success) async {
+              if (!success) {
+                if (azanSource != Assets.sounds.alarmSound) {
+                  final fallbackSuccess = await _soundPlayer.playAsset(
+                    Assets.sounds.alarmSound,
+                  );
+                  if (fallbackSuccess) return;
+                }
+                _playedAdhanToday.remove(id);
+              }
+            }),
+          );
+        }
 
         setState(() {
           CacheHelper.setCurrentPrayerKey(prayer.title);
@@ -291,16 +321,15 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     }
   }
 
-  Future<void> _checkAndPlayPrayerSound(DateTime now) async {
+  void _checkAndPlayPrayerSound(DateTime now) {
     if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
 
     final prayers = cubit.prayers(context);
     final iqamaMinutes = cubit.iqamaMinutes!;
-    final azanSource = cubit.getAzanSoundSource;
     final iqamaSource = cubit.getIqamaSoundSource;
 
     // ✅ تحقق من الـ source أولاً
-    if (azanSource.isEmpty || iqamaSource.isEmpty) {
+    if (iqamaSource.isEmpty) {
       return;
     }
 
@@ -308,17 +337,6 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       final int id = prayer.id;
       final DateTime? adhanTime = prayer.dateTime;
       if (adhanTime == null) continue;
-
-      // ===== أذان =====
-      if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
-        // ✅ await على النتيجة
-        final success = await _soundPlayer.playAsset(azanSource);
-
-        // ✅ ضف العلامة فقط لو نجح
-        if (success) {
-          _playedAdhanToday.add(id);
-        } else {}
-      }
 
       // ===== إقامة =====
       if (iqamaMinutes.length >= id) {
@@ -345,12 +363,15 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
         }
 
         if (!_playedIqamaToday.contains(id) && _isSameMinute(iqamaTime, now)) {
-          // ✅ await
-          final success = await _soundPlayer.playAsset(iqamaSource);
-
-          if (success) {
-            _playedIqamaToday.add(id);
-          } else {}
+          // احجز العلامة فورًا لمنع إعادة التشغيل في نفس الدقيقة
+          _playedIqamaToday.add(id);
+          unawaited(
+            _soundPlayer.playAsset(iqamaSource).then((success) {
+              if (!success) {
+                _playedIqamaToday.remove(id);
+              }
+            }),
+          );
         }
       }
     }
@@ -402,6 +423,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     _minuteTimer?.cancel();
     _soundPlayer.dispose();
     _azkarOverlay.dispose();
+    cubit.setHomeBlackScreenVisible(false);
 
     super.dispose();
   }
@@ -449,6 +471,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       return iqamaTime.isBefore(now);
     }).toList();
     return Scaffold(
+      extendBody: true,
+      bottomNavigationBar: const GlobalCopyrightFooter(),
       key: scaffoldKey,
       drawer: CustomDrawer(context: context),
 
@@ -769,8 +793,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          LocalizationHelper
-                                                  .isArAndArNumberEnable()
+                                          LocalizationHelper.isArAndArNumberEnable()
                                               ? DateHelper.toArabicDigits(
                                                   DateFormat(
                                                     'dd/MM/yyyy',
@@ -786,43 +809,6 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                             color: AppTheme.primaryTextColor,
                                           ),
                                         ),
-                                        // عداد بسيط لما بين الأذان والإقامة
-                                        if (cubit.isBetweenAdhanAndIqama)
-                                          Builder(
-                                            builder: (_) {
-                                              final d =
-                                                  cubit.remainingToIqama();
-                                              if (d == null ||
-                                                  d.inSeconds <= 0) {
-                                                return const SizedBox.shrink();
-                                              }
-                                              final text =
-                                                  d.formatDuration(); // نفس الإكستنشن المستخدم لباقي العدادات
-                                              final localized = LocalizationHelper
-                                                      .isArAndArNumberEnable()
-                                                  ? DateHelper.toArabicDigits(
-                                                      text,
-                                                    )
-                                                  : DateHelper.toWesternDigits(
-                                                      text,
-                                                    );
-                                              return Padding(
-                                                padding: EdgeInsets.only(
-                                                  top: 4.h,
-                                                ),
-                                                child: Text(
-                                                  '${LocaleKeys.remaining_for_iqamaa.tr()} $localized',
-                                                  style: TextStyle(
-                                                    fontSize: 16.sp,
-                                                    color: AppTheme
-                                                        .secondaryTextColor,
-                                                    fontFamily: CacheHelper
-                                                        .getTextsFontFamily(),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
                                       ],
                                     ),
                                   ),
@@ -937,11 +923,42 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                 ],
                               ),
                             ),
-
+                            if (cubit.isBetweenAdhanAndIqama)
+                              Builder(
+                                builder: (_) {
+                                  final d = cubit.remainingToIqama();
+                                  if (d == null || d.inSeconds <= 0) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final text = d.formatDuration();
+                                  final localized =
+                                      LocalizationHelper.isArAndArNumberEnable()
+                                      ? DateHelper.toArabicDigits(text)
+                                      : DateHelper.toWesternDigits(text);
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      top: 4.h,
+                                      left: 24.w,
+                                      right: 24.w,
+                                    ),
+                                    child: Center(
+                                      child: IqamaProgressBar(
+                                        progress: cubit.iqamaProgress(),
+                                        label:
+                                            '${LocaleKeys.remaining_for_iqamaa.tr()} $localized',
+                                        height: 20.h,
+                                        width: 0.7.sw,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             // Spacer(flex: 1),
                             Container(
                               // color: Colors.red,
-                              height: 100.h,
+                              height: cubit.isBetweenAdhanAndIqama
+                                  ? 80.h
+                                  : 100.h, // تقليل الارتفاع عند ظهور العداد لتعويض المساحة
 
                               child: Padding(
                                 padding: EdgeInsets.only(
@@ -1121,20 +1138,29 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                             ),
 
                             // Spacer(flex: 1),
-                            Container(
-                              child: RotatingAyahBanner(
-                                ayat: ayat, // ✅ اللي انت جايبه
-                                height: 60.h,
-                                // availableHeight: 90.h, // لو عايز نفس منطقك القديم
-                                maxFontSize: 20.sp,
-                                minFontSize: 12.sp,
-                                interval: const Duration(
-                                  seconds: 20,
-                                ), // أو CacheHelper.getSliderTime()
-                                fontFamily: CacheHelper.getTextsFontFamily(),
-                                textColor: AppTheme.primaryTextColor,
+                            if (CacheHelper.getSlidesEnabled())
+                              Container(
+                                child: RotatingAyahBanner(
+                                  ayat:
+                                      (cubit.todaysSlides != null &&
+                                          cubit.todaysSlides!.isNotEmpty)
+                                      ? cubit.todaysSlides!
+                                            .map((e) => e.text)
+                                            .toList()
+                                      : ayat,
+                                  height: 60.h,
+                                  maxFontSize: 20.sp,
+                                  minFontSize: 12.sp,
+                                  interval: Duration(
+                                    seconds:
+                                        CacheHelper.getSlidesDisplaySeconds(),
+                                  ),
+                                  randomOrder:
+                                      CacheHelper.getSlidesRandomOrder(),
+                                  fontFamily: CacheHelper.getTextsFontFamily(),
+                                  textColor: AppTheme.primaryTextColor,
+                                ),
                               ),
-                            ),
                             VerticalSpace(height: 5),
                             Expanded(
                               child: Padding(
@@ -1232,43 +1258,9 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                   height: 80.h,
                                   maxFontSize: 18.sp,
                                   minFontSize: 11.sp,
+                                  fontFamily: CacheHelper.getTextsFontFamily(),
                                 ),
                               ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  left: 10.w,
-                                  right: 10.w,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      LocaleKeys.copy_right_for_sadja.tr() +
-                                          " |",
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: AppTheme.primaryTextColor,
-                                      ),
-                                    ),
-
-                                    HorizontalSpace(width: 2),
-                                    Text(
-                                      AppCubit.get(context).getCity() != null
-                                          ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
-                                          : "",
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: AppTheme.primaryTextColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                 ),
@@ -1291,6 +1283,31 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                       (cubit.currentPrayer != null &&
                       cubit.currentPrayer!.id != 2 &&
                       cubit.showPrayerAzanPage);
+                  final remainingToIqama = cubit.remainingToIqama();
+                  final showLastMinuteCountdown =
+                      CacheHelper.getShowIqamaCountdownLastMinuteOnly() &&
+                      cubit.isBetweenAdhanAndIqama &&
+                      remainingToIqama != null &&
+                      remainingToIqama > Duration.zero &&
+                      remainingToIqama <= const Duration(seconds: 60);
+                  final hideFooterOnBlack =
+                      shouldHide ||
+                      showLastMinuteCountdown ||
+                      cubit.isAzanBlackScreenVisible;
+                  _syncHomeBlackScreenFlag(hideFooterOnBlack);
+                  final remainingSeconds = showLastMinuteCountdown
+                      ? ((remainingToIqama.inMilliseconds + 999) ~/ 1000).clamp(
+                          1,
+                          60,
+                        )
+                      : 0;
+                  final secondsText = showLastMinuteCountdown
+                      ? (LocalizationHelper.isArAndArNumberEnable()
+                            ? DateHelper.toArabicDigits(
+                                remainingSeconds.toString(),
+                              )
+                            : remainingSeconds.toString())
+                      : '';
 
                   return ValueListenableBuilder<AzkarWindow?>(
                     valueListenable: _azkarOverlay,
@@ -1305,6 +1322,18 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                         );
                       }
                       // 2) ثاني أولوية: black screen
+                      else if (showLastMinuteCountdown) {
+                        final size = MediaQuery.sizeOf(context);
+                        final isPortrait = size.height >= size.width;
+                        final mobileCountdownFont = isPortrait
+                            ? (size.shortestSide * 1.04).clamp(240.0, 640.0)
+                            : (size.shortestSide * 0.72).clamp(170.0, 470.0);
+                        overlay = IqamaLastMinuteCountdownOverlay(
+                          secondsText: secondsText,
+                          fontSizeOverride: mobileCountdownFont,
+                        );
+                      }
+                      // 3) ثالث أولوية: black screen
                       else if (shouldHide) {
                         overlay = Container(
                           key: const ValueKey('black_screen'),
@@ -1313,7 +1342,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                           color: Colors.black,
                         );
                       }
-                      // 3) ثالث أولوية: Azkar
+                      // 4) رابع أولوية: Azkar
                       else if (w != null) {
                         overlay = SizedBox.expand(
                           child: GestureDetector(
@@ -1334,8 +1363,16 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                         duration: const Duration(milliseconds: 1500),
                         switchInCurve: Curves.easeOutCubic,
                         switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, anim) =>
-                            FadeTransition(opacity: anim, child: child),
+                        transitionBuilder: (child, anim) {
+                          final scale = Tween<double>(
+                            begin: 0.985,
+                            end: 1.0,
+                          ).animate(anim);
+                          return FadeTransition(
+                            opacity: anim,
+                            child: ScaleTransition(scale: scale, child: child),
+                          );
+                        },
                         child: overlay,
                       );
                     },
@@ -1380,6 +1417,8 @@ class AzkarSlider extends StatefulWidget {
   final double height;
   final double maxFontSize;
   final double minFontSize;
+  final String? fontFamily;
+  final bool wrapWithBrackets;
 
   const AzkarSlider({
     super.key,
@@ -1387,6 +1426,8 @@ class AzkarSlider extends StatefulWidget {
     required this.height,
     required this.maxFontSize,
     required this.minFontSize,
+    this.fontFamily,
+    this.wrapWithBrackets = true,
   });
 
   @override
@@ -1457,13 +1498,17 @@ class _AzkarSliderState extends State<AzkarSlider> {
                 itemCount: widget.adhkar.length,
                 itemBuilder: (context, index) {
                   final text = widget.adhkar[index];
+                  final displayText = widget.wrapWithBrackets
+                      ? "﴿ $text ﴾"
+                      : text;
                   return Padding(
                     padding: EdgeInsets.only(right: 16.w, left: 5.w),
                     child: AdaptiveTextWidget(
-                      text: "﴿ $text ﴾",
+                      text: displayText,
                       maxFontSize: widget.maxFontSize,
                       minFontSize: widget.minFontSize,
                       availableHeight: widget.height,
+                      fontFamily: widget.fontFamily,
                     ),
                   );
                 },
@@ -1553,7 +1598,7 @@ class AdaptiveTextWidget extends StatelessWidget {
             fontSize: fs,
             fontWeight: FontWeight.bold,
             height: lineHeight,
-            fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
+            fontFamily: fontFamily ?? CacheHelper.getTextsFontFamily(),
             color: AppTheme.primaryTextColor,
           );
 
@@ -1584,7 +1629,7 @@ class AdaptiveTextWidget extends StatelessWidget {
               fontWeight: FontWeight.bold,
               height: lineHeight, // نفس اللي في القياس
               color: AppTheme.primaryTextColor,
-              fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
+              fontFamily: fontFamily ?? CacheHelper.getTextsFontFamily(),
             ),
           ),
         );

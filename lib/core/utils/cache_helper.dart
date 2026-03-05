@@ -85,6 +85,9 @@ class CacheHelper {
   static const String _kBgPerDay = 'bg_per_day_map';
   static const String _kBgRandomPool = 'bg_random_pool';
   static const String _sliderTime = "sliderTime";
+  static const String _slidesEnabled = "_slidesEnabled";
+  static const String _slidesRandomOrder = "_slidesRandomOrder";
+  static const String _slidesDisplaySeconds = "_slidesDisplaySeconds";
   static const String _hijriOffsetDays = "_hijriOffsetDays"; // int: -2..+2
 
   static const String _hijriOffsetDir = "_hijriOffsetDir"; // int: 1 or -1
@@ -98,11 +101,29 @@ class CacheHelper {
   static const String _kEveningAzkarWindowMinutes =
       'evening_azkar_window_minutes';
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // ⛅ Weather Status Settings
+  // ════════════════════════════════════════════════════════════════════════════
+  static const String _weatherEnabled = "_weatherEnabled";
+  static const String _weatherSource = "_weatherSource"; // 0 = Auto, 1 = Manual
+  static const String _manualWeatherLat = "_manualWeatherLat";
+  static const String _manualWeatherLng = "_manualWeatherLng";
+
   static const String _kAfterPrayerAzkarEnabled = 'after_prayer_azkar_enabled';
   static const String _kAfterPrayerAzkarWindowMinutes =
       'after_prayer_azkar_window_minutes';
   static const String _showSecondsInNextPrayer = "_showSecondsInNextPrayer";
+  static const String _showIqamaCountdownLastMinuteOnly =
+      "_showIqamaCountdownLastMinuteOnly";
   static const _mosqueLogoPathKey = 'mosque_logo_path';
+  static const _prayerTimeTileInCenter = "_prayerTimeTileInCenter";
+  static const _enlargeAdhanIqamaTimeInLandscape =
+      "_enlargeAdhanIqamaTimeInLandscape";
+  static const _hideIqamahTimes = "_hideIqamahTimes";
+  static const _enlargeRemainingTimeCounter = "_enlargeRemainingTimeCounter";
+  static const _enableHadithBeforeIqama = "_enableHadithBeforeIqama";
+  static const _hadithDisplaySeconds = "_hadithDisplaySeconds";
+  static const _showAzanScreen = "_showAzanScreen";
 
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -211,9 +232,19 @@ class CacheHelper {
 
   static Future<void> setShowSecondsInNextPrayer(bool v) async =>
       await CacheHelper.save(key: _showSecondsInNextPrayer, value: v);
+
+  static bool getShowIqamaCountdownLastMinuteOnly() =>
+      CacheHelper.get(key: _showIqamaCountdownLastMinuteOnly) ?? false;
+
+  static Future<void> setShowIqamaCountdownLastMinuteOnly(bool v) async =>
+      await CacheHelper.save(key: _showIqamaCountdownLastMinuteOnly, value: v);
+
   //remove
   static void removeSecondsInNextPrayer() async =>
       await CacheHelper.remove(key: _showSecondsInNextPrayer);
+
+  static void removeShowIqamaCountdownLastMinuteOnly() async =>
+      await CacheHelper.remove(key: _showIqamaCountdownLastMinuteOnly);
 
   static bool getMorningAzkarEnabled() =>
       CacheHelper.get(key: _kMorningAzkarEnabled) ?? true;
@@ -412,6 +443,15 @@ class CacheHelper {
   static bool getSliderOpened() {
     return sharedPreferences.getBool(_sliderOpened) ?? true;
   }
+  //_prayerTimeTileInCenter
+
+  static Future<void> setPrayerTimeTileInCenter(bool v) async {
+    await sharedPreferences.setBool(_prayerTimeTileInCenter, v);
+  }
+
+  static bool getPrayerTimeTileInCenter() {
+    return sharedPreferences.getBool(_prayerTimeTileInCenter) ?? false;
+  }
 
   // 1) Enable hiding during prayer
   static Future<void> setEnableHidingScreenDuringPrayer(bool v) async {
@@ -437,6 +477,40 @@ class CacheHelper {
 
   static bool getShowDateOnBlackScreen() {
     return sharedPreferences.getBool(_showDateOnBlackScreen) ?? false;
+  }
+
+  // enlarge
+  static Future<void> setEnlargeAdhanAndIqamaTimeInLandeScape(bool v) async {
+    await sharedPreferences.setBool(_enlargeAdhanIqamaTimeInLandscape, v);
+  }
+
+  static bool getEnlargeAdhanAndIqamaTimeInLandeScape() {
+    return sharedPreferences.getBool(_enlargeAdhanIqamaTimeInLandscape) ??
+        false;
+  }
+
+  static Future<void> setHideIqamahTimes(bool v) async {
+    await sharedPreferences.setBool(_hideIqamahTimes, v);
+  }
+
+  static bool getHideIqamahTimes() {
+    return sharedPreferences.getBool(_hideIqamahTimes) ?? false;
+  }
+
+  static Future<void> setEnlargeRemainingTimeCounter(bool v) async {
+    await sharedPreferences.setBool(_enlargeRemainingTimeCounter, v);
+  }
+
+  static bool getEnlargeRemainingTimeCounter() {
+    return sharedPreferences.getBool(_enlargeRemainingTimeCounter) ?? false;
+  }
+
+  static Future<void> setShowAzanScreen(bool v) async {
+    await sharedPreferences.setBool(_showAzanScreen, v);
+  }
+
+  static bool getShowAzanScreen() {
+    return sharedPreferences.getBool(_showAzanScreen) ?? true;
   }
 
   // 3) Hide after sunrise
@@ -748,24 +822,24 @@ class CacheHelper {
     sharedPreferences.remove(_notificationMessageBeforeIqama);
   }
 
-  static setFitrEid(String date, String time) async {
-    await sharedPreferences.setStringList(_fitrEid, [date, time]);
+  static setFitrEid(String time) async {
+    await sharedPreferences.setString(_fitrEid, time);
   }
 
-  static List<String>? getFitrEid() {
-    return sharedPreferences.getStringList(_fitrEid);
+  static String? getFitrEid() {
+    return sharedPreferences.getString(_fitrEid);
   }
 
   static removeFitrEid() {
     sharedPreferences.remove(_fitrEid);
   }
 
-  static setAdhaEid(String date, String time) async {
-    await sharedPreferences.setStringList(_adhaEid, [date, time]);
+  static setAdhaEid(String time) async {
+    await sharedPreferences.setString(_adhaEid, time);
   }
 
-  static List<String>? getAdhaEid() {
-    return sharedPreferences.getStringList(_adhaEid);
+  static String? getAdhaEid() {
+    return sharedPreferences.getString(_adhaEid);
   }
 
   static removeAdhaEid() {
@@ -969,6 +1043,30 @@ class CacheHelper {
     await sharedPreferences.setInt(_sliderTime, seconds);
   }
 
+  static Future<void> setSlidesEnabled(bool value) async {
+    await sharedPreferences.setBool(_slidesEnabled, value);
+  }
+
+  static bool getSlidesEnabled() {
+    return sharedPreferences.getBool(_slidesEnabled) ?? true;
+  }
+
+  static Future<void> setSlidesRandomOrder(bool value) async {
+    await sharedPreferences.setBool(_slidesRandomOrder, value);
+  }
+
+  static bool getSlidesRandomOrder() {
+    return sharedPreferences.getBool(_slidesRandomOrder) ?? true;
+  }
+
+  static Future<void> setSlidesDisplaySeconds(int seconds) async {
+    await sharedPreferences.setInt(_slidesDisplaySeconds, seconds);
+  }
+
+  static int getSlidesDisplaySeconds() {
+    return sharedPreferences.getInt(_slidesDisplaySeconds) ?? 20;
+  }
+
   static Future<void> setHijriOffsetDays(int v) async {
     // clamp -2..+2
     final clamped = v.clamp(-2, 2);
@@ -1051,6 +1149,72 @@ class CacheHelper {
 
   static Future<void> removeAzanDuration() async {
     await sharedPreferences.remove(_azanDuration);
+  }
+
+  // =========================
+  // Hadith Feature Settings
+  // =========================
+
+  static Future<void> setEnableHadithBeforeIqama(bool v) async {
+    await sharedPreferences.setBool(_enableHadithBeforeIqama, v);
+  }
+
+  static bool getEnableHadithBeforeIqama() {
+    return sharedPreferences.getBool(_enableHadithBeforeIqama) ?? true;
+  }
+
+  static Future<void> setHadithDisplaySeconds(int v) async {
+    await sharedPreferences.setInt(_hadithDisplaySeconds, v);
+  }
+
+  static int getHadithDisplaySeconds() {
+    return sharedPreferences.getInt(_hadithDisplaySeconds) ?? 33;
+  }
+
+  static Future<void> removeHadithSettings() async {
+    await sharedPreferences.remove(_enableHadithBeforeIqama);
+    await sharedPreferences.remove(_hadithDisplaySeconds);
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ⛅ Weather Status Settings Methods
+  // ════════════════════════════════════════════════════════════════════════════
+
+  static Future<void> setWeatherEnabled(bool value) async {
+    await sharedPreferences.setBool(_weatherEnabled, value);
+  }
+
+  static bool getWeatherEnabled() {
+    return sharedPreferences.getBool(_weatherEnabled) ?? false;
+  }
+
+  static Future<void> setWeatherSource(int value) async {
+    await sharedPreferences.setInt(_weatherSource, value);
+  }
+
+  static int getWeatherSource() {
+    return sharedPreferences.getInt(_weatherSource) ?? 0; // 0 = Auto
+  }
+
+  static Future<void> setManualWeatherLat(String value) async {
+    await sharedPreferences.setString(_manualWeatherLat, value);
+  }
+
+  static String? getManualWeatherLat() {
+    return sharedPreferences.getString(_manualWeatherLat);
+  }
+
+  static Future<void> setManualWeatherLng(String value) async {
+    await sharedPreferences.setString(_manualWeatherLng, value);
+  }
+
+  static String? getManualWeatherLng() {
+    return sharedPreferences.getString(_manualWeatherLng);
+  }
+
+  static Future<void> clearManualWeatherCoords() async {
+    await sharedPreferences.remove(_manualWeatherLat);
+    await sharedPreferences.remove(_manualWeatherLng);
   }
 }
 

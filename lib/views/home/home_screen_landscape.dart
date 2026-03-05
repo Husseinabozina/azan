@@ -1,5 +1,6 @@
 // HomeScreenLandscape.dart
 import 'dart:async';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 import 'package:adhan/adhan.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -7,7 +8,6 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
-import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/simple_sound_player.dart';
@@ -33,7 +33,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/core/models/prayer.dart' as prayerModel;
 
 class HomeScreenLandscape extends StatefulWidget {
@@ -79,6 +79,13 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
       a.hour == b.hour &&
       a.minute == b.minute;
 
+  void _syncHomeBlackScreenFlag(bool visible) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      cubit.setHomeBlackScreenVisible(visible);
+    });
+  }
+
   Future<void> _assignHijriDate() async {
     await cubit.getTodayHijriDate(context);
   }
@@ -100,6 +107,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     unawaited(cubit.initializePrayerTimes(city: city, context: context));
     unawaited(cubit.getIqamaTime());
     unawaited(cubit.assignAdhkar());
+    unawaited(cubit.assignSlides());
 
     // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
     unawaited(
@@ -139,7 +147,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
       final now = DateTime.now();
 
       // ✅ اعمل الحاجات المهمة الأولى (بدون setState)
-      await _checkAndPlayPrayerSound(now); // ✅ await!
+      _checkAndPlayPrayerSound(now);
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
 
@@ -199,6 +207,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     );
 
     unawaited(cubit.assignAdhkar());
+    unawaited(cubit.assignSlides());
 
     // ✅ شغل التايمرز بعد ما الأساسيات خلصت
     _startTimers();
@@ -224,12 +233,25 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
   void performAdhanActions(BuildContext context) {
     if (cubit.prayerTimes == null) return;
 
+    final azanSource = cubit.getAzanSoundSource;
     final prayers = cubit.prayers(context);
     for (final prayer in prayers) {
       final DateTime? adhanTime = prayer.dateTime;
       if (adhanTime == null) continue;
 
       if (_isSameMinute(adhanTime, DateTime.now())) {
+        final int id = prayer.id;
+        if (!_playedAdhanToday.contains(id) && azanSource.isNotEmpty) {
+          _playedAdhanToday.add(id);
+          unawaited(
+            _soundPlayer.playAsset(azanSource).then((success) {
+              if (!success) {
+                _playedAdhanToday.remove(id);
+              }
+            }),
+          );
+        }
+
         setState(() {
           CacheHelper.setCurrentPrayerKey(prayer.title);
           cubit.currentPrayer = prayer;
@@ -239,16 +261,15 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     }
   }
 
-  Future<void> _checkAndPlayPrayerSound(DateTime now) async {
+  void _checkAndPlayPrayerSound(DateTime now) {
     if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
 
     final prayers = cubit.prayers(context);
     final iqamaMinutes = cubit.iqamaMinutes!;
-    final azanSource = cubit.getAzanSoundSource;
     final iqamaSource = cubit.getIqamaSoundSource;
 
     // ✅ تحقق من الـ source أولاً
-    if (azanSource.isEmpty || iqamaSource.isEmpty) {
+    if (iqamaSource.isEmpty) {
       return;
     }
 
@@ -256,17 +277,6 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
       final int id = prayer.id;
       final DateTime? adhanTime = prayer.dateTime;
       if (adhanTime == null) continue;
-
-      // ===== أذان =====
-      if (!_playedAdhanToday.contains(id) && _isSameMinute(adhanTime, now)) {
-        // ✅ await على النتيجة
-        final success = await _soundPlayer.playAsset(azanSource);
-
-        // ✅ ضف العلامة فقط لو نجح
-        if (success) {
-          _playedAdhanToday.add(id);
-        } else {}
-      }
 
       // ===== إقامة =====
       if (iqamaMinutes.length >= id) {
@@ -293,12 +303,15 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
         }
 
         if (!_playedIqamaToday.contains(id) && _isSameMinute(iqamaTime, now)) {
-          // ✅ await
-          final success = await _soundPlayer.playAsset(iqamaSource);
-
-          if (success) {
-            _playedIqamaToday.add(id);
-          } else {}
+          // احجز العلامة فورًا لمنع إعادة التشغيل في نفس الدقيقة
+          _playedIqamaToday.add(id);
+          unawaited(
+            _soundPlayer.playAsset(iqamaSource).then((success) {
+              if (!success) {
+                _playedIqamaToday.remove(id);
+              }
+            }),
+          );
         }
       }
     }
@@ -514,6 +527,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     _minuteTimer?.cancel();
     _soundPlayer.dispose();
     _azkarOverlay.dispose();
+    cubit.setHomeBlackScreenVisible(false);
     super.dispose();
   }
 
@@ -547,358 +561,339 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
       return iqamaTime.isBefore(now);
     }).toList();
     final uiRotateCubit = UiRotationCubit();
+    final theme = Theme.of(context);
+    final noShadowTheme = theme.copyWith(
+      textTheme: AppTheme.withoutTextShadow(theme.textTheme),
+      primaryTextTheme: AppTheme.withoutTextShadow(theme.primaryTextTheme),
+    );
 
-    return Scaffold(
-      key: scaffoldKey,
-      drawer: CustomDrawer(context: context),
-      body: BlocConsumer<AppCubit, AppState>(
-        listener: (context, state) {
-          if (state is FetchPrayerTimesFailure) {
-            showFlashMessage(
-              message: state.message,
-              type: FlashMessageType.error,
-              context: context,
+    return Theme(
+      data: noShadowTheme,
+      child: Scaffold(
+        extendBody: true,
+        bottomNavigationBar: const GlobalCopyrightFooter(),
+        key: scaffoldKey,
+        drawer: CustomDrawer(context: context),
+        body: BlocConsumer<AppCubit, AppState>(
+          listener: (context, state) {
+            if (state is FetchPrayerTimesFailure) {
+              showFlashMessage(
+                message: state.message,
+                type: FlashMessageType.error,
+                context: context,
+              );
+            }
+          },
+          builder: (context, state) {
+            final enableGlass =
+                CacheHelper.getEnableGlassEffect(); // 👈 لو عايزه “true = glass شغال”
+
+            final headerStyle = TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTextColor,
+              fontFamily: CacheHelper.getTextsFontFamily(),
             );
-          }
-        },
-        builder: (context, state) {
-          final enableGlass =
-              CacheHelper.getEnableGlassEffect(); // 👈 لو عايزه “true = glass شغال”
 
-          final headerStyle = TextStyle(
-            fontSize: 13.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryTextColor,
-            fontFamily: CacheHelper.getTextsFontFamily(),
-          );
+            final prayerStyle = TextStyle(
+              fontFamily: CacheHelper.getTimesFontFamily(),
+              fontSize: 24.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTextColor,
+            );
 
-          final prayerStyle = TextStyle(
-            fontFamily: CacheHelper.getTimesFontFamily(),
-            fontSize: 24.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryTextColor,
-          );
+            final adhanStyle = TextStyle(
+              fontFamily: CacheHelper.getTimesFontFamily(),
+              fontSize: 22.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.secondaryTextColor,
+            );
 
-          final adhanStyle = TextStyle(
-            fontFamily: CacheHelper.getTimesFontFamily(),
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.secondaryTextColor,
-          );
+            final iqamaStyle = TextStyle(
+              fontFamily: CacheHelper.getTimesFontFamily(),
+              fontSize: 22.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTextColor,
+            );
 
-          final iqamaStyle = TextStyle(
-            fontFamily: CacheHelper.getTimesFontFamily(),
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryTextColor,
-          );
+            final rows = List.generate(cubit.prayers(context).length, (index) {
+              final p = cubit.prayers(context)[index];
 
-          final rows = List.generate(cubit.prayers(context).length, (index) {
-            final p = cubit.prayers(context)[index];
+              final dimmed =
+                  index < pastIqamaFlags.length && pastIqamaFlags[index];
 
-            final dimmed =
-                index < pastIqamaFlags.length && pastIqamaFlags[index];
+              final adhanStr = CacheHelper.getUse24HoursFormat()
+                  ? (p.time24 ?? '--:--')
+                  : (p.time24 != null
+                        ? DateHelper.stripAmPmFromTimeText(p.time!, context)
+                        : '--:--');
 
-            final adhanStr = CacheHelper.getUse24HoursFormat()
-                ? (p.time24 ?? '--:--')
-                : (p.time24 != null
-                      ? DateHelper.stripAmPmFromTimeText(p.time!, context)
-                      : '--:--');
-
-            final iqamaStr = (p.time != null && cubit.iqamaMinutes != null)
-                ? DateHelper.stripAmPmFromTimeText(
-                    DateHelper.addMinutesToTimeStringWithSettings(
-                      p.time!,
-                      cubit.iqamaMinutes![p.id - 1],
+              final iqamaStr = (p.time != null && cubit.iqamaMinutes != null)
+                  ? DateHelper.stripAmPmFromTimeText(
+                      DateHelper.addMinutesToTimeStringWithSettings(
+                        p.time!,
+                        cubit.iqamaMinutes![p.id - 1],
+                        context,
+                      ),
                       context,
-                    ),
-                    context,
-                  )
-                : '--:--';
-            final nextFajrPrayer = cubit.nextFajrPrayer != null
-                ? cubit.nextFajrPrayer!.time24
-                : '--:--';
+                    )
+                  : '--:--';
+              final nextFajrPrayer = cubit.nextFajrPrayer != null
+                  ? cubit.nextFajrPrayer!.time24
+                  : '--:--';
 
-            return PrayerRowData(
-              prayerName: p.title,
-              adhanTime: adhanStr,
-              iqamaTime: iqamaStr,
-              dimmed: dimmed,
-              nextFajrPrayer: nextFajrPrayer.toString(),
-            );
-          });
-          return Stack(
-            children: [
-              // Background
-              Positioned.fill(
-                child: Image.asset(
-                  CacheHelper.getSelectedBackground(),
-                  fit: BoxFit.cover,
+              return PrayerRowData(
+                prayerName: p.title,
+                adhanTime: adhanStr,
+                iqamaTime: iqamaStr,
+                dimmed: dimmed,
+                nextFajrPrayer: nextFajrPrayer.toString(),
+              );
+            });
+            return Stack(
+              children: [
+                // Background
+                Positioned.fill(
+                  child: Image.asset(
+                    CacheHelper.getSelectedBackground(),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
 
-              // Main fixed-grid layout
-              SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, c) {
-                    final safeH = c.maxHeight; // ده الحقيقي
-                    final safeW = c.maxWidth;
+                // Main fixed-grid layout
+                SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, c) {
+                      final safeH = c.maxHeight; // ده الحقيقي
+                      final safeW = c.maxWidth;
 
-                    // نسب من تصميم 960x540
-                    final topH = safeH * (62.0 / 540.0);
-                    // final sliderH = safeH * (78.0 / 540.0);
-                    final footerH = safeH * (20.0 / 540.0);
-                    // final mainH = safeH - topH - sliderH - footerH;
+                      // نسب من تصميم 960x540
+                      final topH = safeH * (62.0 / 540.0);
+                      // final sliderH = safeH * (78.0 / 540.0);
+                      final footerH = safeH * (20.0 / 540.0);
+                      // final mainH = safeH - topH - sliderH - footerH;
 
-                    // Padding برضه يكون آمن (مش يكبر زيادة)
-                    final padX = (safeW * 0.012).toDouble(); // ~12px على 960
-                    final padY = (safeH * 0.012);
+                      // Padding برضه يكون آمن (مش يكبر زيادة)
+                      final padX = (safeW * 0.012).toDouble(); // ~12px على 960
+                      final padY = (safeH * 0.012);
 
-                    final sliderH = safeH * (92.0 / 540.0); // كان 78
-                    final mainH =
-                        safeH - topH - sliderH - footerH; // هيتقل تلقائي
+                      final sliderH = safeH * (92.0 / 540.0); // كان 78
+                      final mainH =
+                          safeH - topH - sliderH - footerH; // هيتقل تلقائي
 
-                    return Column(
-                      children: [
-                        // SLOT 1: TopBar (fixed)
-                        SizedBox(
-                          height: topH,
-                          child: HomeAppBar(
-                            onDrawerTap: () =>
-                                scaffoldKey.currentState?.openDrawer(),
+                      return Column(
+                        children: [
+                          // SLOT 1: TopBar (fixed)
+                          SizedBox(
+                            height: topH,
+                            child: HomeAppBar(
+                              onDrawerTap: () =>
+                                  scaffoldKey.currentState?.openDrawer(),
+                            ),
                           ),
-                        ),
 
-                        // SLOT 2: Main (fixed)
-                        SizedBox(
-                          height: mainH,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            child: isloading
-                                ? Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CircularProgressIndicator(
-                                          color: AppTheme.primaryTextColor,
-                                        ),
-                                        SizedBox(height: 8.h),
-                                        Text(
-                                          LocaleKeys.loading.tr(),
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.bold,
+                          // SLOT 2: Main (fixed)
+                          SizedBox(
+                            height: mainH,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12.w),
+                              child: isloading
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          CircularProgressIndicator(
                                             color: AppTheme.primaryTextColor,
+                                          ),
+                                          SizedBox(height: 8.h),
+                                          Text(
+                                            LocaleKeys.loading.tr(),
+                                            style: TextStyle(
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.primaryTextColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        // LEFT (58)
+                                        Expanded(
+                                          flex: 50,
+                                          child: GlassPanel(
+                                            padding: EdgeInsets.all(10.w),
+                                            child: Padding(
+                                              padding: EdgeInsets.only(
+                                                left: 23.w,
+                                                right: 23.w,
+                                              ),
+                                              child: PrayerTimesTable(
+                                                rows: rows,
+                                                enableGlass: enableGlass,
+                                                headerStyle: headerStyle,
+                                                prayerStyle: prayerStyle,
+                                                adhanStyle: adhanStyle,
+                                                iqamaStyle: iqamaStyle,
+                                              ),
+                                            ),
+                                            //  _PrayerTableFixed(
+                                            //   prayers: prayers,
+                                            //   pastIqamaFlags: pastIqamaFlags,
+                                            //   iqamaMinutes: cubit.iqamaMinutes,
+                                            // ),
+                                          ),
+                                        ),
+
+                                        SizedBox(width: 12.w),
+
+                                        // CENTER (24)
+                                        Expanded(
+                                          flex: 24,
+                                          child: GlassPanel(
+                                            padding: EdgeInsets.all(10.w),
+                                            child: _CenterClockFixed(
+                                              fixedDhikr:
+                                                  CacheHelper.getFixedDhikr(),
+                                              onTap: () {
+                                                CacheHelper.setIsFullTimeEnabled(
+                                                  !CacheHelper.getIsFullTimeEnabled(),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+
+                                        SizedBox(width: 12.w),
+
+                                        // RIGHT (18)
+                                        Expanded(
+                                          flex: 24,
+                                          child: GlassPanel(
+                                            padding: EdgeInsets.all(10.w),
+                                            child: _RightInfoFixed(
+                                              cubit: cubit,
+                                              nextPrayerFuture:
+                                                  _nextPrayerFuture,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  )
-                                : Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      // LEFT (58)
-                                      Expanded(
-                                        flex: 50,
-                                        child: GlassPanel(
-                                          padding: EdgeInsets.all(10.w),
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                              left: 23.w,
-                                              right: 23.w,
-                                            ),
-                                            child: PrayerTimesTable(
-                                              rows: rows,
-                                              enableGlass: enableGlass,
-                                              headerStyle: headerStyle,
-                                              prayerStyle: prayerStyle,
-                                              adhanStyle: adhanStyle,
-                                              iqamaStyle: iqamaStyle,
-                                            ),
-                                          ),
-                                          //  _PrayerTableFixed(
-                                          //   prayers: prayers,
-                                          //   pastIqamaFlags: pastIqamaFlags,
-                                          //   iqamaMinutes: cubit.iqamaMinutes,
-                                          // ),
-                                        ),
-                                      ),
-
-                                      SizedBox(width: 12.w),
-
-                                      // CENTER (24)
-                                      Expanded(
-                                        flex: 24,
-                                        child: GlassPanel(
-                                          padding: EdgeInsets.all(10.w),
-                                          child: _CenterClockFixed(
-                                            fixedDhikr:
-                                                CacheHelper.getFixedDhikr(),
-                                            onTap: () {
-                                              CacheHelper.setIsFullTimeEnabled(
-                                                !CacheHelper.getIsFullTimeEnabled(),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-
-                                      SizedBox(width: 12.w),
-
-                                      // RIGHT (18)
-                                      Expanded(
-                                        flex: 24,
-                                        child: GlassPanel(
-                                          padding: EdgeInsets.all(10.w),
-                                          child: _RightInfoFixed(
-                                            cubit: cubit,
-                                            nextPrayerFuture: _nextPrayerFuture,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        ),
-
-                        // SLOT 3: Slider reserved (fixed even if hidden)
-                        SizedBox(
-                          height: sliderH,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: padX,
-                              vertical: padY,
                             ),
-                            child: (!isloading && CacheHelper.getSliderOpened())
-                                ? LandscapeAzkarSlider(
-                                    adhkar: cubit.todaysAdkar != null
-                                        ? cubit.todaysAdkar!
-                                              .map((e) => e.text)
-                                              .toList()
-                                        : [],
-                                    height: (sliderH - (padY * 2)).toDouble(),
-                                    maxFontSize: 18.sp,
-                                    minFontSize: 11.sp,
-                                  )
-                                : const SizedBox.expand(), // reserved empty space
                           ),
-                        ),
 
-                        // SLOT 4: Footer (fixed)
-                        GestureDetector(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: footerH,
-                            child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  AutoSizeText(
-                                    LocaleKeys.copy_right_for_sadja.tr(),
-                                    maxLines: 1,
-                                    minFontSize: 8,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      color: AppTheme.primaryTextColor,
-                                    ),
-                                  ),
-                                  HorizontalSpace(width: 8),
-                                  AutoSizeText(
-                                    AppCubit.get(context).getCity() != null
-                                        ? 'SA, ${AppCubit.get(context).getCity()!.nameEn}'
-                                        : "",
-                                    maxLines: 1,
-                                    minFontSize: 8, // ✅ raw
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      color: AppTheme.primaryTextColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                          // SLOT 3: Slider reserved (fixed even if hidden)
+                          SizedBox(
+                            height: sliderH,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: padX,
+                                vertical: padY,
                               ),
+                              child:
+                                  (!isloading && CacheHelper.getSliderOpened())
+                                  ? LandscapeAzkarSlider(
+                                      adhkar: cubit.todaysAdkar != null
+                                          ? cubit.todaysAdkar!
+                                                .map((e) => e.text)
+                                                .toList()
+                                          : [],
+                                      height: (sliderH - (padY * 2)).toDouble(),
+                                      maxFontSize: 18.sp,
+                                      minFontSize: 11.sp,
+                                      fontFamily:
+                                          CacheHelper.getAzkarFontFamily(),
+                                    )
+                                  : const SizedBox.expand(), // reserved empty space
                             ),
                           ),
-                        ),
-                      ],
+
+                          // SLOT 4: مساحة بسيطة مريحة أسفل المحتوى
+                          SizedBox(height: 4.h),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                // if (cubit.currentPrayer != null)
+                //   AzanPrayerScreen(
+                //     key: ValueKey('azan-test'),
+                //     currentPrayer: cubit.currentPrayer!,
+                //   ),
+
+                // // ✅ Overlay: AzanPrayerScreen (unchanged)
+                FutureBuilder<bool>(
+                  future: _hideFuture,
+                  builder: (context, snapshot) {
+                    final shouldHide =
+                        CacheHelper.getHideScreenAfterIshaaEnabled() &&
+                        (snapshot.data == true);
+
+                    final azanActive =
+                        (cubit.currentPrayer != null &&
+                        cubit.currentPrayer!.id != 2 &&
+                        cubit.showPrayerAzanPage);
+                    final hideFooterOnBlack =
+                        shouldHide || cubit.isAzanBlackScreenVisible;
+                    _syncHomeBlackScreenFlag(hideFooterOnBlack);
+
+                    return ValueListenableBuilder<AzkarWindow?>(
+                      valueListenable: _azkarOverlay,
+                      builder: (_, w, __) {
+                        Widget overlay = const SizedBox.shrink();
+
+                        // 1) أعلى أولوية: AzanPrayerScreen
+                        if (azanActive) {
+                          overlay = AzanPrayerScreen(
+                            key: const ValueKey('azan-test'),
+                            currentPrayer: cubit.currentPrayer!,
+                          );
+                        }
+                        // 2) ثاني أولوية: black screen
+                        else if (shouldHide) {
+                          overlay = Container(
+                            key: const ValueKey('black_screen'),
+                            height: 1.sh,
+                            width: 1.sw,
+                            color: Colors.black,
+                          );
+                        }
+                        // 3) ثالث أولوية: Azkar
+                        else if (w != null) {
+                          overlay = GestureDetector(
+                            key: ValueKey(
+                              'azkar-${w.type.name}-${w.prayerId ?? 0}',
+                            ),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _azkarOverlay.dismissForNow,
+                            child: AzkarView(
+                              azkarType: w.type,
+                              // prayerId: w.prayerId,
+                            ),
+                          );
+                        }
+
+                        return AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 1500),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, anim) =>
+                              FadeTransition(opacity: anim, child: child),
+                          child: overlay,
+                        );
+                      },
                     );
                   },
                 ),
-              ),
-
-              // if (cubit.currentPrayer != null)
-              //   AzanPrayerScreen(
-              //     key: ValueKey('azan-test'),
-              //     currentPrayer: cubit.currentPrayer!,
-              //   ),
-
-              // // ✅ Overlay: AzanPrayerScreen (unchanged)
-              FutureBuilder<bool>(
-                future: _hideFuture,
-                builder: (context, snapshot) {
-                  final shouldHide =
-                      CacheHelper.getHideScreenAfterIshaaEnabled() &&
-                      (snapshot.data == true);
-
-                  final azanActive =
-                      (cubit.currentPrayer != null &&
-                      cubit.currentPrayer!.id != 2 &&
-                      cubit.showPrayerAzanPage);
-
-                  return ValueListenableBuilder<AzkarWindow?>(
-                    valueListenable: _azkarOverlay,
-                    builder: (_, w, __) {
-                      Widget overlay = const SizedBox.shrink();
-
-                      // 1) أعلى أولوية: AzanPrayerScreen
-                      if (azanActive) {
-                        overlay = AzanPrayerScreen(
-                          key: const ValueKey('azan-test'),
-                          currentPrayer: cubit.currentPrayer!,
-                        );
-                      }
-                      // 2) ثاني أولوية: black screen
-                      else if (shouldHide) {
-                        overlay = Container(
-                          key: const ValueKey('black_screen'),
-                          height: 1.sh,
-                          width: 1.sw,
-                          color: Colors.black,
-                        );
-                      }
-                      // 3) ثالث أولوية: Azkar
-                      else if (w != null) {
-                        overlay = GestureDetector(
-                          key: ValueKey(
-                            'azkar-${w.type.name}-${w.prayerId ?? 0}',
-                          ),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _azkarOverlay.dismissForNow,
-                          child: AzkarView(
-                            azkarType: w.type,
-                            // prayerId: w.prayerId,
-                          ),
-                        );
-                      }
-
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 1500),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, anim) =>
-                            FadeTransition(opacity: anim, child: child),
-                        child: overlay,
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -1192,21 +1187,26 @@ class _CenterClockFixed extends StatelessWidget {
                 ),
               ),
               // SizedBox(height: gap),
-              Container(
-                child: RotatingAyahBanner(
-                  maxLines: 3,
-                  ayat: ayat, // ✅ اللي انت جايبه
-                  height: 140.h,
-                  // availableHeight: 90.h, // لو عايز نفس منطقك القديم
-                  maxFontSize: 22.sp,
-                  minFontSize: 12.sp,
-                  interval: const Duration(
-                    seconds: 20,
-                  ), // أو CacheHelper.getSliderTime()
-                  fontFamily: CacheHelper.getTextsFontFamily(),
-                  textColor: AppTheme.primaryTextColor,
+              if (CacheHelper.getSlidesEnabled())
+                Container(
+                  child: RotatingAyahBanner(
+                    maxLines: 3,
+                    ayat:
+                        (AppCubit().todaysSlides != null &&
+                            AppCubit().todaysSlides!.isNotEmpty)
+                        ? AppCubit().todaysSlides!.map((e) => e.text).toList()
+                        : ayat,
+                    height: 140.h,
+                    maxFontSize: 22.sp,
+                    minFontSize: 12.sp,
+                    interval: Duration(
+                      seconds: CacheHelper.getSlidesDisplaySeconds(),
+                    ),
+                    randomOrder: CacheHelper.getSlidesRandomOrder(),
+                    fontFamily: CacheHelper.getAzkarFontFamily(),
+                    textColor: AppTheme.primaryTextColor,
+                  ),
                 ),
-              ),
             ],
           ),
         );
@@ -1493,6 +1493,8 @@ class LandscapeAzkarSlider extends StatefulWidget {
   final double height;
   final double maxFontSize;
   final double minFontSize;
+  final String? fontFamily;
+  final bool wrapWithBrackets;
 
   const LandscapeAzkarSlider({
     super.key,
@@ -1500,6 +1502,8 @@ class LandscapeAzkarSlider extends StatefulWidget {
     required this.height,
     required this.maxFontSize,
     required this.minFontSize,
+    this.fontFamily,
+    this.wrapWithBrackets = true,
   });
 
   @override
@@ -1562,13 +1566,15 @@ class _LandscapeAzkarSliderState extends State<LandscapeAzkarSlider> {
           itemCount: widget.adhkar.length,
           itemBuilder: (context, index) {
             final text = widget.adhkar[index];
+            final displayText = widget.wrapWithBrackets ? "﴿ $text ﴾" : text;
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.w),
               child: AdaptiveTextWidget(
-                text: text,
+                text: displayText,
                 maxFontSize: widget.maxFontSize,
                 minFontSize: widget.minFontSize,
                 availableHeight: widget.height,
+                fontFamily: widget.fontFamily,
               ),
             );
           },

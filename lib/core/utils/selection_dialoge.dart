@@ -7,7 +7,7 @@ import 'package:azan/data/data/city_country_data.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 
 typedef ItemLabel<T> = String Function(T item);
 

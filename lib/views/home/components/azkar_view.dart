@@ -7,7 +7,7 @@ import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/core/utils/constants.dart';
 import 'package:azan/data/data/after_prayers_azkar.dart';
 import 'package:azan/data/data/evening_azkar.dart';
@@ -236,6 +236,7 @@ class _AzkarViewState extends State<AzkarView> {
                 fontWeight: FontWeight.w600,
                 fontSize: noteSize,
                 fontStyle: FontStyle.italic,
+
                 shadows: [
                   Shadow(color: noteColor.withOpacity(0.3), blurRadius: 4),
                 ],

@@ -19,7 +19,8 @@ import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 class AdditionalSettingsScreen extends StatefulWidget {
   const AdditionalSettingsScreen({super.key});
@@ -35,6 +36,7 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
   late bool fullTime;
   late bool dimPrev;
   late bool changeCounter;
+  late bool showAzanScreen;
   late bool arabicNumbers;
   late bool checkInternet;
   late int sliderTime;
@@ -45,10 +47,22 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
   late bool afterPrayerAzkarEnabled;
   late int afterPrayerWindowMinutes;
   late bool showSecondsInNextPrayer;
+  late bool showIqamaCountdownLastMinuteOnly;
+  late bool putPrayerTimesTitleInCenter;
+  late bool getEnlargeAdhanAndIqamaTimeInLandeScape;
+  late bool hideIqamahTimes;
+  late bool enlargeRemainingTimeCounter;
+  late bool enableHadithBeforeIqama;
+  late int hadithDisplaySeconds;
 
   void _setShowSecondsInNextPrayer(bool v) {
     setState(() => showSecondsInNextPrayer = v);
     CacheHelper.setShowSecondsInNextPrayer(v);
+  }
+
+  void _setShowIqamaCountdownLastMinuteOnly(bool v) {
+    setState(() => showIqamaCountdownLastMinuteOnly = v);
+    CacheHelper.setShowIqamaCountdownLastMinuteOnly(v);
   }
 
   void _setMorningAzkarEnabled(bool v) {
@@ -73,6 +87,33 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     CacheHelper.setEveningAzkarWindowMinutes(clamped);
   }
 
+  void _setPutPrayerTimesTitleInCenter(bool v) {
+    setState(() => putPrayerTimesTitleInCenter = v);
+
+    CacheHelper.setPrayerTimeTileInCenter(v);
+  }
+
+  void _setHideIqamahTimes(bool v) {
+    setState(() => hideIqamahTimes = v);
+    CacheHelper.setHideIqamahTimes(v);
+  }
+
+  void _setEnlargeRemainingTimeCounter(bool v) {
+    setState(() => enlargeRemainingTimeCounter = v);
+    CacheHelper.setEnlargeRemainingTimeCounter(v);
+  }
+
+  void _setEnableHadithBeforeIqama(bool v) {
+    setState(() => enableHadithBeforeIqama = v);
+    CacheHelper.setEnableHadithBeforeIqama(v);
+  }
+
+  void _setHadithDisplaySeconds(int v) {
+    final clamped = v.clamp(1, 120); // 1..120 seconds
+    setState(() => hadithDisplaySeconds = clamped);
+    CacheHelper.setHadithDisplaySeconds(clamped);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +121,7 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     fullTime = CacheHelper.getIsFullTimeEnabled();
     dimPrev = CacheHelper.getIsPreviousPrayersDimmed();
     changeCounter = CacheHelper.getIsChangeCounterEnabled();
+    showAzanScreen = CacheHelper.getShowAzanScreen();
     arabicNumbers = CacheHelper.getIsArabicNumbersEnabled();
     checkInternet = CacheHelper.getEnableCheckInternetConnection();
     sliderTime = CacheHelper.getSliderTime();
@@ -90,6 +132,22 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     afterPrayerAzkarEnabled = CacheHelper.getAfterPrayerAzkarEnabled();
     afterPrayerWindowMinutes = CacheHelper.getAfterPrayerAzkarWindowMinutes();
     showSecondsInNextPrayer = CacheHelper.getShowSecondsInNextPrayer();
+    showIqamaCountdownLastMinuteOnly =
+        CacheHelper.getShowIqamaCountdownLastMinuteOnly();
+    putPrayerTimesTitleInCenter = CacheHelper.getPrayerTimeTileInCenter();
+    getEnlargeAdhanAndIqamaTimeInLandeScape =
+        CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape();
+    hideIqamahTimes = CacheHelper.getHideIqamahTimes();
+    enlargeRemainingTimeCounter = CacheHelper.getEnlargeRemainingTimeCounter();
+    enableHadithBeforeIqama = CacheHelper.getEnableHadithBeforeIqama();
+    hadithDisplaySeconds = CacheHelper.getHadithDisplaySeconds();
+  }
+
+  // getEnlargeAdhanAndIqamaTimeInLandeScape
+
+  void _setEnlargeAdhanAndIqamaTimeInLandeScape(bool v) {
+    setState(() => getEnlargeAdhanAndIqamaTimeInLandeScape = v);
+    CacheHelper.setEnlargeAdhanAndIqamaTimeInLandeScape(v);
   }
 
   void _setAfterPrayerAzkarEnabled(bool v) {
@@ -123,6 +181,11 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     CacheHelper.setIsChangeCounterEnabled(v);
   }
 
+  void _setShowAzanScreen(bool v) {
+    setState(() => showAzanScreen = v);
+    CacheHelper.setShowAzanScreen(v);
+  }
+
   void _setArabicNumbers(bool v) {
     setState(() => arabicNumbers = v);
     CacheHelper.setIsArabicNumbersEnabled(v);
@@ -141,6 +204,8 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      bottomNavigationBar: const GlobalCopyrightFooter(),
       body: Stack(
         children: [
           Image.asset(
@@ -169,9 +234,33 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                               bottom: 14.h,
                             ),
                             child: _PortraitContent(
+                              // getEnlargeAdhanAndIqamaTimeInLandeScape
+                              getEnlargeAdhanAndIqamaTimeInLandeScape:
+                                  getEnlargeAdhanAndIqamaTimeInLandeScape,
+                              onEnlargeAdhanAndIqamaTimeInLandeScape:
+                                  _setEnlargeAdhanAndIqamaTimeInLandeScape,
+                              hideIqamahTimes: hideIqamahTimes,
+                              onHideIqamahTimes: _setHideIqamahTimes,
+                              enlargeRemainingTimeCounter:
+                                  enlargeRemainingTimeCounter,
+                              onEnlargeRemainingTimeCounter:
+                                  _setEnlargeRemainingTimeCounter,
+                              enableHadithBeforeIqama: enableHadithBeforeIqama,
+                              onEnableHadithBeforeIqama:
+                                  _setEnableHadithBeforeIqama,
+                              hadithDisplaySeconds: hadithDisplaySeconds,
+                              onHadithDisplaySeconds: _setHadithDisplaySeconds,
+                              onPutPrayerTimesInNextPrayer:
+                                  _setPutPrayerTimesTitleInCenter,
+                              putPrayerTimesInNextPrayer:
+                                  putPrayerTimesTitleInCenter,
                               showSecondsInNextPrayer: showSecondsInNextPrayer,
                               onShowSecondsInNextPrayer:
                                   _setShowSecondsInNextPrayer,
+                              showIqamaCountdownLastMinuteOnly:
+                                  showIqamaCountdownLastMinuteOnly,
+                              onShowIqamaCountdownLastMinuteOnly:
+                                  _setShowIqamaCountdownLastMinuteOnly,
                               afterPrayerAzkarEnabled: afterPrayerAzkarEnabled,
                               afterPrayerWindowMinutes:
                                   afterPrayerWindowMinutes,
@@ -197,12 +286,14 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                               fullTime: fullTime,
                               dimPrev: dimPrev,
                               changeCounter: changeCounter,
+                              showAzanScreen: showAzanScreen,
                               arabicNumbers: arabicNumbers,
                               checkInternet: checkInternet,
                               onUse24h: _setUse24h,
                               onFullTime: _setFullTime,
                               onDimPrev: _setDimPrev,
                               onChangeCounter: _setChangeCounter,
+                              onShowAzanScreen: _setShowAzanScreen,
                               onArabicNumbers: _setArabicNumbers,
                               onCheckInternet: _setCheckInternet,
                               onRefresh: () => setState(() {}),
@@ -236,10 +327,30 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                                   flex: 52,
                                   child: _PanelScroll(
                                     child: _LandscapeLeftPanel(
+                                      onShowAzanScreen: _setShowAzanScreen,
+                                      showAzanScreen: showAzanScreen,
+                                      getEnlargeAdhanAndIqamaTimeInLandeScape:
+                                          getEnlargeAdhanAndIqamaTimeInLandeScape,
+                                      onEnlargeAdhanAndIqamaTimeInLandeScape:
+                                          _setEnlargeAdhanAndIqamaTimeInLandeScape,
+                                      hideIqamahTimes: hideIqamahTimes,
+                                      onHideIqamahTimes: _setHideIqamahTimes,
+                                      enlargeRemainingTimeCounter:
+                                          enlargeRemainingTimeCounter,
+                                      onEnlargeRemainingTimeCounter:
+                                          _setEnlargeRemainingTimeCounter,
+                                      onPutPrayerTimeTitlesInCenter:
+                                          _setPutPrayerTimesTitleInCenter,
+                                      putPrayerTimeTitlesInCenter:
+                                          putPrayerTimesTitleInCenter,
                                       showSecondsInNextPrayer:
                                           showSecondsInNextPrayer,
                                       onShowSecondsInNextPrayer:
                                           _setShowSecondsInNextPrayer,
+                                      showIqamaCountdownLastMinuteOnly:
+                                          showIqamaCountdownLastMinuteOnly,
+                                      onShowIqamaCountdownLastMinuteOnly:
+                                          _setShowIqamaCountdownLastMinuteOnly,
                                       afterPrayerAzkarEnabled:
                                           afterPrayerAzkarEnabled,
                                       afterPrayerWindowMinutes:
@@ -365,6 +476,7 @@ class _PortraitContent extends StatelessWidget {
     required this.fullTime,
     required this.dimPrev,
     required this.changeCounter,
+    required this.showAzanScreen,
     required this.arabicNumbers,
     required this.checkInternet,
     required this.onUse24h,
@@ -392,29 +504,60 @@ class _PortraitContent extends StatelessWidget {
     required this.onAfterPrayerWindowMinutes,
     required this.showSecondsInNextPrayer,
     required this.onShowSecondsInNextPrayer,
+    required this.showIqamaCountdownLastMinuteOnly,
+    required this.onShowIqamaCountdownLastMinuteOnly,
+    required this.putPrayerTimesInNextPrayer,
+    required this.onPutPrayerTimesInNextPrayer,
+    required this.getEnlargeAdhanAndIqamaTimeInLandeScape,
+    required this.onEnlargeAdhanAndIqamaTimeInLandeScape,
+    required this.hideIqamahTimes,
+    required this.onHideIqamahTimes,
+    required this.enlargeRemainingTimeCounter,
+    required this.onEnlargeRemainingTimeCounter,
+    required this.enableHadithBeforeIqama,
+    required this.onEnableHadithBeforeIqama,
+    required this.hadithDisplaySeconds,
+    required this.onHadithDisplaySeconds,
+    required this.onShowAzanScreen,
   });
+  final bool hideIqamahTimes;
+  final void Function(bool) onHideIqamahTimes;
+  final bool enlargeRemainingTimeCounter;
+  final void Function(bool) onEnlargeRemainingTimeCounter;
+  final bool enableHadithBeforeIqama;
+  final void Function(bool) onEnableHadithBeforeIqama;
+  final int hadithDisplaySeconds;
+  final void Function(int) onHadithDisplaySeconds;
+  final bool putPrayerTimesInNextPrayer;
   final bool morningAzkarEnabled;
   final bool eveningAzkarEnabled;
   final int morningWindowMinutes;
   final int eveningWindowMinutes;
+  // enlarge
+  final bool getEnlargeAdhanAndIqamaTimeInLandeScape;
+  final void Function(bool) onEnlargeAdhanAndIqamaTimeInLandeScape;
 
   final void Function(bool) onMorningAzkarEnabled;
   final void Function(bool) onEveningAzkarEnabled;
   final void Function(int) onMorningWindowMinutes;
   final void Function(int) onEveningWindowMinutes;
+  final void Function(bool) onPutPrayerTimesInNextPrayer;
   final bool afterPrayerAzkarEnabled;
   final int afterPrayerWindowMinutes;
 
   final void Function(bool) onAfterPrayerAzkarEnabled;
   final void Function(int) onAfterPrayerWindowMinutes;
   final void Function(bool) onShowSecondsInNextPrayer;
+  final void Function(bool) onShowIqamaCountdownLastMinuteOnly;
 
   final bool showSecondsInNextPrayer;
+  final bool showIqamaCountdownLastMinuteOnly;
 
   final bool use24h;
   final bool fullTime;
   final bool dimPrev;
   final bool changeCounter;
+  final bool showAzanScreen;
   final bool arabicNumbers;
   final bool checkInternet;
   final bool enableShadow;
@@ -427,6 +570,7 @@ class _PortraitContent extends StatelessWidget {
   final void Function(bool) onFullTime;
   final void Function(bool) onDimPrev;
   final void Function(bool) onChangeCounter;
+  final void Function(bool) onShowAzanScreen;
   final void Function(bool) onArabicNumbers;
   final void Function(bool) onCheckInternet;
   final void Function(bool) onEnableShadow;
@@ -467,6 +611,13 @@ class _PortraitContent extends StatelessWidget {
         VerticalSpace(height: 10),
 
         CustomCheckTile(
+          onChanged: onShowAzanScreen,
+          title: LocaleKeys.show_azan_screen.tr(),
+          value: showAzanScreen,
+        ),
+        VerticalSpace(height: 10),
+
+        CustomCheckTile(
           onChanged: onArabicNumbers,
           title: LocaleKeys.enable_arabic_numbers.tr(),
           value: arabicNumbers,
@@ -484,11 +635,46 @@ class _PortraitContent extends StatelessWidget {
           title: LocaleKeys.enable_shadow_around_prayers.tr(),
           value: enableShadow,
         ),
+
+        VerticalSpace(height: 12),
+        CustomCheckTile(
+          onChanged: onEnlargeAdhanAndIqamaTimeInLandeScape,
+          title: LocaleKeys.enlarge_iqama_and_adhan_in_landscape.tr(),
+          value: getEnlargeAdhanAndIqamaTimeInLandeScape,
+        ),
+
+        VerticalSpace(height: 12),
+        CustomCheckTile(
+          onChanged: onHideIqamahTimes,
+          title: LocaleKeys.hide_iqamah_times.tr(),
+          value: hideIqamahTimes,
+        ),
+
+        VerticalSpace(height: 12),
+        CustomCheckTile(
+          onChanged: onEnlargeRemainingTimeCounter,
+          title: LocaleKeys.enlarge_remaining_time_counter.tr(),
+          value: enlargeRemainingTimeCounter,
+        ),
+
         VerticalSpace(height: 12),
         CustomCheckTile(
           onChanged: onShowSecondsInNextPrayer,
           title: LocaleKeys.show_seconds_in_next_prayer.tr(),
           value: showSecondsInNextPrayer,
+        ),
+        VerticalSpace(height: 12),
+        CustomCheckTile(
+          onChanged: onShowIqamaCountdownLastMinuteOnly,
+          title: LocaleKeys.iqama_countdown_last_minute_only.tr(),
+          value: showIqamaCountdownLastMinuteOnly,
+        ),
+        VerticalSpace(height: 12),
+        CustomCheckTile(
+          onChanged: onPutPrayerTimesInNextPrayer,
+
+          title: LocaleKeys.put_prayers_titles_in_center_in_landscape.tr(),
+          value: putPrayerTimesInNextPrayer,
         ),
         VerticalSpace(height: 12),
 
@@ -577,6 +763,39 @@ class _PortraitContent extends StatelessWidget {
         const _DividerLine(),
         VerticalSpace(height: 12),
 
+        // ===== Hadith Settings =====
+        Text(
+          LocaleKeys.hadith_display_timing.tr(),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryTextColor,
+          ),
+        ),
+        VerticalSpace(height: 10),
+
+        CustomCheckTile(
+          onChanged: onEnableHadithBeforeIqama,
+          title: LocaleKeys.enable_hadith_before_iqama.tr(),
+          value: enableHadithBeforeIqama,
+        ),
+        VerticalSpace(height: 10),
+
+        PlusAndMinusWidget(
+          duration: LocaleKeys.hadith_display_seconds.tr(),
+          title: LocaleKeys.hadith_display_timing.tr(),
+          onChange: onHadithDisplaySeconds,
+          value: hadithDisplaySeconds,
+          step: 1,
+          min: 1,
+          max: 120,
+          layout: PlusMinusLayout.wrap,
+        ),
+
+        VerticalSpace(height: 12),
+        const _DividerLine(),
+        VerticalSpace(height: 12),
+
         _EidSection(onChanged: onRefresh),
 
         VerticalSpace(height: 12),
@@ -607,6 +826,7 @@ class _LandscapeLeftPanel extends StatelessWidget {
     required this.fullTime,
     required this.dimPrev,
     required this.changeCounter,
+    required this.showAzanScreen,
     required this.arabicNumbers,
     required this.checkInternet,
     required this.onUse24h,
@@ -635,21 +855,50 @@ class _LandscapeLeftPanel extends StatelessWidget {
     required this.onAfterPrayerAzkarEnabled,
     required this.onAfterPrayerWindowMinutes,
     required this.showSecondsInNextPrayer,
+    required this.showIqamaCountdownLastMinuteOnly,
 
     required this.onShowSecondsInNextPrayer,
+    required this.onShowIqamaCountdownLastMinuteOnly,
+
+    required this.putPrayerTimeTitlesInCenter,
+
+    required this.onPutPrayerTimeTitlesInCenter,
+
+    required this.getEnlargeAdhanAndIqamaTimeInLandeScape,
+
+    required this.onEnlargeAdhanAndIqamaTimeInLandeScape,
+    required this.hideIqamahTimes,
+    required this.onHideIqamahTimes,
+    required this.enlargeRemainingTimeCounter,
+    required this.onEnlargeRemainingTimeCounter,
+    required this.onShowAzanScreen,
+    // required this.showAzanScreen,
   });
 
   final bool use24h;
   final bool fullTime;
   final bool dimPrev;
   final bool changeCounter;
+  final bool showAzanScreen;
   final bool arabicNumbers;
   final bool checkInternet;
   final int sliderTime;
   final bool enableShadow;
   final bool showSecondsInNextPrayer;
+  final bool showIqamaCountdownLastMinuteOnly;
+
+  final bool hideIqamahTimes;
+  final void Function(bool) onHideIqamahTimes;
+
+  final bool enlargeRemainingTimeCounter;
+  final void Function(bool) onEnlargeRemainingTimeCounter;
+
+  final bool getEnlargeAdhanAndIqamaTimeInLandeScape;
+
+  final void Function(bool) onEnlargeAdhanAndIqamaTimeInLandeScape;
 
   final void Function(bool) onShowSecondsInNextPrayer;
+  final void Function(bool) onShowIqamaCountdownLastMinuteOnly;
   final void Function(int) onSliderTime;
   final void Function(bool) onEnableShadow;
 
@@ -657,12 +906,16 @@ class _LandscapeLeftPanel extends StatelessWidget {
   final void Function(bool) onFullTime;
   final void Function(bool) onDimPrev;
   final void Function(bool) onChangeCounter;
+  final void Function(bool) onShowAzanScreen;
   final void Function(bool) onArabicNumbers;
   final void Function(bool) onCheckInternet;
   final bool morningAzkarEnabled;
   final bool eveningAzkarEnabled;
   final int morningWindowMinutes;
   final int eveningWindowMinutes;
+  final bool putPrayerTimeTitlesInCenter;
+
+  final void Function(bool) onPutPrayerTimeTitlesInCenter;
 
   final void Function(bool) onMorningAzkarEnabled;
   final void Function(bool) onEveningAzkarEnabled;
@@ -710,6 +963,13 @@ class _LandscapeLeftPanel extends StatelessWidget {
         VerticalSpace(height: 10),
 
         CustomCheckTile(
+          onChanged: onShowAzanScreen,
+          title: LocaleKeys.show_azan_screen.tr(),
+          value: showAzanScreen,
+        ),
+        VerticalSpace(height: 10),
+
+        CustomCheckTile(
           onChanged: onArabicNumbers,
           title: LocaleKeys.enable_arabic_numbers.tr(),
           value: arabicNumbers,
@@ -728,11 +988,43 @@ class _LandscapeLeftPanel extends StatelessWidget {
           value: enableShadow,
         ),
         VerticalSpace(height: 10),
+        CustomCheckTile(
+          onChanged: onEnlargeAdhanAndIqamaTimeInLandeScape,
+          title: LocaleKeys.enlarge_iqama_and_adhan_in_landscape.tr(),
+          value: getEnlargeAdhanAndIqamaTimeInLandeScape,
+        ),
+        VerticalSpace(height: 10),
+        CustomCheckTile(
+          onChanged: onHideIqamahTimes,
+          title: LocaleKeys.hide_iqamah_times.tr(),
+          value: hideIqamahTimes,
+        ),
+        VerticalSpace(height: 10),
+        CustomCheckTile(
+          onChanged: onEnlargeRemainingTimeCounter,
+          title: LocaleKeys.enlarge_remaining_time_counter.tr(),
+          value: enlargeRemainingTimeCounter,
+        ),
+        VerticalSpace(height: 10),
 
         CustomCheckTile(
           onChanged: onShowSecondsInNextPrayer,
           title: LocaleKeys.show_seconds_in_next_prayer.tr(),
           value: showSecondsInNextPrayer,
+        ),
+        VerticalSpace(height: 10),
+        CustomCheckTile(
+          onChanged: onShowIqamaCountdownLastMinuteOnly,
+          title: LocaleKeys.iqama_countdown_last_minute_only.tr(),
+          value: showIqamaCountdownLastMinuteOnly,
+        ),
+        VerticalSpace(height: 10),
+
+        CustomCheckTile(
+          onChanged: onPutPrayerTimeTitlesInCenter,
+
+          title: LocaleKeys.put_prayers_titles_in_center_in_landscape.tr(),
+          value: putPrayerTimeTitlesInCenter,
         ),
 
         PlusAndMinusWidget(
@@ -1022,9 +1314,9 @@ class _EidSection extends StatelessWidget {
                   showAddEidDialog(
                     LocaleKeys.eid_al_fitr.tr(),
                     context,
-                    onConfirm: (date, time) {
+                    onConfirm: (time) {
                       CacheHelper.setFitrEid(
-                        DateFormat('yyyy-MM-dd', lang).format(date),
+                        // DateFormat('yyyy-MM-dd', lang).format(date),
                         DateHelper.formatTimeWithSettings(time, context),
                       );
                       onChanged();
@@ -1045,7 +1337,7 @@ class _EidSection extends StatelessWidget {
             Expanded(
               child: CustomTimeCheckTile(
                 titleValue: CacheHelper.getFitrEid() != null
-                    ? "${CacheHelper.getFitrEid()![0]} ${CacheHelper.getFitrEid()![1]}"
+                    ? "${CacheHelper.getFitrEid()}"
                     : null,
                 title: LocaleKeys.show_fetr_eid_prayer.tr(),
                 value: CacheHelper.getShowFitrEid(),
@@ -1067,9 +1359,9 @@ class _EidSection extends StatelessWidget {
                   showAddEidDialog(
                     LocaleKeys.eid_al_adha.tr(),
                     context,
-                    onConfirm: (date, time) {
+                    onConfirm: (time) {
                       CacheHelper.setAdhaEid(
-                        DateFormat('yyyy-MM-dd', lang).format(date),
+                        // DateFormat('yyyy-MM-dd', lang).format(date),
                         DateHelper.formatTimeWithSettings(time, context),
                       );
                       onChanged();
@@ -1090,7 +1382,7 @@ class _EidSection extends StatelessWidget {
             Expanded(
               child: CustomTimeCheckTile(
                 titleValue: CacheHelper.getAdhaEid() != null
-                    ? "${CacheHelper.getAdhaEid()![0]} ${CacheHelper.getAdhaEid()![1]}"
+                    ? "${CacheHelper.getAdhaEid()}"
                     : null,
                 title: LocaleKeys.show_adha_eid_prayer.tr(),
                 value: CacheHelper.getShowAdhaEid(),
@@ -1115,7 +1407,10 @@ class _FontsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        int cols = UiRotationCubit().isLandscape() ? 2 : 4;
+        final isLandscape = UiRotationCubit().isLandscape();
+        final minCardWidth = isLandscape ? 210.0 : 130.0;
+        final maxCols = isLandscape ? 2 : 4;
+        final cols = (c.maxWidth / minCardWidth).floor().clamp(1, maxCols);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1265,7 +1560,12 @@ class _FontGroupCard extends StatelessWidget {
       children: [
         Align(
           alignment: AlignmentDirectional.centerStart,
-          child: Text(data.header, style: data.headerStyle),
+          child: Text(
+            data.header,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: data.headerStyle,
+          ),
         ),
         VerticalSpace(height: 8),
         ...data.items.map((name) {
@@ -1324,17 +1624,18 @@ class _FontRadioRow extends StatelessWidget {
                 ),
                 HorizontalSpace(width: 6),
 
-                // ✅ لا Expanded هنا
-                Text(
-                  title,
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: title,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryTextColor,
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: title,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryTextColor,
+                    ),
                   ),
                 ),
               ],

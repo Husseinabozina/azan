@@ -3,7 +3,7 @@ import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
 import 'package:azan/views/home/components/glass_pill.dart';
@@ -16,6 +16,7 @@ class PrayerRowData {
   final String iqamaTime;
   final bool dimmed;
   final String nextFajrPrayer;
+  final bool isSpecial; // للعيد/حدث خاص
 
   PrayerRowData({
     required this.prayerName,
@@ -23,6 +24,7 @@ class PrayerRowData {
     required this.iqamaTime,
     required this.dimmed,
     required this.nextFajrPrayer,
+    this.isSpecial = false,
   });
 }
 

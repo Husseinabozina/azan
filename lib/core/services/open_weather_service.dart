@@ -170,13 +170,52 @@ class OpenMeteoWeatherService {
       final location = await fetchCoordinates(city: city, country: country);
       if (location == null) return null;
 
+      return await _fetchMaxForecastByCoords(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        morningHour: morningHour,
+        nightHour: nightHour,
+        days: days,
+      );
+    } catch (e) {
+      debugPrint('fetchMaxForecast error: $e');
+      return null;
+    }
+  }
+
+  /// ✅ جديد: يجيب الطقس باستخدام الإحداثيات مباشرة (للـ manual GPS)
+  Future<WeatherForecast?> fetchMaxForecastByCoordinates({
+    required double latitude,
+    required double longitude,
+    int morningHour = 8,
+    int nightHour = 20,
+    int days = maxForecastDays,
+  }) async {
+    return await _fetchMaxForecastByCoords(
+      latitude: latitude,
+      longitude: longitude,
+      morningHour: morningHour,
+      nightHour: nightHour,
+      days: days,
+    );
+  }
+
+  /// ✅ Internal method مشترك
+  Future<WeatherForecast?> _fetchMaxForecastByCoords({
+    required double latitude,
+    required double longitude,
+    required int morningHour,
+    required int nightHour,
+    required int days,
+  }) async {
+    try {
       final safeDays = days.clamp(1, maxForecastDays);
 
       final response = await _dio.get(
         'https://api.open-meteo.com/v1/forecast',
         queryParameters: {
-          'latitude': location.latitude,
-          'longitude': location.longitude,
+          'latitude': latitude,
+          'longitude': longitude,
 
           // daily for max/min
           'daily': 'temperature_2m_max,temperature_2m_min,weather_code',

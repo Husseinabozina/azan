@@ -5,6 +5,7 @@ import 'package:azan/controllers/cubits/rotation_cubit/rotation_state.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/views/home/home_screen_landscape.dart';
+import 'package:azan/views/home/home_screen_landscape_2.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return BlocBuilder<UiRotationCubit, bool>(
       builder: (context, isLand) {
-        return isLand ? HomeScreenLandscape() : HomeScreenMobile();
+        return isLand ? HomeScreenLandscape2() : HomeScreenMobile();
       },
     );
   }

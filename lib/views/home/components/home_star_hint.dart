@@ -4,7 +4,7 @@ import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 
 class BottomStarHint extends StatefulWidget {
   BottomStarHint({super.key, required this.text, this.onTap});

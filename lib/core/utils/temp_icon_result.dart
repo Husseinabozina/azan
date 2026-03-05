@@ -1,4 +1,5 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart' show AppCubit;
+import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,6 +98,14 @@ class TemperatureBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final day = isDay ?? (DateTime.now().hour >= 6 && DateTime.now().hour < 18);
+
+    // ✅ Check if weather is enabled first
+    final isWeatherEnabled = CacheHelper.getWeatherEnabled();
+    
+    // ✅ If not enabled, show nothing or placeholder
+    if (!isWeatherEnabled) {
+      return const SizedBox.shrink();
+    }
 
     // ✅ خُد القيم من الكيوبت
     final tempC = context.watch<AppCubit>().todayMaxTemp;

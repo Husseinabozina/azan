@@ -1,6 +1,6 @@
 import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 
 enum FlashMessageType { success, error, warning, info }
 

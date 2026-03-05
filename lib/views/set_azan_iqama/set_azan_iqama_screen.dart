@@ -8,7 +8,7 @@ import 'package:azan/core/helpers/azan_adjust_model.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
@@ -16,6 +16,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:azan/core/components/global_copyright_footer.dart';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
@@ -449,6 +450,8 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      bottomNavigationBar: const GlobalCopyrightFooter(),
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {
           // ✅ رسائل حفظ الإقامة (نفس منطق SetIqamaScreen)

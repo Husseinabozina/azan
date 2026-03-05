@@ -1,4 +1,4 @@
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
 import 'package:azan/views/home/components/prayer_times_header_row.dart';

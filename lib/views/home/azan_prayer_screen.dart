@@ -4,6 +4,7 @@ import 'dart:math' show min, max;
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/core/components/vertical_space.dart';
+import 'package:azan/core/helpers/simple_sound_player.dart';
 import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -37,16 +38,46 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
   bool _isPrayerTime = false;
 
   late AppCubit appCubit;
+  final SimpleSoundPlayer _soundPlayer = SimpleSoundPlayer();
 
-  final Duration _timeBeforeAzanTerminate = Duration(
-    minutes: CacheHelper.getAzanDuration(),
-  );
   final Duration _timeBeforeDoaaTerminate = const Duration(minutes: 1);
 
   Timer? _azanTimer;
   Timer? _doaaTimer;
   Timer? _iqamaWorkTimer;
   Timer? _prayerWorkTimer;
+
+  void _syncAzanBlackScreenFlag(bool visible) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      appCubit.setAzanBlackScreenVisible(visible);
+    });
+  }
+
+  Duration _resolveAzanPhaseDuration() {
+    final configured = Duration(minutes: CacheHelper.getAzanDuration());
+    final fromAudio = _soundPlayer.lastLoadedDuration;
+    if (fromAudio == null || fromAudio <= Duration.zero) return configured;
+    return fromAudio > configured ? fromAudio : configured;
+  }
+
+  void _startDoaaPhase() {
+    _doaaTimer?.cancel();
+    _doaaTimer = Timer(_timeBeforeDoaaTerminate, () {
+      if (!mounted) return;
+      setState(() => _doaaTerminat = true);
+
+      // بعد انتهاء الدعاء: نعلّم أن الفترة بين الأذان والإقامة بدأت ونغلق الشاشة
+      appCubit.markBetweenAdhanAndIqama();
+      appCubit.togglePrayerAzanPage();
+    });
+  }
+
+  void _finishAzanPhase() {
+    if (!mounted || _azanTerminat) return;
+    setState(() => _azanTerminat = true);
+    _startDoaaPhase();
+  }
 
   @override
   void initState() {
@@ -65,19 +96,7 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
     }
 
     // سيناريو الأذان العادي: نعرض الأذان ثم الدعاء ثم نعود للهوم
-    _azanTimer = Timer(_timeBeforeAzanTerminate, () {
-      if (!mounted) return;
-      setState(() => _azanTerminat = true);
-
-      _doaaTimer = Timer(_timeBeforeDoaaTerminate, () {
-        if (!mounted) return;
-        setState(() => _doaaTerminat = true);
-
-        // بعد انتهاء الدعاء: نعلّم أن الفترة بين الأذان والإقامة بدأت ونغلق الشاشة
-        appCubit.markBetweenAdhanAndIqama();
-        appCubit.togglePrayerAzanPage();
-      });
-    });
+    _azanTimer = Timer(_resolveAzanPhaseDuration(), _finishAzanPhase);
   }
 
   void iqamaaWork() {
@@ -123,6 +142,7 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
     _doaaTimer?.cancel();
     _iqamaWorkTimer?.cancel();
     _prayerWorkTimer?.cancel();
+    appCubit.setAzanBlackScreenVisible(false);
     super.dispose();
   }
 
@@ -142,6 +162,9 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
         (_isIqamaTime && CacheHelper.getEnableHidingScreenDuringPrayer())
         ? Colors.white
         : AppTheme.primaryTextColor;
+    final azanBlackScreenVisible =
+        CacheHelper.getEnableHidingScreenDuringPrayer() && _isPrayerTime;
+    _syncAzanBlackScreenFlag(azanBlackScreenVisible);
 
     return Scaffold(
       key: scaffoldKey,
@@ -172,8 +195,7 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
                     // ),
 
                     // ✅ Black screen during prayer
-                    if (CacheHelper.getEnableHidingScreenDuringPrayer() &&
-                        _isPrayerTime)
+                    if (azanBlackScreenVisible)
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 1500),
                         transitionBuilder: (child, anim) =>

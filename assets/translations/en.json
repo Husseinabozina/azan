@@ -27,6 +27,7 @@
   "screen_shortcuts": "Screen shortcuts",
   "weather_status": "Weather status",
   "about_app": "About the app",
+  "about_app_dedicated_message": "This application is dedicated to houses of Allah and is not for sale.",
 
   "reset": "Reset",
   "reload": "Reload",
@@ -34,13 +35,22 @@
   "mosque_azkar": "Mosque Azkar"
   ,"change_fixed_zekr": "Change fixed zekr",
   "set_iqama_time": "Set iqama time",
-  "edit_mosque_azkar": "Edit mosque azkar"
+  "edit_mosque_azkar": "Edit mosque announcements"
   ,"left_for": "Left for",
   "pm_label": "PM",
   "mosque_azkar_are_displayed_at_the_bottom_of_the_screen": "Mosque Azkar are displayed at the bottom of the screen",
   
   "something_went_wrong_please_try_again": "Something went wrong, please try again"
   ,"azkar_note": "Here you can add azkar or any useful information that will be displayed at the bottom of the screen on a scrollable sheet"
+  ,"mosque_announcements_bottom_title":"Mosque announcements at the bottom of the screen"
+  ,"mosque_announcements_note":"Here you can add messages or any useful information to be shown at the bottom of the screen on a moving ticker"
+  ,"announcement_display_duration":"Announcement display duration"
+  ,"enable_slides":"Enable slides"
+  ,"display_slides_randomly":"Display slides randomly"
+  ,"slide_display_duration":"Display time for each slide"
+  ,"add_slide":"Add slide"
+  ,"slides_center_title":"Slides preview"
+  ,"slides_center_note":"Here you can add or edit slides displayed in the middle of the screen"
   ,"enable_slider":"enable_slider",
   "add_message": "Add message",
   "daily": "Daily"
@@ -204,7 +214,79 @@
   "after_prayer_azkar_window_minutes": "After-prayer azkar duration",
   "minute": "minute",
   "show_seconds_in_next_prayer": "show seconds in next prayer",
+  "iqama_countdown_last_minute_only": "Iqama countdown in the last minute only",
+  "show_azan_screen": "Show Adhan screen",
 "change_app_logo":"Change app logo",
 "select_from_device":"Select from device",
 "default_app_logo":"Default app logo"
+,"put_prayers_titles_in_center_in_landscape": "Put prayers titles in center in landscape","enlarge_iqama_and_adhan_in_landscape":"Enlarge iqama and adhan in landscape"
+,"hide_iqamah_times": "Home Clock - Hide Iqamah Times"
+,"enlarge_remaining_time_counter": "Enlarge remaining time counter for next prayer",
+"enable_hadith_before_iqama": "Enable displaying Prophet's Hadith before Iqama",
+"hadith_display_timing": "Hadith display timing before Iqama",
+"hadith_display_seconds": "seconds before Iqama",
+"hadith_text_arabic": "قال رسول الله : \"من صلى على واحدة صلى الله عليه عشراً\"",
+"hadith_text_english": "The Prophet Muhammad said: \"Whoever sends blessings upon me once, Allah sends blessings upon him ten times\"",
+
+  "dialogs_examples_title": "Dialogs Examples",
+  "dialogs_examples_subtitle": "Tap any button to try the Dialog",
+  "dialog_example_1_title": "1️⃣ Simple Alert",
+  "dialog_example_1_subtitle": "Simple alert message",
+  "dialog_example_2_title": "2️⃣ Confirmation",
+  "dialog_example_2_subtitle": "Confirmation dialog with two options",
+  "dialog_example_3_title": "3️⃣ Text Input",
+  "dialog_example_3_subtitle": "Dialog with TextField",
+  "dialog_example_4_title": "4️⃣ List Choice",
+  "dialog_example_4_subtitle": "Select language from list",
+  "dialog_example_5_title": "5️⃣ Custom Dialog",
+  "dialog_example_5_subtitle": "Fully custom design",
+  "dialog_alert_title": "Important Alert",
+  "dialog_alert_message": "This is an example of a simple alert message using the new Dialogs system",
+  "dialog_alert_confirm": "OK",
+  "dialog_confirm_title": "Confirm Delete",
+  "dialog_confirm_message": "Are you sure you want to delete this item? This action cannot be undone.",
+  "dialog_confirm_confirm": "Delete",
+  "dialog_confirm_cancel": "Cancel",
+  "dialog_input_title": "Enter Mosque Name",
+  "dialog_input_hint": "Type the mosque name here...",
+  "dialog_choice_title": "Select Language",
+  "dialog_choice_arabic": "العربية",
+  "dialog_choice_arabic_subtitle": "Arabic Language",
+  "dialog_choice_english": "English",
+  "dialog_choice_english_subtitle": "English Language",
+  "dialog_choice_bengali": "বাংলা",
+  "dialog_choice_bengali_subtitle": "Bengali Language",
+  "dialog_custom_title": "Custom Dialog",
+  "dialog_custom_subtitle": "Fully custom design according to your needs",
+  "dialog_custom_feature_1": "Full color customization",
+  "dialog_custom_feature_2": "Responsive on all screens",
+  "dialog_custom_feature_3": "Clear and beautiful elements",
+  "dialog_custom_close": "Close",
+  "dialog_custom_ok": "OK",
+  "dialog_ok": "OK",
+  "dialog_cancel": "Cancel",
+  "dedication_title": "Dedication",
+  "dedication_subtitle": "All love and thanks",
+  "dedication_card_title": "To everyone who contributed to this work",
+  "dedication_card_text": "With all love and appreciation, we dedicate this humble work\\nTo everyone who supported and encouraged us to continue",
+  "dedication_thanks": "Special thanks to all volunteers",
+  "dedication_bottom_bar": "Made with love ❤️",
+
+  "weather_status_subtitle": "Enable and display weather status",
+  "weather_info_text": "Data fetched from Open-Meteo API",
+  "enable_weather": "Enable Weather Status",
+  "enable_weather_hint": "Show temperature on home screen",
+  "weather_source": "Weather Data Source",
+  "weather_source_auto": "Automatic (From City)",
+  "weather_source_auto_hint": "Use coordinates from selected city",
+  "weather_source_manual": "Manual (GPS)",
+  "weather_source_manual_hint": "Enter coordinates manually",
+  "weather_source_manual_no_coords": "No coordinates entered",
+  "enter_gps_coordinates": "Enter GPS Coordinates",
+  "enter_gps_coordinates_hint": "Enter latitude and longitude manually",
+  "please_fill_all_fields": "Please fill all fields",
+  "invalid_coordinates": "Invalid coordinates",
+  "latitude": "Latitude",
+  "longitude": "Longitude"
+
 }

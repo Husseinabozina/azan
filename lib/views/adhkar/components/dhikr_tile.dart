@@ -127,7 +127,7 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/theme/app_theme.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/core/utils/alert_dialoges.dart'; // هنا هنضيف الديالوج الجديد
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';

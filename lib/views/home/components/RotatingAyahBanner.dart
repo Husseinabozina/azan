@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Widget واحدة:
@@ -19,6 +20,7 @@ class RotatingAyahBanner extends StatefulWidget {
     required this.minFontSize,
     this.interval = const Duration(seconds: 20),
     this.autoRotate = true,
+    this.randomOrder = true,
     this.avoidRepeat = true,
     this.maxLines = 2,
     this.padding,
@@ -44,6 +46,7 @@ class RotatingAyahBanner extends StatefulWidget {
 
   final Duration interval;
   final bool autoRotate;
+  final bool randomOrder;
   final bool avoidRepeat;
 
   final int maxLines;
@@ -68,6 +71,7 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
 
   String _currentAya = '';
   int _lastIndex = -1;
+  int _orderedIndex = -1;
 
   double _fitFontSize({
     required String text,
@@ -120,7 +124,7 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
     return raw.trim();
   }
 
-  void _pickRandom({bool setStateNow = true}) {
+  void _pickNext({bool setStateNow = true}) {
     if (widget.ayat.isEmpty) return;
 
     // فلترة العناصر الفاضية
@@ -131,16 +135,21 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
     }
     if (valid.isEmpty) return;
 
-    int idx = _rnd.nextInt(valid.length);
-
-    if (widget.avoidRepeat && valid.length > 1) {
-      while (idx == _lastIndex) {
-        idx = _rnd.nextInt(valid.length);
+    late final String picked;
+    if (widget.randomOrder) {
+      int idx = _rnd.nextInt(valid.length);
+      if (widget.avoidRepeat && valid.length > 1) {
+        while (idx == _lastIndex) {
+          idx = _rnd.nextInt(valid.length);
+        }
       }
+      _lastIndex = idx;
+      picked = _normalizeText(valid[idx]);
+    } else {
+      _orderedIndex = (_orderedIndex + 1) % valid.length;
+      _lastIndex = _orderedIndex;
+      picked = _normalizeText(valid[_orderedIndex]);
     }
-
-    _lastIndex = idx;
-    final picked = _normalizeText(valid[idx]);
 
     if (!mounted) return;
 
@@ -156,11 +165,11 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
     if (!widget.autoRotate) return;
 
     // أول مرة فورًا
-    _pickRandom(setStateNow: true);
+    _pickNext(setStateNow: true);
 
     _timer = Timer.periodic(widget.interval, (_) {
       if (!mounted) return;
-      _pickRandom(setStateNow: true);
+      _pickNext(setStateNow: true);
     });
   }
 
@@ -168,7 +177,7 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
   void initState() {
     super.initState();
     // لو مش autoRotate، برضه نختار آية أول مرة
-    _pickRandom(setStateNow: false);
+    _pickNext(setStateNow: false);
     _startTimer();
   }
 
@@ -176,16 +185,27 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
   void didUpdateWidget(covariant RotatingAyahBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    final listChanged = oldWidget.ayat != widget.ayat;
+    final oldTexts = oldWidget.ayat
+        .map(_normalizeText)
+        .where((t) => t.isNotEmpty)
+        .toList(growable: false);
+    final newTexts = widget.ayat
+        .map(_normalizeText)
+        .where((t) => t.isNotEmpty)
+        .toList(growable: false);
+
+    final listChanged = !listEquals(oldTexts, newTexts);
     final intervalChanged = oldWidget.interval != widget.interval;
     final autoChanged = oldWidget.autoRotate != widget.autoRotate;
+    final orderChanged = oldWidget.randomOrder != widget.randomOrder;
 
-    if (listChanged) {
+    if (listChanged || orderChanged) {
       _lastIndex = -1;
-      _pickRandom(setStateNow: true);
+      _orderedIndex = -1;
+      _pickNext(setStateNow: true);
     }
 
-    if (intervalChanged || autoChanged) {
+    if (intervalChanged || autoChanged || orderChanged) {
       _startTimer();
     }
   }
@@ -207,7 +227,7 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
         : (widget.wrapWithBrackets ? '﴿ $raw ﴾' : raw);
 
     return GestureDetector(
-      onTap: () => _pickRandom(setStateNow: true),
+      onTap: () => _pickNext(setStateNow: true),
       child: SizedBox(
         height: h,
         child: Padding(

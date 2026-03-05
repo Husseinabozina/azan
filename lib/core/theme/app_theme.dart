@@ -630,6 +630,42 @@ class AppTheme {
       baseBg: Color(0xFF0F4650),
       dialogBg: Color(0xFF0A2F36),
     ),
+
+    // VR-36 — Dark warm mosque silhouette
+    Assets.images.vr36.path: const _ThemePack(
+      primaryText: _goldText,
+      secondaryText: _softWhite,
+      accent: _gold,
+      baseBg: Color(0xFF0E0C0A),
+      dialogBg: Color(0xFF171311),
+    ),
+
+    // VR-37 — Deep green subtle pattern
+    Assets.images.vr37.path: const _ThemePack(
+      primaryText: _softWhite,
+      secondaryText: Color(0xFFD6E7E8),
+      accent: _gold,
+      baseBg: Color(0xFF0E3B2E),
+      dialogBg: Color(0xFF07261E),
+    ),
+
+    // VR-38 — Blue night mosque scene
+    Assets.images.vr38.path: const _ThemePack(
+      primaryText: _softWhite,
+      secondaryText: Color(0xFFD7E6FF),
+      accent: _gold,
+      baseBg: Color(0xFF0E2A44),
+      dialogBg: Color(0xFF081826),
+    ),
+
+    // VR-39 — Red geometric pattern
+    Assets.images.vr39.path: const _ThemePack(
+      primaryText: _goldText,
+      secondaryText: _softWhite,
+      accent: _teal,
+      baseBg: Color(0xFF7A0F12),
+      dialogBg: Color(0xFF2C0C0E),
+    ),
   };
 
   static _ThemePack get _p =>
@@ -703,6 +739,62 @@ class AppTheme {
     // لو الـ base فاتح + زر دهبي: نص بني
     if (_isLightBase) return _brown;
     return const Color(0xFFFFFFFF);
+  }
+
+  static const List<Shadow> defaultTextShadow = [
+    Shadow(color: Color(0x8A000000), offset: Offset(0, 1.5), blurRadius: 4),
+  ];
+
+  static TextStyle? _withDefaultShadow(TextStyle? style) {
+    if (style == null) return null;
+    final hasCustomShadows = style.shadows != null && style.shadows!.isNotEmpty;
+    if (hasCustomShadows) return style;
+    return style.copyWith(shadows: defaultTextShadow);
+  }
+
+  static TextStyle? _withoutShadow(TextStyle? style) {
+    if (style == null) return null;
+    return style.copyWith(shadows: const []);
+  }
+
+  static TextTheme withDefaultTextShadow(TextTheme textTheme) {
+    return textTheme.copyWith(
+      displayLarge: _withDefaultShadow(textTheme.displayLarge),
+      displayMedium: _withDefaultShadow(textTheme.displayMedium),
+      displaySmall: _withDefaultShadow(textTheme.displaySmall),
+      headlineLarge: _withDefaultShadow(textTheme.headlineLarge),
+      headlineMedium: _withDefaultShadow(textTheme.headlineMedium),
+      headlineSmall: _withDefaultShadow(textTheme.headlineSmall),
+      titleLarge: _withDefaultShadow(textTheme.titleLarge),
+      titleMedium: _withDefaultShadow(textTheme.titleMedium),
+      titleSmall: _withDefaultShadow(textTheme.titleSmall),
+      bodyLarge: _withDefaultShadow(textTheme.bodyLarge),
+      bodyMedium: _withDefaultShadow(textTheme.bodyMedium),
+      bodySmall: _withDefaultShadow(textTheme.bodySmall),
+      labelLarge: _withDefaultShadow(textTheme.labelLarge),
+      labelMedium: _withDefaultShadow(textTheme.labelMedium),
+      labelSmall: _withDefaultShadow(textTheme.labelSmall),
+    );
+  }
+
+  static TextTheme withoutTextShadow(TextTheme textTheme) {
+    return textTheme.copyWith(
+      displayLarge: _withoutShadow(textTheme.displayLarge),
+      displayMedium: _withoutShadow(textTheme.displayMedium),
+      displaySmall: _withoutShadow(textTheme.displaySmall),
+      headlineLarge: _withoutShadow(textTheme.headlineLarge),
+      headlineMedium: _withoutShadow(textTheme.headlineMedium),
+      headlineSmall: _withoutShadow(textTheme.headlineSmall),
+      titleLarge: _withoutShadow(textTheme.titleLarge),
+      titleMedium: _withoutShadow(textTheme.titleMedium),
+      titleSmall: _withoutShadow(textTheme.titleSmall),
+      bodyLarge: _withoutShadow(textTheme.bodyLarge),
+      bodyMedium: _withoutShadow(textTheme.bodyMedium),
+      bodySmall: _withoutShadow(textTheme.bodySmall),
+      labelLarge: _withoutShadow(textTheme.labelLarge),
+      labelMedium: _withoutShadow(textTheme.labelMedium),
+      labelSmall: _withoutShadow(textTheme.labelSmall),
+    );
   }
 }
 

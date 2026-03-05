@@ -11,6 +11,7 @@ import 'package:azan/core/helpers/iqama_hive_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/location_helper.dart';
 import 'package:azan/core/helpers/prayer_duration_hive_helper.dart';
+import 'package:azan/core/helpers/slide_hive_helper.dart';
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/models/geo_location.dart';
@@ -94,6 +95,7 @@ class AppCubit extends Cubit<AppState> {
 
   late final OpenMeteoWeatherService weatherService;
   WeatherForecast? weatherForecast;
+  CityOption? _selectedCity;
 
   String _cityTodayKey(WeatherForecast f) {
     final cityNow = DateTime.now().toUtc().add(
@@ -227,7 +229,27 @@ class AppCubit extends Cubit<AppState> {
     _weatherInFlight = true;
 
     try {
-      final cityKey = _weatherCityKey(country: country, city: city);
+      // ✅ Check if manual GPS is enabled
+      final isWeatherEnabled = CacheHelper.getWeatherEnabled();
+      final weatherSource =
+          CacheHelper.getWeatherSource(); // 0 = Auto, 1 = Manual
+
+      String cacheKey;
+
+      if (isWeatherEnabled && weatherSource == 1) {
+        // ✅ Manual GPS mode
+        final manualLat = CacheHelper.getManualWeatherLat();
+        final manualLng = CacheHelper.getManualWeatherLng();
+
+        if (manualLat != null && manualLng != null) {
+          cacheKey = 'manual_${manualLat}_${manualLng}';
+        } else {
+          cacheKey = _weatherCityKey(country: country, city: city);
+        }
+      } else {
+        // ✅ Auto mode (from city)
+        cacheKey = _weatherCityKey(country: country, city: city);
+      }
 
       // 1) اقرأ الكاش
       WeatherForecast? cachedForecast;
@@ -241,7 +263,7 @@ class AppCubit extends Cubit<AppState> {
       }
 
       final cachedCity = CacheHelper.get(key: WeatherCacheKeys.lastCityKey);
-      final cacheMatchesCity = (cachedCity == cityKey);
+      final cacheMatchesCity = (cachedCity == cacheKey);
 
       // 2) اعرض الكاش فورًا
       if (cachedForecast != null && cacheMatchesCity) {
@@ -275,13 +297,53 @@ class AppCubit extends Cubit<AppState> {
       if (!net) return;
 
       // 5) fetch من النت
-      final f = await weatherService.fetchMaxForecast(
-        city: city,
-        country: country,
-        days: OpenMeteoWeatherService.maxForecastDays,
-        morningHour: 8,
-        nightHour: 20,
-      );
+      WeatherForecast? f;
+
+      if (isWeatherEnabled && weatherSource == 1) {
+        // ✅ Manual GPS mode
+        final manualLat = CacheHelper.getManualWeatherLat();
+        final manualLng = CacheHelper.getManualWeatherLng();
+
+        if (manualLat != null && manualLng != null) {
+          final lat = double.tryParse(manualLat);
+          final lng = double.tryParse(manualLng);
+
+          if (lat != null && lng != null) {
+            f = await weatherService.fetchMaxForecastByCoordinates(
+              latitude: lat,
+              longitude: lng,
+              days: OpenMeteoWeatherService.maxForecastDays,
+              morningHour: 8,
+              nightHour: 20,
+            );
+          } else {
+            f = await weatherService.fetchMaxForecast(
+              city: city,
+              country: country,
+              days: OpenMeteoWeatherService.maxForecastDays,
+              morningHour: 8,
+              nightHour: 20,
+            );
+          }
+        } else {
+          f = await weatherService.fetchMaxForecast(
+            city: city,
+            country: country,
+            days: OpenMeteoWeatherService.maxForecastDays,
+            morningHour: 8,
+            nightHour: 20,
+          );
+        }
+      } else {
+        // ✅ Auto mode (from city)
+        f = await weatherService.fetchMaxForecast(
+          city: city,
+          country: country,
+          days: OpenMeteoWeatherService.maxForecastDays,
+          morningHour: 8,
+          nightHour: 20,
+        );
+      }
 
       if (f != null) {
         _lastWeatherFetchAt = DateTime.now(); // ✅ سجل وقت آخر fetch
@@ -301,7 +363,7 @@ class AppCubit extends Cubit<AppState> {
 
         await CacheHelper.save(
           key: WeatherCacheKeys.lastCityKey,
-          value: cityKey,
+          value: cacheKey,
         );
 
         emit(AppChanged());
@@ -370,6 +432,7 @@ class AppCubit extends Cubit<AppState> {
     if (_initialized) return;
     _initialized = true;
 
+    _selectedCity = CacheHelper.getCity();
     loadAzanAdjustSettingsOnce();
     _loadUiRotation();
   }
@@ -684,14 +747,14 @@ class AppCubit extends Cubit<AppState> {
     }
     LatLng latLng = LatLng(geoResponse!.latitude, geoResponse!.longitude);
     CacheHelper.setCoordinates(latLng);
-    CacheHelper.setCity(
-      CityOption(
-        nameEn: city,
-        nameAr: LocationHelper.findSaudiCityByName(city)!.nameAr,
-        lat: latLng.latitude,
-        lon: latLng.longitude,
-      ),
+    final cityOption = CityOption(
+      nameEn: city,
+      nameAr: LocationHelper.findSaudiCityByName(city)!.nameAr,
+      lat: latLng.latitude,
+      lon: latLng.longitude,
     );
+    _selectedCity = cityOption;
+    unawaited(CacheHelper.setCity(cityOption));
     return latLng;
   }
 
@@ -996,6 +1059,13 @@ class AppCubit extends Cubit<AppState> {
     emit(AppChanged());
   }
 
+  List<Dhikr>? slideList;
+  Future<void> assignSlides() async {
+    emit(AppInitial());
+    slideList = await SlideHiveHelper.getAllSlides();
+    emit(AppChanged());
+  }
+
   void toggleSlider() {
     emit(AppInitial());
     CacheHelper.setSliderOpened(!CacheHelper.getSliderOpened());
@@ -1020,15 +1090,17 @@ class AppCubit extends Cubit<AppState> {
 
   void setCity(CityOption city) {
     emit(AppInitial());
-    CacheHelper.setCity(city);
+    _selectedCity = city;
+    unawaited(CacheHelper.setCity(city));
     emit(AppChanged());
   }
 
-  CityOption? getCity() => CacheHelper.getCity();
+  CityOption? getCity() => _selectedCity ??= CacheHelper.getCity();
   String? getCountry() => CacheHelper.getCountry();
 
   String clearCity() {
-    CacheHelper.removeCity();
+    _selectedCity = null;
+    unawaited(CacheHelper.removeCity());
     return '';
   }
 
@@ -1108,6 +1180,13 @@ class AppCubit extends Cubit<AppState> {
         .toList();
   }
 
+  List<Dhikr>? get todaysSlides {
+    if (slideList == null) return null;
+    return slideList!
+        .where((element) => element.active && element.isForDay(DateTime.now()))
+        .toList();
+  }
+
   String get getAzanSoundSource {
     try {
       if (CacheHelper.getUseMp3Azan() && !CacheHelper.getUseShortAzan()) {
@@ -1134,6 +1213,25 @@ class AppCubit extends Cubit<AppState> {
 
   bool showPrayerAzanPage = false;
   Prayer? currentPrayer;
+
+  bool _homeBlackScreenVisible = false;
+  bool _azanBlackScreenVisible = false;
+
+  bool get isBlackScreenVisible =>
+      _homeBlackScreenVisible || _azanBlackScreenVisible;
+  bool get isAzanBlackScreenVisible => _azanBlackScreenVisible;
+
+  void setHomeBlackScreenVisible(bool visible) {
+    if (_homeBlackScreenVisible == visible) return;
+    _homeBlackScreenVisible = visible;
+    emit(AppChanged());
+  }
+
+  void setAzanBlackScreenVisible(bool visible) {
+    if (_azanBlackScreenVisible == visible) return;
+    _azanBlackScreenVisible = visible;
+    emit(AppChanged());
+  }
 
   void togglePrayerAzanPage() {
     emit(AppChanged());
@@ -1181,5 +1279,19 @@ class AppCubit extends Cubit<AppState> {
     final diff = currentIqamaTime!.difference(now);
     if (diff.isNegative) return Duration.zero;
     return diff;
+  }
+
+  double iqamaProgress() {
+    if (!isBetweenAdhanAndIqama ||
+        currentIqamaTime == null ||
+        currentAdhanTime == null) {
+      return 0.0;
+    }
+    final now = DateTime.now();
+    final total = currentIqamaTime!.difference(currentAdhanTime!).inSeconds;
+    if (total <= 0) return 1.0;
+    final elapsed = now.difference(currentAdhanTime!).inSeconds;
+    final progress = elapsed / total;
+    return progress.clamp(0.0, 1.0);
   }
 }

@@ -27,10 +27,11 @@
   "screen_shortcuts": "اختصارات على الشاشة",
   "weather_status": "حالة الطقس",
   "about_app": "معلومات عن البرنامج",
+  "about_app_dedicated_message": "هذا التطبيق وقف لبيوت الله ولا يجوز بيعه",
   "reset": "إعادة ضبط",
   "reload": "إعادة تحميل",
   "contact_us": "تواصل",
-  "edit_mosque_azkar": "تحرير اذكار المسجد", 
+  "edit_mosque_azkar": "تحرير إعلانات المسجد", 
   "change_fixed_zekr":"تغيير الذكر الثابت" ,
   "set_iqama_time":"ضبط وقت الإقامة"
  , 
@@ -40,7 +41,16 @@
 
 
  "something_went_wrong_please_try_again":"حدث خطأ ما يرجى المحاولة مرة أخرى",
- "azkar_note":"هنا يمكنك اضافة الرسائل او اي معلومات مفيدة ليتم عرضها أسفل الشاشة على شريط متحرك"
+  "azkar_note":"هنا يمكنك اضافة الرسائل او اي معلومات مفيدة ليتم عرضها أسفل الشاشة على شريط متحرك"
+ ,"mosque_announcements_bottom_title":"إعلانات المسجد أسفل الشاشة"
+ ,"mosque_announcements_note":"هنا يمكنك إضافة الرسائل أو أي معلمومات مفيدة ليتم عرضها أسف الشاشة علي شريط متحرك"
+ ,"announcement_display_duration":"مدة عرض الذكر"
+ ,"enable_slides":"تفعيل الشرائح"
+ ,"display_slides_randomly":"عرض الشرائح بشكل عشوائي"
+ ,"slide_display_duration":"وقت العرض لكل شريحة"
+ ,"add_slide":"إضافة شريحة"
+ ,"slides_center_title":"استعراض الشرائح"
+ ,"slides_center_note":"هنا يمكنك إضافة أو تعديل الشرائح ليتم عرضها في منتصف الشاشة"
  ,"enable_slider":"تفعيل شريط النص المتحرك"
  ,"add_message":"اضافة رسالة",
  "daily":"يوميا",
@@ -210,11 +220,82 @@
   "enable_after_prayer_azkar": "تفعيل أذكار ما بعد الصلاة",
   "after_prayer_azkar_window_minutes": "مدة أذكار ما بعد الصلاة",
   "minute": "دقيقة"
-  ,"show_seconds_in_next_prayer":"اظهار الثواني في صلاة القادمة"
+  ,"show_seconds_in_next_prayer":"اظهار الثواني في صلاة القادمة",
+  "iqama_countdown_last_minute_only": "العد التنازلي للإقامة آخر دقيقة فقط",
+  "show_azan_screen": "اظهار شاشة الأذان"
   ,"change_app_logo":"تغيير شعار التطبيق",
   "select_from_device":"اختر من الجهاز",
 
-  "default_app_logo":"الشعار الإفتراضي"
+  "default_app_logo":"الشعار الإفتراضي",
+  "put_prayers_titles_in_center_in_landscape":"وضع أسماء الصلوات في المنتصف في العرض الأفقي"
+,"enlarge_iqama_and_adhan_in_landscape":"تكبير الإقامة والائذان في وضع العرض الأفقي"
+,"hide_iqamah_times": "ساعة المنزل- اخفاء أوقات الاقامة"
+,"enlarge_remaining_time_counter": "تكبير عداد المتبقي للصلاة القادمة",
+  "enable_hadith_before_iqama": "تفعيل عرض حديث الرسول ﷺ قبل الإقامة",
+  "hadith_display_timing": "توقيت عرض الحديث قبل الإقامة",
+  "hadith_display_seconds": "ثانية قبل الإقامة",
+  "hadith_text_arabic": "قال رسول الله ﷺ: \"من صلى على واحدة صلى الله عليه عشراً\"",
+  "hadith_text_english": "The Prophet Muhammad ﷺ said: \"Whoever sends blessings upon me once, Allah sends blessings upon him ten times\"",
 
-  
+  "dialogs_examples_title": "أمثلة على Dialogs",
+  "dialogs_examples_subtitle": "اضغط على أي زر لتجربة الـ Dialog",
+  "dialog_example_1_title": "1️⃣ Alert بسيط",
+  "dialog_example_1_subtitle": "رسالة تنبيه عادية",
+  "dialog_example_2_title": "2️⃣ تأكيد إجراء",
+  "dialog_example_2_subtitle": "Dialog تأكيد مع خيارين",
+  "dialog_example_3_title": "3️⃣ إدخال نص",
+  "dialog_example_3_subtitle": "Dialog مع TextField",
+  "dialog_example_4_title": "4️⃣ اختيار من قائمة",
+  "dialog_example_4_subtitle": "اختيار لغة من قائمة",
+  "dialog_example_5_title": "5️⃣ Dialog مخصص",
+  "dialog_example_5_subtitle": "تصميم خاص بالكامل",
+  "dialog_alert_title": "تنبيه مهم",
+  "dialog_alert_message": "هذا مثال على رسالة تنبيه بسيطة باستخدام النظام الجديد للـ Dialogs",
+  "dialog_alert_confirm": "حسناً",
+  "dialog_confirm_title": "تأكيد الحذف",
+  "dialog_confirm_message": "هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+  "dialog_confirm_confirm": "حذف",
+  "dialog_confirm_cancel": "إلغاء",
+  "dialog_input_title": "إدخال اسم المسجد",
+  "dialog_input_hint": "اكتب اسم المسجد هنا...",
+  "dialog_choice_title": "اختر اللغة",
+  "dialog_choice_arabic": "العربية",
+  "dialog_choice_arabic_subtitle": "اللغة العربية",
+  "dialog_choice_english": "English",
+  "dialog_choice_english_subtitle": "English Language",
+  "dialog_choice_bengali": "বাংলা",
+  "dialog_choice_bengali_subtitle": "Bengali Language",
+  "dialog_custom_title": "Dialog مخصص",
+  "dialog_custom_subtitle": "تصميم خاص بالكامل حسب احتياجاتك",
+  "dialog_custom_feature_1": "تخصيص كامل للألوان",
+  "dialog_custom_feature_2": "متجاوب مع جميع الشاشات",
+  "dialog_custom_feature_3": "عناصر واضحة وجميلة",
+  "dialog_custom_close": "إغلاق",
+  "dialog_custom_ok": "موافق",
+  "dialog_ok": "موافق",
+  "dialog_cancel": "إلغاء",
+  "dedication_title": "إهداء",
+  "dedication_subtitle": "كل الحب والشكر",
+  "dedication_card_title": "إلى كل من ساهم في هذا العمل",
+  "dedication_card_text": "بكل حب وتقدير، نهدي هذا العمل المتواضع\\nإلى كل من دعمنا وشجعنا على الاستمرار",
+  "dedication_thanks": "شكر خاص لكل المتطوعين",
+  "dedication_bottom_bar": "صنع بحب ❤️",
+
+  "weather_status_subtitle": "تفعيل وعرض حالة الطقس",
+  "weather_info_text": "يتم جلب البيانات من Open-Meteo API",
+  "enable_weather": "تفعيل حالة الطقس",
+  "enable_weather_hint": "إظهار درجة الحرارة في الشاشة الرئيسية",
+  "weather_source": "مصدر بيانات الطقس",
+  "weather_source_auto": "تلقائي (من المدينة)",
+  "weather_source_auto_hint": "استخدام إحداثيات المدينة المختارة",
+  "weather_source_manual": "يدوي (GPS)",
+  "weather_source_manual_hint": "إدخال الإحداثيات يدوياً",
+  "weather_source_manual_no_coords": "لم يتم إدخال إحداثيات",
+  "enter_gps_coordinates": "إدخال إحداثيات GPS",
+  "enter_gps_coordinates_hint": "أدخل خطوط الطول والعرض يدوياً",
+  "please_fill_all_fields": "يرجى ملء جميع الحقول",
+  "invalid_coordinates": "إحداثيات غير صحيحة",
+  "latitude": "خط العرض",
+  "longitude": "خط الطول"
+
 }

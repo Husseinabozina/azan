@@ -7,7 +7,7 @@ import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:file_picker/file_picker.dart';
@@ -16,9 +16,10 @@ import 'package:path/path.dart' as p;
 import 'dart:io' as io;
 
 class HomeAppBar extends StatefulWidget {
-  const HomeAppBar({super.key, this.onDrawerTap});
+  const HomeAppBar({super.key, this.onDrawerTap, this.titleFontSize});
   final Function()? onDrawerTap;
 
+  final double? titleFontSize;
   @override
   State<HomeAppBar> createState() => _HomeAppBarState();
 }
@@ -229,7 +230,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
           text: TextSpan(
             text: titleText,
             style: TextStyle(
-              fontSize: 20.sp,
+              fontSize: widget.titleFontSize ?? 20.sp,
               fontWeight: FontWeight.bold,
               fontFamily: CacheHelper.getTextsFontFamily(),
               height: 1.15,
@@ -247,7 +248,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
           text: TextSpan(
             text: titleText,
             style: TextStyle(
-              fontSize: 20.sp,
+              fontSize: widget.titleFontSize ?? 20.sp,
               fontWeight: FontWeight.bold,
               fontFamily: CacheHelper.getTextsFontFamily(),
               height: 1.15,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 
 class VerticalSpace extends StatelessWidget {
   const VerticalSpace({super.key, this.height});

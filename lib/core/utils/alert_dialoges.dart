@@ -7,7 +7,7 @@ import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
-import 'package:azan/core/utils/screenutil_flip_ext.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/dhikr_from_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -461,6 +461,49 @@ Future<void> showChangeLanguageDialog(
                   ),
                 ),
 
+                SizedBox(height: sizing.verticalGap * 0.4),
+
+                InkWell(
+                  borderRadius: BorderRadius.circular(
+                    sizing.borderRadius * 0.7,
+                  ),
+                  onTap: () => setState(() => selectedLang = 'bn'),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: sizing.screenWidth * 0.03,
+                      vertical: sizing.screenHeight * 0.012,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selectedLang == 'bn'
+                          ? Colors.white.withOpacity(0.12)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(
+                        sizing.borderRadius * 0.7,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          selectedLang == 'bn'
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color: AppTheme.dialogTitleColor,
+                          size: sizing.bodyFontSize * 1.5,
+                        ),
+                        SizedBox(width: sizing.screenWidth * 0.025),
+                        Text(
+                          'বাংলা',
+                          style: TextStyle(
+                            fontSize: sizing.bodyFontSize * 1.05,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 SizedBox(height: sizing.verticalGap),
 
                 DialogButtonRow(
@@ -619,7 +662,7 @@ class _BackgroundPickerContentState extends State<_BackgroundPickerContent> {
 Future<void> showAddEidDialog(
   String title,
   BuildContext context, {
-  required void Function(DateTime date, TimeOfDay time) onConfirm,
+  required void Function(TimeOfDay time) onConfirm,
   required void Function() onCancel,
 }) {
   return showDialog<void>(
@@ -631,7 +674,7 @@ Future<void> showAddEidDialog(
 class _AddEidDialog extends StatefulWidget {
   const _AddEidDialog({required this.onConfirm, required this.title});
 
-  final void Function(DateTime date, TimeOfDay time) onConfirm;
+  final void Function(TimeOfDay time) onConfirm;
   final String title;
 
   @override
@@ -674,53 +717,53 @@ class _AddEidDialogState extends State<_AddEidDialog> {
               child: Column(
                 children: [
                   // Date field
-                  TextField(
-                    controller: dateController,
-                    readOnly: true,
+                  // TextField(
+                  //   controller: dateController,
+                  //   readOnly: true,
 
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: sizing.bodyFontSize,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: LocaleKeys.date.tr(),
-                      suffixIcon: Icon(
-                        Icons.calendar_month,
-                        color: AppTheme.primaryTextColor,
-                        size: sizing.bodyFontSize * 1.8,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: sizing.screenWidth * 0.035,
-                        vertical: sizing.screenHeight * 0.015,
-                      ),
-                      // labelStyle: TextStyle(
-                      //   fontSize: sizing.bodyFontSize * 0.9,
-                      // ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          sizing.borderRadius,
-                        ),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    onTap: () async {
-                      date = await showUniversalDatePicker(
-                        context,
-                        initialDate: DateTime.now(),
-                      );
-                      if (date != null) {
-                        setState(() {
-                          dateController.text = DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(date!);
-                        });
-                      }
-                    },
-                  ),
+                  //   style: TextStyle(
+                  //     color: Colors.black,
+                  //     fontSize: sizing.bodyFontSize,
+                  //   ),
+                  //   decoration: InputDecoration(
+                  //     hintText: LocaleKeys.date.tr(),
+                  //     suffixIcon: Icon(
+                  //       Icons.calendar_month,
+                  //       color: AppTheme.primaryTextColor,
+                  //       size: sizing.bodyFontSize * 1.8,
+                  //     ),
+                  //     filled: true,
+                  //     fillColor: Colors.white,
+                  //     contentPadding: EdgeInsets.symmetric(
+                  //       horizontal: sizing.screenWidth * 0.035,
+                  //       vertical: sizing.screenHeight * 0.015,
+                  //     ),
+                  //     // labelStyle: TextStyle(
+                  //     //   fontSize: sizing.bodyFontSize * 0.9,
+                  //     // ),
+                  //     border: OutlineInputBorder(
+                  //       borderRadius: BorderRadius.circular(
+                  //         sizing.borderRadius,
+                  //       ),
+                  //       borderSide: BorderSide.none,
+                  //     ),
+                  //   ),
+                  //   onTap: () async {
+                  //     date = await showUniversalDatePicker(
+                  //       context,
+                  //       initialDate: DateTime.now(),
+                  //     );
+                  //     if (date != null) {
+                  //       setState(() {
+                  //         dateController.text = DateFormat(
+                  //           'yyyy-MM-dd',
+                  //         ).format(date!);
+                  //       });
+                  //     }
+                  //   },
+                  // ),
 
-                  VerticalSpace(height: sizing.verticalGap * 0.5),
+                  // VerticalSpace(height: sizing.verticalGap * 0.5),
 
                   // Time field
                   TextField(
@@ -741,7 +784,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                       fillColor: Colors.white,
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: sizing.screenWidth * 0.035,
-                        vertical: sizing.screenHeight * 0.015,
+                        vertical: sizing.screenHeight * 0.030,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
@@ -777,7 +820,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                       ),
                       onPressed: () {
                         if (date != null && time != null) {
-                          widget.onConfirm(date!, time!);
+                          widget.onConfirm(time!);
                           Navigator.pop(context);
                         }
                       },
@@ -804,6 +847,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
 Future<void> showEditDhikrDialog2(
   BuildContext context, {
   required Dhikr dhikr,
+  Future<void> Function(Dhikr updatedDhikr)? onSubmit,
 }) async {
   final sizing = DialogConfig.getSizing(context);
 
@@ -834,10 +878,13 @@ Future<void> showEditDhikrDialog2(
                       schedule: newSchedule,
                     );
 
-                    await DhikrHiveHelper.updateDhikr(updatedDhikr);
-
-                    // ✅ refresh list
-                    AppCubit().assignAdhkar();
+                    if (onSubmit != null) {
+                      await onSubmit(updatedDhikr);
+                    } else {
+                      await DhikrHiveHelper.updateDhikr(updatedDhikr);
+                      // ✅ refresh list
+                      AppCubit().assignAdhkar();
+                    }
 
                     Navigator.of(ctx).pop();
                   },
