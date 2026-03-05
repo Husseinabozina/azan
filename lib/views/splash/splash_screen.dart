@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:azan/core/utils/mqscale.dart';
-import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -44,11 +42,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoController.forward();
     _startTypingAnimation();
-    _scheduleNavigation();
   }
 
   void _startTypingAnimation() {
-    const charDelay = Duration(milliseconds: 80);
+    // زمن ثابت ومتساوي لكل حرف عشان الإحساس يكون ناعم ومتواصل
+    const charDelay = Duration(milliseconds: 90);
     int index = 0;
 
     _textTimer = Timer.periodic(charDelay, (timer) {
@@ -57,32 +55,25 @@ class _SplashScreenState extends State<SplashScreen>
         return;
       }
 
-      if (index >= _basmala.length) {
+      if (index < _basmala.length) {
+        setState(() {
+          _visibleText = _basmala.substring(0, index + 1);
+        });
+        index++;
+      } else {
         timer.cancel();
-        return;
+        _navigateToHome();
       }
-
-      setState(() {
-        _visibleText = _basmala.substring(0, index + 1);
-      });
-
-      index++;
     });
   }
 
-  void _scheduleNavigation() {
-    // أبسط حاجة: زمن ثابت يغطي أنيميشن اللوجو + كتابة النص
-    const totalDuration = Duration(milliseconds: 3200);
-
-    Future.delayed(totalDuration, () {
-      if (!mounted) return;
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => const HomeScreen(),
-        ),
-      );
-    });
+  void _navigateToHome() {
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => const HomeScreen(),
+      ),
+    );
   }
 
   @override
@@ -97,44 +88,67 @@ class _SplashScreenState extends State<SplashScreen>
     final orientation = MediaQuery.of(context).orientation;
     final isPortrait = orientation == Orientation.portrait;
 
-    final double logoSize = (isPortrait ? 160.0 : 120.0).w;
-    final double spacing = (isPortrait ? 24.0 : 16.0).h;
+    final double logoSize = (isPortrait ? 220.0 : 160.0).w;
+    final double spacing = (isPortrait ? 28.0 : 20.0).h;
 
     return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FadeTransition(
-                    opacity: _opacityAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: SizedBox(
-                        width: logoSize,
-                        height: logoSize,
-                        child: SvgPicture.asset(
-                          Assets.svg.logosvg,
-                          fit: BoxFit.contain,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0D47A1), // أزرق غامق في الأعلى
+              Color(0xFF1976D2), // أزرق أفتح في الأسفل
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FadeTransition(
+                      opacity: _opacityAnimation,
+                      child: ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: SizedBox(
+                          width: logoSize,
+                          height: logoSize,
+                          child: Image.asset(
+                            'assets/images/app_icon.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: spacing),
-                  Text(
-                    _visibleText,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontSize: 24.sp,
-                        ),
-                  ),
-                ],
-              ),
-            );
-          },
+                    SizedBox(height: spacing),
+                    Text(
+                      _visibleText,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                            fontSize: 32.sp,
+                            color: Colors.white,
+                            shadows: const [
+                              Shadow(
+                                color: Colors.black45,
+                                offset: Offset(0, 2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
