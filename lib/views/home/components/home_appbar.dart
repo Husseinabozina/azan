@@ -334,7 +334,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
                     onPressed: widget.onDrawerTap?.call,
                     icon: Icon(
                       Icons.menu,
-                      color: AppTheme.accentColor,
+                      color: AppTheme.appBarForegroundColor,
                       size: 30.r,
                     ),
                   ),
@@ -386,7 +386,7 @@ class _AdaptiveTitleText extends StatelessWidget {
               fontSize: currentFontSize,
               fontWeight: FontWeight.bold,
               fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
-              color: AppTheme.primaryTextColor,
+              color: AppTheme.appBarForegroundColor,
               height: 1.15,
             ),
           );
@@ -410,7 +410,7 @@ class _AdaptiveTitleText extends StatelessWidget {
           style: TextStyle(
             fontSize: currentFontSize,
             fontWeight: FontWeight.bold,
-            color: AppTheme.primaryTextColor,
+            color: AppTheme.appBarForegroundColor,
             fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
             height: 1.15,
           ),

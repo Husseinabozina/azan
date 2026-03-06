@@ -21,6 +21,51 @@ class AppTheme {
   static const Color _teal = Color(0xFF3BAFBF);
   static const Color _blue = Color(0xFF5FA8D3);
 
+  static const _ThemePack _vrLightPack = _ThemePack(
+    primaryText: _brownDark,
+    secondaryText: _brown2,
+    accent: _gold,
+    baseBg: Color(0xFFF4E8D8),
+    dialogBg: _brown,
+    appBarForeground: _brownDark,
+  );
+
+  static const _ThemePack _vrRedPack = _ThemePack(
+    primaryText: _goldText,
+    secondaryText: _softWhite,
+    accent: _teal,
+    baseBg: Color(0xFF5A1115),
+    dialogBg: Color(0xFF2B0D10),
+    appBarForeground: _creamText,
+  );
+
+  static const _ThemePack _vrBluePack = _ThemePack(
+    primaryText: _softWhite,
+    secondaryText: Color(0xFFD8E7FF),
+    accent: _gold,
+    baseBg: Color(0xFF103A61),
+    dialogBg: Color(0xFF0B2238),
+    appBarForeground: _softWhite,
+  );
+
+  static const _ThemePack _vrTealPack = _ThemePack(
+    primaryText: _softWhite,
+    secondaryText: Color(0xFFD5ECEB),
+    accent: _gold,
+    baseBg: Color(0xFF0E4A4D),
+    dialogBg: Color(0xFF0A2C2F),
+    appBarForeground: _softWhite,
+  );
+
+  static const _ThemePack _vrWarmPack = _ThemePack(
+    primaryText: _creamText,
+    secondaryText: Color(0xFFFFF3DD),
+    accent: _gold,
+    baseBg: Color(0xFF4B2F1A),
+    dialogBg: Color(0xFF2A1A0F),
+    appBarForeground: _creamText,
+  );
+
   // =========================
   // THEME PACK
   // =========================
@@ -485,6 +530,30 @@ class AppTheme {
     ),
 
     // =========================
+    // VR-0 ... VR-19
+    // =========================
+    'assets/images/VR-0.jpg': _vrLightPack,
+    'assets/images/VR-1.jpg': _vrLightPack,
+    'assets/images/VR-2.jpg': _vrRedPack,
+    'assets/images/VR-3.jpg': _vrBluePack,
+    'assets/images/VR-4.jpg': _vrTealPack,
+    'assets/images/VR-5.jpg': _vrRedPack,
+    'assets/images/VR-6.jpg': _vrBluePack,
+    'assets/images/VR-7.jpg': _vrWarmPack,
+    'assets/images/VR-8.jpg': _vrBluePack,
+    'assets/images/VR-9.jpg': _vrRedPack,
+    'assets/images/VR-10.jpg': _vrTealPack,
+    'assets/images/VR-11.jpg': _vrBluePack,
+    'assets/images/VR-12.jpg': _vrWarmPack,
+    'assets/images/VR-13.jpg': _vrRedPack,
+    'assets/images/VR-14.jpg': _vrBluePack,
+    'assets/images/VR-15.jpg': _vrRedPack,
+    'assets/images/VR-16.jpg': _vrTealPack,
+    'assets/images/VR-17.jpg': _vrBluePack,
+    'assets/images/VR-18.jpg': _vrTealPack,
+    'assets/images/VR-19.jpg': _vrLightPack,
+
+    // =========================
     Assets.images.vr20.path: const _ThemePack(
       primaryText: _softWhite,
       secondaryText: Color(0xFFD6E7E8),
@@ -691,6 +760,8 @@ class AppTheme {
   // =========================
   static Color get secondaryTextColor => _p.secondaryText;
 
+  static Color get appBarForegroundColor => _p.appBarForeground;
+
   // =========================
   // ACCENT
   // =========================
@@ -796,6 +867,10 @@ class AppTheme {
       labelSmall: _withoutShadow(textTheme.labelSmall),
     );
   }
+
+  static bool hasThemePackForBackground(String path) {
+    return _packs.containsKey(path);
+  }
 }
 
 class _ThemePack {
@@ -804,6 +879,7 @@ class _ThemePack {
   final Color accent;
   final Color baseBg;
   final Color dialogBg;
+  final Color appBarForeground;
 
   const _ThemePack({
     required this.primaryText,
@@ -811,5 +887,6 @@ class _ThemePack {
     required this.accent,
     required this.baseBg,
     required this.dialogBg,
-  });
+    Color? appBarForeground,
+  }) : appBarForeground = appBarForeground ?? primaryText;
 }

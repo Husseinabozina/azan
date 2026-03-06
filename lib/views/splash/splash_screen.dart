@@ -62,7 +62,10 @@ class _SplashScreenState extends State<SplashScreen>
         index++;
       } else {
         timer.cancel();
-        _navigateToHome();
+        Future.delayed(const Duration(seconds: 2), () {
+          _navigateToHome();
+        });
+        // _navigateToHome();
       }
     });
   }
@@ -70,9 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigateToHome() {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => const HomeScreen(),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
     );
   }
 
@@ -98,8 +99,8 @@ class _SplashScreenState extends State<SplashScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0D47A1), // أزرق غامق في الأعلى
-              Color(0xFF1976D2), // أزرق أفتح في الأسفل
+              Color(0xFF000032), // كحلي غامق
+              Color(0xFF000032), // نفس الدرجة لثبات اللون
             ],
           ),
         ),
@@ -129,9 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
                     Text(
                       _visibleText,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
+                      style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             fontSize: 32.sp,
                             color: Colors.white,
@@ -154,4 +153,3 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-
