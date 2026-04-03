@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:quran_app/views/login/login_page.dart'; // Import the LoginPage
 
 /// A smarter and reusable navigator utility for managing app navigation.
 class AppNavigator {
+  // Define route names
+  static const String loginRoute = '/login';
+  static const String homeRoute = '/home'; // Example home route
+
   /// Push a new page onto the navigation stack with optional arguments.
   static Future<T?> push<T extends Object?>(
     BuildContext context,
@@ -102,5 +107,32 @@ class AppNavigator {
   /// Go back to the root of the navigation stack.
   static void popToRoot(BuildContext context) {
     Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
+  // --- Route Generation ---
+  static Route<dynamic>? generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case loginRoute:
+        return MaterialPageRoute(builder: (_) => const LoginPage());
+      // case homeRoute:
+      //   return MaterialPageRoute(builder: (_) => const HomePage()); // Example
+      default:
+        return MaterialPageRoute(builder: (_) => const ErrorScreen()); // Handle unknown routes
+    }
+  }
+}
+
+// A simple placeholder for an error screen
+class ErrorScreen extends StatelessWidget {
+  const ErrorScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Error')),
+      body: Center(
+        child: Text('Route not found: ${ModalRoute.of(context)?.settings.name}'),
+      ),
+    );
   }
 }
