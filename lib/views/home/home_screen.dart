@@ -1,10 +1,11 @@
-import 'dart:async';
-
+import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
-import 'package:azan/controllers/cubits/rotation_cubit/rotation_state.dart';
+import 'package:azan/core/helpers/display_board_schedule_helper.dart';
+import 'package:azan/core/models/home_display_mode.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
-import 'package:azan/views/home/home_screen_landscape.dart';
+import 'package:azan/views/home/display_board_landscape.dart';
+import 'package:azan/views/home/display_board_portrait.dart';
 import 'package:azan/views/home/home_screen_landscape_2.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
@@ -19,6 +20,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppCubit.get(context).assignDisplayAnnouncements();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // لو أول مرة يفتح التطبيق، روح لاختيار الموقع (ثابت)
@@ -47,8 +57,20 @@ class _HomeScreenState extends State<HomeScreen> {
     //   },
     // );
 
-    return BlocBuilder<UiRotationCubit, bool>(
-      builder: (context, isLand) {
+    return BlocBuilder<AppCubit, AppState>(
+      builder: (context, state) {
+        final cubit = AppCubit.get(context);
+        final items = cubit.displayAnnouncementList ?? const [];
+        final mode = DisplayBoardScheduleResolver.effectiveDisplayMode(
+          manualMode: CacheHelper.getHomeDisplayMode(),
+          items: items,
+        );
+        final isLand = context.watch<UiRotationCubit>().state;
+        if (mode == HomeDisplayMode.displayBoard) {
+          return isLand
+              ? const DisplayBoardLandscapeScreen()
+              : const DisplayBoardPortraitScreen();
+        }
         return isLand ? HomeScreenLandscape2() : HomeScreenMobile();
       },
     );

@@ -1,12 +1,19 @@
 //  flutter pub run easy_localization:generate -S assets/translations -f keys -o locale_keys.g.dart
 // flutter pub run easy_localization:generate -S assets/translations
 
+
+
 // flutter packages pub run build_runner build
 // dart pub run build_runner build --delete-conflicting-outputs
 
+
+
 // flutter build apk --split-per-abi
 
+
+// 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
 // package com.example.azan
+
 
 // import android.app.UiModeManager
 // import android.content.Context

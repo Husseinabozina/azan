@@ -1,6 +1,5 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
-import 'package:azan/core/components/alert_dialoge.dart';
 import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/horizontal_space.dart';
@@ -10,12 +9,10 @@ import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/core/utils/selection_dialoge.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,7 +56,6 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
             builder: (context, constraints) {
               final h = constraints.maxHeight;
               final w = constraints.maxWidth;
-              final R r = R(constraints);
               return Stack(
                 children: [
                   Image.asset(
@@ -158,6 +154,18 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                     final city = item as CityOption;
                                     appCubit.setCity(city);
                                     appCubit.assignCityChanged(true);
+
+                                    await appCubit.initializePrayerTimes(
+                                      city: city.nameEn,
+                                      context: context,
+                                    );
+                                    if (!mounted) return;
+
+                                    final hasSchedule =
+                                        appCubit.prayerTimes != null ||
+                                        appCubit.adjustedPrayerTimeById(1) !=
+                                            null;
+                                    if (!hasSchedule) return;
 
                                     if (!CacheHelper.getFirstAppOpen()) {
                                       CacheHelper.setFirstAppOpen(true);

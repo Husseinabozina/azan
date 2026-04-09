@@ -1,13 +1,10 @@
-import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
-import 'package:azan/controllers/cubits/rotation_cubit/rotation_state.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/native_orientation.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/core/components/global_copyright_footer.dart';
 
@@ -1263,119 +1260,129 @@ class ThemePickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = 10.r;
+    final sizing = DialogConfig.getSizing(context);
 
-    return AlertDialog(
-      backgroundColor: Colors.black.withOpacity(0.9),
-      title: Text(
-        "اختر رقم الخلفية",
-        style: TextStyle(color: Colors.white, fontSize: 16.sp),
-      ),
-      content: SizedBox(
-        width: 0.85.sw,
-        height: 0.55.sh,
-        child: GridView.builder(
-          itemCount: count,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 6,
-            crossAxisSpacing: 8.w,
-            mainAxisSpacing: 8.h,
-          ),
-          itemBuilder: (context, i) {
-            final bool selected = i == current;
-            return InkWell(
-              onTap: () => Navigator.pop(context, i),
-              borderRadius: BorderRadius.circular(r),
-              child: SizedBox(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // ✅ الصورة + overlay داخل Clip
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(r),
-                      clipBehavior: Clip.antiAlias,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.asset(
-                            BackgroundThemes.all[i],
-                            fit: BoxFit.cover,
-                          ),
-
-                          // overlay لتثبيت القراءة فوق أي خلفية
-                          Container(
-                            color: Colors.black.withOpacity(
-                              selected ? 0.15 : 0.35,
-                            ),
-                          ),
-
-                          Center(
-                            child: Text(
-                              "$i",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 14.sp,
-                                shadows: const [
-                                  Shadow(blurRadius: 10, color: Colors.black),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // ✅ بوردر فوق كل حاجة (Overlay)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(r),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(
-                                selected ? 0.9 : 0.16,
-                              ),
-                              width: selected ? 2.2 : 1.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // ✅ Glow بسيط لو selected (اختياري لكن شكله جامد)
-                    if (selected)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(r),
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 14,
-                                  spreadRadius: 1,
-                                  color: Colors.white.withOpacity(0.18),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+    return UniversalDialogShell(
+      customMaxWidth: sizing.isLandscape ? 760.w : sizing.dialogWidth,
+      customMaxHeight: sizing.isLandscape ? 520.h : 560.h,
+      forceMaxHeight: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const DialogTitle("اختر رقم الخلفية"),
+          SizedBox(height: sizing.verticalGap * 0.7),
+          SizedBox(
+            width: 0.85.sw,
+            height: 0.55.sh,
+            child: GridView.builder(
+              itemCount: count,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                crossAxisSpacing: 8.w,
+                mainAxisSpacing: 8.h,
               ),
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            "إلغاء",
-            style: TextStyle(color: Colors.white.withOpacity(0.8)),
+              itemBuilder: (context, i) {
+                final bool selected = i == current;
+                return InkWell(
+                  onTap: () => Navigator.pop(context, i),
+                  borderRadius: BorderRadius.circular(r),
+                  child: SizedBox(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // ✅ الصورة + overlay داخل Clip
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(r),
+                          clipBehavior: Clip.antiAlias,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                BackgroundThemes.all[i],
+                                fit: BoxFit.cover,
+                              ),
+
+                              // overlay لتثبيت القراءة فوق أي خلفية
+                              Container(
+                                color: Colors.black.withValues(
+                                  alpha: selected ? 0.15 : 0.35,
+                                ),
+                              ),
+
+                              Center(
+                                child: Text(
+                                  "$i",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14.sp,
+                                    shadows: const [
+                                      Shadow(
+                                        blurRadius: 10,
+                                        color: Colors.black,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ✅ بوردر فوق كل حاجة (Overlay)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(r),
+                                border: Border.all(
+                                  color: Colors.white.withValues(
+                                    alpha: selected ? 0.9 : 0.16,
+                                  ),
+                                  width: selected ? 2.2 : 1.0,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // ✅ Glow بسيط لو selected (اختياري لكن شكله جامد)
+                        if (selected)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      blurRadius: 14,
+                                      spreadRadius: 1,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+          SizedBox(height: sizing.verticalGap * 0.8),
+          DialogButtonRow(
+            rightButton: DialogButton(
+              text: "إلغاء",
+              variant: DialogButtonVariant.secondary,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1408,69 +1415,81 @@ class _ThemeMultiPickerDialogState extends State<ThemeMultiPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.black.withOpacity(0.9),
-      title: Text(
-        "اختر ثيمات العشوائي",
-        style: TextStyle(color: Colors.white, fontSize: 16.sp),
-      ),
-      content: SizedBox(
-        width: 0.85.sw,
-        height: 0.55.sh,
-        child: GridView.builder(
-          itemCount: widget.count,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 6,
-            crossAxisSpacing: 8.w,
-            mainAxisSpacing: 8.h,
-          ),
-          itemBuilder: (context, i) {
-            final bool isOn = selected.contains(i);
-            return InkWell(
-              onTap: () {
-                setState(() {
-                  if (isOn) {
-                    selected.remove(i);
-                  } else {
-                    selected.add(i);
-                  }
-                });
-              },
-              child: Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isOn ? Colors.white : Colors.white.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(isOn ? 0.8 : 0.15),
-                  ),
-                ),
-                child: Text(
-                  "$i",
-                  style: TextStyle(
-                    color: isOn ? Colors.black : Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14.sp,
-                  ),
-                ),
+    final sizing = DialogConfig.getSizing(context);
+    return UniversalDialogShell(
+      customMaxWidth: sizing.isLandscape ? 760.w : sizing.dialogWidth,
+      customMaxHeight: sizing.isLandscape ? 520.h : 560.h,
+      forceMaxHeight: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const DialogTitle("اختر ثيمات العشوائي"),
+          SizedBox(height: sizing.verticalGap * 0.7),
+          SizedBox(
+            width: 0.85.sw,
+            height: 0.55.sh,
+            child: GridView.builder(
+              itemCount: widget.count,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                crossAxisSpacing: 8.w,
+                mainAxisSpacing: 8.h,
               ),
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            "إلغاء",
-            style: TextStyle(color: Colors.white.withOpacity(0.8)),
+              itemBuilder: (context, i) {
+                final bool isOn = selected.contains(i);
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      if (isOn) {
+                        selected.remove(i);
+                      } else {
+                        selected.add(i);
+                      }
+                    });
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isOn
+                          ? DialogPalette.primaryButtonBackground
+                          : Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                        color: Colors.white.withValues(
+                          alpha: isOn ? 0.8 : 0.15,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "$i",
+                      style: TextStyle(
+                        color: isOn
+                            ? DialogPalette.primaryButtonText
+                            : Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, selected.toList()..sort()),
-          child: Text("حفظ", style: TextStyle(color: Colors.white)),
-        ),
-      ],
+          SizedBox(height: sizing.verticalGap * 0.8),
+          DialogButtonRow(
+            leftButton: DialogButton(
+              text: "إلغاء",
+              variant: DialogButtonVariant.secondary,
+              onPressed: () => Navigator.pop(context),
+            ),
+            rightButton: DialogButton(
+              text: "حفظ",
+              onPressed: () =>
+                  Navigator.pop(context, selected.toList()..sort()),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

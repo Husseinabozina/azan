@@ -12,9 +12,9 @@ import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/home_screen_landscape.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -42,149 +42,20 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
     friDaySermonMinutes = CacheHelper.getFridayTime();
     iqamaMinutes = List<int>.filled(prayers.length, 10);
 
-    appCubit.getIqamaTime().then((_) {
+    appCubit.getStoredIqamaMinutes().then((storedIqama) {
       if (!mounted) return;
       setState(() {
-        if (appCubit.iqamaMinutes != null &&
-            appCubit.iqamaMinutes!.isNotEmpty) {
-          iqamaMinutes = appCubit.iqamaMinutes!;
+        if (storedIqama.isNotEmpty) {
+          iqamaMinutes = storedIqama;
         }
       });
     });
   }
 
   Future<void> _editIqamaMinutes(int index) async {
-    final current = iqamaMinutes[index];
-
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        int localValue = current;
-
-        return AlertDialog(
-          backgroundColor: AppTheme.dialogBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          title: Text(
-            '${LocaleKeys.set_iqama_time.tr()} ${prayers[index]}',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.accentColor,
-            ),
-          ),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    LocaleKeys.select_minutes_after_adhan.tr(),
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryTextColor,
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (localValue > 0) {
-                            setStateDialog(() => localValue -= 1);
-                          }
-                        },
-                        icon: Icon(Icons.remove, color: AppTheme.accentColor),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: AppTheme.primaryTextColor,
-                            width: 1.5,
-                          ),
-                          color: Colors.white,
-                        ),
-                        child: Text(
-                          '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          setStateDialog(() => localValue += 1);
-                        },
-                        icon: Icon(Icons.add, color: AppTheme.accentColor),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
-                    children: [0, 5, 10, 15, 20, 25, 30]
-                        .map(
-                          (v) => ChoiceChip(
-                            color: WidgetStatePropertyAll(
-                              AppTheme.primaryButtonBackground,
-                            ),
-                            label: Text(
-                              '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
-                              style: TextStyle(
-                                color: AppTheme.primaryButtonTextColor,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            selected: localValue == v,
-                            onSelected: (_) {
-                              setStateDialog(() => localValue = v);
-                            },
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                LocaleKeys.common_cancel.tr(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                  color: AppTheme.cancelButtonBackgroundColor,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(localValue),
-              child: Text(
-                LocaleKeys.common_ok.tr(),
-                style: TextStyle(
-                  color: AppTheme.accentColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+    final result = await _showMinutesEditorDialog(
+      title: '${LocaleKeys.set_iqama_time.tr()} ${prayers[index]}',
+      current: iqamaMinutes[index],
     );
 
     if (result != null && mounted) {
@@ -193,141 +64,146 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
   }
 
   Future<void> _editFridaySermonMinutes() async {
-    final current = friDaySermonMinutes;
-
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        int localValue = current;
-
-        return AlertDialog(
-          backgroundColor: AppTheme.dialogBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          title: Text(
-            LocaleKeys.friday_sermon_time.tr(),
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.accentColor,
-            ),
-          ),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    LocaleKeys.select_minutes_after_adhan.tr(),
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryTextColor,
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (localValue > 0) {
-                            setStateDialog(() => localValue -= 1);
-                          }
-                        },
-                        icon: Icon(Icons.remove, color: AppTheme.accentColor),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: AppTheme.primaryTextColor,
-                            width: 1.5,
-                          ),
-                          color: Colors.white,
-                        ),
-                        child: Text(
-                          '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          setStateDialog(() => localValue += 1);
-                        },
-                        icon: Icon(Icons.add, color: AppTheme.accentColor),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
-                    children: [0, 5, 10, 15, 20, 25, 30]
-                        .map(
-                          (v) => ChoiceChip(
-                            color: WidgetStatePropertyAll(
-                              AppTheme.primaryButtonBackground,
-                            ),
-                            label: Text(
-                              '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
-                              style: TextStyle(
-                                color: AppTheme.primaryButtonTextColor,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            selected: localValue == v,
-                            onSelected: (_) =>
-                                setStateDialog(() => localValue = v),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                LocaleKeys.common_cancel.tr(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                  color: AppTheme.cancelButtonBackgroundColor,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(localValue),
-              child: Text(
-                LocaleKeys.common_ok.tr(),
-                style: TextStyle(
-                  color: AppTheme.accentColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+    final result = await _showMinutesEditorDialog(
+      title: LocaleKeys.friday_sermon_time.tr(),
+      current: friDaySermonMinutes,
     );
 
     if (result != null && mounted) {
       setState(() => friDaySermonMinutes = result);
     }
+  }
+
+  String _formatMinutes(int value) {
+    final normalized = LocalizationHelper.isArAndArNumberEnable()
+        ? DateHelper.toArabicDigits('$value')
+        : '$value';
+    return '$normalized ${LocaleKeys.min.tr()}';
+  }
+
+  Future<int?> _showMinutesEditorDialog({
+    required String title,
+    required int current,
+  }) {
+    final sizing = DialogConfig.getSizing(context);
+
+    return showAppDialog<int>(
+      context: context,
+      builder: (dialogContext) {
+        int localValue = current;
+
+        return StatefulBuilder(
+          builder: (dialogContext, setStateDialog) {
+            return UniversalDialogShell(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DialogTitle(title),
+                  SizedBox(height: sizing.verticalGap * 0.7),
+                  DialogBodyText(
+                    LocaleKeys.select_minutes_after_adhan.tr(),
+                    color: DialogPalette.mutedTextColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  SizedBox(height: sizing.verticalGap * 0.7),
+                  DialogContentCard(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            if (localValue > 0) {
+                              setStateDialog(() => localValue -= 1);
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.remove_circle_outline_rounded,
+                            color: DialogPalette.primaryButtonBackground,
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(
+                              color: DialogPalette.selectionBorder,
+                              width: 1.5,
+                            ),
+                            color: DialogPalette.inputFillColor,
+                          ),
+                          child: Text(
+                            _formatMinutes(localValue),
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                              color: DialogPalette.inputTextColor,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () =>
+                              setStateDialog(() => localValue += 1),
+                          icon: const Icon(
+                            Icons.add_circle_outline_rounded,
+                            color: DialogPalette.primaryButtonBackground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: sizing.verticalGap * 0.55),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: [0, 5, 10, 15, 20, 25, 30].map((value) {
+                      final selected = localValue == value;
+                      return ChoiceChip(
+                        label: Text(
+                          _formatMinutes(value),
+                          style: TextStyle(
+                            color: selected
+                                ? DialogPalette.primaryButtonText
+                                : DialogPalette.bodyTextColor,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        selected: selected,
+                        selectedColor: DialogPalette.primaryButtonBackground,
+                        backgroundColor: DialogPalette.surfaceRaisedColor,
+                        side: BorderSide(
+                          color: selected
+                              ? DialogPalette.primaryButtonBackground
+                              : DialogPalette.dividerColor,
+                        ),
+                        onSelected: (_) =>
+                            setStateDialog(() => localValue = value),
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: sizing.verticalGap),
+                  DialogButtonRow(
+                    leftButton: DialogButton(
+                      text: LocaleKeys.common_cancel.tr(),
+                      variant: DialogButtonVariant.secondary,
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                    ),
+                    rightButton: DialogButton(
+                      text: LocaleKeys.common_ok.tr(),
+                      onPressed: () =>
+                          Navigator.of(dialogContext).pop(localValue),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override

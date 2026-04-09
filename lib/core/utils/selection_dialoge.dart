@@ -1,8 +1,6 @@
-// selection_dialog.dart
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/country_option.dart';
-import 'package:azan/core/router/app_navigation.dart';
-import 'package:azan/core/theme/app_theme.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/data/data/city_country_data.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -17,6 +15,7 @@ class _SelectionDialogBody<T> extends StatefulWidget {
   final ItemLabel<T> labelBuilder;
   final String searchHint;
   final Function(T item) onSelected;
+
   const _SelectionDialogBody({
     required this.title,
     required this.items,
@@ -26,15 +25,22 @@ class _SelectionDialogBody<T> extends StatefulWidget {
   });
 
   @override
-  State<_SelectionDialogBody<T>> createState() =>
-      _SelectionDialogBodyState<T>();
+  State<_SelectionDialogBody<T>> createState() => _SelectionDialogBodyState<T>();
 }
 
 class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
+  final TextEditingController _searchController = TextEditingController();
   String _query = '';
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final sizing = DialogConfig.getSizing(context);
     final filtered = widget.items.where((item) {
       if (_query.trim().isEmpty) return true;
       final label = widget.labelBuilder(item);
@@ -42,122 +48,48 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
       return label.contains(q);
     }).toList();
 
-    return Dialog(
-      backgroundColor: AppTheme.dialogBackgroundColor,
-      insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Container(
-        width:
-            // MediaQuery.of(context).size.width * 0.8,
-            1.sw - 70.w,
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: AppTheme.dialogBackgroundColor,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withOpacity(0.8), width: 4.w),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.35),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return UniversalDialogShell(
+      forceMaxHeight: true,
+      customMaxWidth: sizing.isLandscape ? 620.w : sizing.dialogWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             children: [
-              // العنوان + زر إغلاق
-              Row(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        widget.title,
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.accentColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.h),
-
-              // حقل البحث
-              TextField(
-                decoration: InputDecoration(
-                  hintText: widget.searchHint,
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 14.w,
-                    vertical: 10.h,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                textAlign: TextAlign.right,
-                onChanged: (val) {
-                  setState(() => _query = val);
-                },
-              ),
-              SizedBox(height: 16.h),
-
-              // ليست العناصر
-              Expanded(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    final item = filtered[index];
-                    final label = widget.labelBuilder(item);
-
-                    return InkWell(
-                      onTap: () {
-                        widget.onSelected(item);
-                        // AppNavigator.pop(context);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 10.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Center(
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 15.sp,
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  separatorBuilder: (_, __) => SizedBox(height: 8.h),
-                  itemCount: filtered.length,
-                ),
-              ),
+              Expanded(child: DialogTitle(widget.title)),
+              DialogCloseButton(onPressed: () => Navigator.of(context).pop()),
             ],
           ),
-        ),
+          SizedBox(height: sizing.verticalGap * 0.7),
+          DialogSearchField(
+            controller: _searchController,
+            hint: widget.searchHint,
+            onChanged: (value) => setState(() => _query = value),
+          ),
+          SizedBox(height: sizing.verticalGap * 0.7),
+          Flexible(
+            child: DialogContentCard(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  final item = filtered[index];
+                  final label = widget.labelBuilder(item);
+
+                  return DialogSelectableTile(
+                    title: label,
+                    onTap: () {
+                      Navigator.of(context).pop(item);
+                      widget.onSelected(item);
+                    },
+                  );
+                },
+                separatorBuilder: (_, __) => SizedBox(height: 8.h),
+                itemCount: filtered.length,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -167,9 +99,8 @@ Future<CountryOption?> showCountryPickerDialog(
   BuildContext context,
   Function(dynamic item) onSelected,
 ) {
-  return showDialog<CountryOption>(
+  return showAppDialog<CountryOption>(
     context: context,
-    barrierDismissible: true,
     builder: (ctx) {
       return _SelectionDialogBody<CountryOption>(
         title: 'اختر بلد المسجد',
@@ -186,9 +117,8 @@ Future<CityOption?> showSaudiCityPickerDialog(
   BuildContext context,
   Function(dynamic item) onSelected,
 ) {
-  return showDialog<CityOption>(
+  return showAppDialog<CityOption>(
     context: context,
-    barrierDismissible: true,
     builder: (ctx) {
       return _SelectionDialogBody<CityOption>(
         title: LocaleKeys.mosque_city_select_title.tr(),

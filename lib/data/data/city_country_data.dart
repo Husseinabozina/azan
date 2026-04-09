@@ -10,48 +10,49 @@ const kCountries = <CountryOption>[
   CountryOption(code: 'KW', nameAr: 'الكويت', nameEn: 'Kuwait'),
   CountryOption(code: 'TN', nameAr: 'تونس', nameEn: 'Tunisia'),
 ];
+
 const kSaudiCities = <CityOption>[
-  // المدن الرئيسية - محدثة بإحداثيات دقيقة
+  // ==================== المدن الرئيسية الكبرى ====================
   CityOption(
     countryCode: 'SA',
     nameAr: 'مكة المكرمة',
     nameEn: 'Makkah',
-    lat: 21.4266, // من مصادر متعددة
+    lat: 21.4266,
     lon: 39.8256,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'المدينة المنورة',
     nameEn: 'Madinah',
-    lat: 24.4686, // من مصادر متعددة
+    lat: 24.4686,
     lon: 39.6142,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الرياض',
     nameEn: 'Riyadh',
-    lat: 24.7743, // من مصادر متعددة
+    lat: 24.7743,
     lon: 46.7386,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'جدة',
     nameEn: 'Jeddah',
-    lat: 21.4925, // من مصادر متعددة
+    lat: 21.4925,
     lon: 39.1776,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الدمام',
     nameEn: 'Dammam',
-    lat: 26.4207, // صحيح كما ذكرت
+    lat: 26.4207,
     lon: 50.0888,
   ),
   CityOption(
     countryCode: 'SA',
     nameAr: 'الخبر',
     nameEn: 'Khobar',
-    lat: 26.2172, // محدّث من البحث
+    lat: 26.2172,
     lon: 50.1971,
   ),
   CityOption(
@@ -69,14 +70,248 @@ const kSaudiCities = <CityOption>[
     lon: 42.5053,
   ),
 
-  // مدن إضافية مشهورة
+  // ==================== منطقة الرياض ====================
   CityOption(
     countryCode: 'SA',
     nameAr: 'بريدة',
     nameEn: 'Buraydah',
-    lat: 26.3592, // محدّث من البحث
+    lat: 26.3592,
     lon: 43.9818,
   ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'عنيزة',
+    nameEn: 'Unayzah',
+    lat: 26.0900,
+    lon: 43.9860,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الخرج',
+    nameEn: 'Al Kharj',
+    lat: 24.1595,
+    lon: 47.3218,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الدوادمي',
+    nameEn: 'Ad Dawadimi',
+    lat: 24.5064,
+    lon: 44.3941,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'المجمعة',
+    nameEn: 'Majmaah',
+    lat: 25.9115,
+    lon: 45.3587,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الدرعية',
+    nameEn: 'Diriyah',
+    lat: 24.7417,
+    lon: 46.5860,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'شقراء',
+    nameEn: 'Shaqra',
+    lat: 25.2502,
+    lon: 45.2616,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الزلفي',
+    nameEn: 'Az Zulfi',
+    lat: 26.2718,
+    lon: 44.8110,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الرس',
+    nameEn: 'Ar Rass',
+    lat: 25.8691,
+    lon: 43.5129,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'عفيف',
+    nameEn: 'Afif',
+    lat: 23.9130,
+    lon: 42.9282,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'المذنب',
+    nameEn: 'Al Midhnab',
+    lat: 25.8537,
+    lon: 44.2302,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'البكيرية',
+    nameEn: 'Al Bukayriyah',
+    lat: 26.1574,
+    lon: 43.6639,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الدلم',
+    nameEn: 'Ad Dilam',
+    lat: 23.9944,
+    lon: 47.1740,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'ليلى',
+    nameEn: 'Layla',
+    lat: 22.2921,
+    lon: 46.7418,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'وادي الدواسر',
+    nameEn: 'Wadi Al Dawasir',
+    lat: 20.4741,
+    lon: 45.0035,
+  ),
+
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'السليل',
+    nameEn: 'As Sulayyil',
+    lat: 20.4738,
+    lon: 45.5705,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'القويعية',
+    nameEn: 'Al Quwayiyah',
+    lat: 24.0598,
+    lon: 45.2725,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'حوطة بني تميم',
+    nameEn: 'Hawtat Bani Tamim',
+    lat: 23.5277,
+    lon: 46.8352,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'المزاحمية',
+    nameEn: 'Al Muzahimiyah',
+    lat: 24.4824,
+    lon: 46.2557,
+  ),
+
+  // ==================== منطقة مكة المكرمة ====================
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'رابغ',
+    nameEn: 'Rabigh',
+    lat: 22.8010,
+    lon: 39.0336,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'القنفذة',
+    nameEn: 'Al Qunfudhah',
+    lat: 19.1249,
+    lon: 41.0796,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الجموم',
+    nameEn: 'Al Jumum',
+    lat: 21.6227,
+    lon: 39.6891,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الخرمة',
+    nameEn: 'Al Khurmah',
+    lat: 21.9213,
+    lon: 42.0384,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الليث',
+    nameEn: 'Al Lith',
+    lat: 20.1525,
+    lon: 40.2776,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'عسفان',
+    nameEn: 'Usfan',
+    lat: 22.9083,
+    lon: 39.3665,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الكامل',
+    nameEn: 'Al Kamil',
+    lat: 20.5558,
+    lon: 40.1879,
+  ),
+
+  // ==================== منطقة المدينة المنورة ====================
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'ينبع',
+    nameEn: 'Yanbu',
+    lat: 24.0895,
+    lon: 38.0618,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'العلا',
+    nameEn: 'Al Ula',
+    lat: 26.6134,
+    lon: 37.9228,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'أم لج',
+    nameEn: 'Umm Lajj',
+    lat: 25.0325,
+    lon: 37.2805,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الحناكية',
+    nameEn: 'Al Hanakiyah',
+    lat: 24.8500,
+    lon: 40.4667,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'بدر',
+    nameEn: 'Badr',
+    lat: 23.7759,
+    lon: 38.7868,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'مهد الذهب',
+    nameEn: 'Mahd Adh Dhahab',
+    lat: 23.5044,
+    lon: 40.8605,
+  ),
+
+  // ==================== منطقة القصيم ====================
+  // (بريدة وعنيزة مذكورتان أعلاه)
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'النبهانية',
+    nameEn: 'An Nabhaniyah',
+    lat: 26.2097,
+    lon: 44.0614,
+  ),
+
+  // ==================== منطقة حائل ====================
   CityOption(
     countryCode: 'SA',
     nameAr: 'حائل',
@@ -86,6 +321,15 @@ const kSaudiCities = <CityOption>[
   ),
   CityOption(
     countryCode: 'SA',
+    nameAr: 'بقعاء',
+    nameEn: 'Buqayah',
+    lat: 28.3130,
+    lon: 45.6216,
+  ),
+
+  // ==================== منطقة تبوك ====================
+  CityOption(
+    countryCode: 'SA',
     nameAr: 'تبوك',
     nameEn: 'Tabuk',
     lat: 28.3838,
@@ -93,38 +337,93 @@ const kSaudiCities = <CityOption>[
   ),
   CityOption(
     countryCode: 'SA',
-    nameAr: 'جازان',
-    nameEn: 'Jazan',
-    lat: 16.8892,
-    lon: 42.5679,
+    nameAr: 'الوجه',
+    nameEn: 'Al Wajh',
+    lat: 26.2359,
+    lon: 36.4744,
   ),
   CityOption(
     countryCode: 'SA',
-    nameAr: 'نجران',
-    nameEn: 'Najran',
-    lat: 17.5449,
-    lon: 44.1340,
+    nameAr: 'ضباء',
+    nameEn: 'Duba',
+    lat: 27.3506,
+    lon: 35.6960,
   ),
   CityOption(
     countryCode: 'SA',
-    nameAr: 'خميس مشيط',
-    nameEn: 'Khamis Mushait',
-    lat: 18.3000,
-    lon: 42.7333,
+    nameAr: 'تيماء',
+    nameEn: 'Tayma',
+    lat: 27.6234,
+    lon: 38.5392,
   ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'أملج',
+    nameEn: 'Amlaj',
+    lat: 25.0439,
+    lon: 37.2573,
+  ),
+
+  // ==================== منطقة الجوف ====================
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'سكاكا',
+    nameEn: 'Sakaka',
+    lat: 29.9697,
+    lon: 40.2064,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'دومة الجندل',
+    nameEn: 'Dawmat Al Jandal',
+    lat: 29.8147,
+    lon: 39.8669,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'القريات',
+    nameEn: 'Al Qurayyat',
+    lat: 31.3303,
+    lon: 37.3405,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'طبرجل',
+    nameEn: 'Turaif',
+    lat: 30.4898,
+    lon: 38.2216,
+  ),
+
+  // ==================== منطقة الحدود الشمالية ====================
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'عرعر',
+    nameEn: 'Arar',
+    lat: 30.9753,
+    lon: 41.0381,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'رفحاء',
+    nameEn: 'Rafha',
+    lat: 29.6268,
+    lon: 43.4946,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'طريف',
+    nameEn: 'Turayf',
+    lat: 31.6750,
+    lon: 38.6565,
+  ),
+
+  // ==================== منطقة الشرقية ====================
   CityOption(
     countryCode: 'SA',
     nameAr: 'الظهران',
     nameEn: 'Dhahran',
     lat: 26.2886,
     lon: 50.1130,
-  ),
-  CityOption(
-    countryCode: 'SA',
-    nameAr: 'ينبع',
-    nameEn: 'Yanbu',
-    lat: 24.0895,
-    lon: 38.0618,
   ),
   CityOption(
     countryCode: 'SA',
@@ -149,6 +448,210 @@ const kSaudiCities = <CityOption>[
   ),
   CityOption(
     countryCode: 'SA',
+    nameAr: 'الهفوف',
+    nameEn: 'Al Hufuf',
+    lat: 25.3973,
+    lon: 49.6018,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'المبرز',
+    nameEn: 'Al Mubarraz',
+    lat: 25.4439,
+    lon: 49.6637,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الخفجي',
+    nameEn: 'Al Khafji',
+    lat: 28.4075,
+    lon: 48.4948,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'صيهد',
+    nameEn: 'Sayhat',
+    lat: 26.4812,
+    lon: 50.0271,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الزلفي',
+    nameEn: 'Az Zulfi',
+    lat: 26.2718,
+    lon: 44.8110,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'حفر الباطن',
+    nameEn: 'Hafar Al Batin',
+    lat: 28.4351,
+    lon: 45.9601,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'القيصومة',
+    nameEn: 'Al Qaysumah',
+    lat: 28.3098,
+    lon: 46.1334,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'النعيرية',
+    nameEn: 'An Nairyiah',
+    lat: 27.4647,
+    lon: 48.4830,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الجش',
+    nameEn: 'Al Jish',
+    lat: 26.7230,
+    lon: 49.8793,
+  ),
+
+  // ==================== منطقة عسير ====================
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'خميس مشيط',
+    nameEn: 'Khamis Mushait',
+    lat: 18.3000,
+    lon: 42.7333,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'بيشة',
+    nameEn: 'Bishah',
+    lat: 20.0031,
+    lon: 42.6044,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'النماص',
+    nameEn: 'An Namas',
+    lat: 19.1222,
+    lon: 42.1286,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'محايل عسير',
+    nameEn: 'Muhayil Asir',
+    lat: 18.5608,
+    lon: 42.0387,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'سراة عبيدة',
+    nameEn: 'Sarat Abidah',
+    lat: 19.1361,
+    lon: 41.7369,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'رجال ألمع',
+    nameEn: 'Rijal Almaa',
+    lat: 18.2826,
+    lon: 42.1382,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'ضمد',
+    nameEn: 'Damad',
+    lat: 17.0217,
+    lon: 42.9625,
+  ),
+
+  // ==================== منطقة جازان ====================
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'جازان',
+    nameEn: 'Jazan',
+    lat: 16.8892,
+    lon: 42.5679,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'أبو عريش',
+    nameEn: 'Abu Arish',
+    lat: 16.9727,
+    lon: 42.8295,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'صبيا',
+    nameEn: 'Sabya',
+    lat: 17.1532,
+    lon: 42.6218,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الدرب',
+    nameEn: 'Ad Darb',
+    lat: 17.7164,
+    lon: 42.2592,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'صامطة',
+    nameEn: 'Samtah',
+    lat: 17.0454,
+    lon: 42.9543,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'الريث',
+    nameEn: 'Ar Rayth',
+    lat: 18.7190,
+    lon: 41.8303,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'العيدابي',
+    nameEn: 'Al Eidabi',
+    lat: 17.3090,
+    lon: 43.1318,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'فرسان',
+    nameEn: 'Farasan',
+    lat: 16.7072,
+    lon: 42.0839,
+  ),
+
+  // ==================== منطقة نجران ====================
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'نجران',
+    nameEn: 'Najran',
+    lat: 17.5449,
+    lon: 44.1340,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'شرورة',
+    nameEn: 'Sharurah',
+    lat: 17.5035,
+    lon: 47.0790,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'حبونا',
+    nameEn: 'Habuna',
+    lat: 18.6027,
+    lon: 45.4282,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'بدر الجنوب',
+    nameEn: 'Badr Al Janub',
+    lat: 18.6827,
+    lon: 44.3140,
+  ),
+
+  // ==================== منطقة الباحة ====================
+  CityOption(
+    countryCode: 'SA',
     nameAr: 'الباحة',
     nameEn: 'Al Bahah',
     lat: 20.0129,
@@ -156,16 +659,37 @@ const kSaudiCities = <CityOption>[
   ),
   CityOption(
     countryCode: 'SA',
-    nameAr: 'عرعر',
-    nameEn: 'Arar',
-    lat: 30.9753,
-    lon: 41.0381,
+    nameAr: 'بلجرشي',
+    nameEn: 'Baljurashi',
+    lat: 19.8429,
+    lon: 41.6053,
   ),
   CityOption(
     countryCode: 'SA',
-    nameAr: 'سكاكا',
-    nameEn: 'Sakaka',
-    lat: 29.9697,
-    lon: 40.2064,
+    nameAr: 'المندق',
+    nameEn: 'Al Mandaq',
+    lat: 20.2580,
+    lon: 41.3695,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'العقيق',
+    nameEn: 'Al Aqiq',
+    lat: 20.2677,
+    lon: 41.6483,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'قلوة',
+    nameEn: 'Qilwah',
+    lat: 19.4791,
+    lon: 41.6213,
+  ),
+  CityOption(
+    countryCode: 'SA',
+    nameAr: 'المخواة',
+    nameEn: 'Al Mikhwah',
+    lat: 19.5983,
+    lon: 41.4383,
   ),
 ];

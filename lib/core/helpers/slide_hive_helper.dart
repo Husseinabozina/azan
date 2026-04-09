@@ -6,9 +6,28 @@ import 'package:hive/hive.dart';
 class SlideHiveHelper {
   static const String _boxName = 'slides_box';
   static const String _itemsKey = 'items';
+  static Future<Box>? _openingBox;
 
   static Future<Box> _openBox() async {
-    return Hive.openBox(_boxName);
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box(_boxName);
+    }
+
+    final inFlight = _openingBox;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = Hive.openBox(_boxName);
+    _openingBox = future;
+
+    try {
+      return await future;
+    } finally {
+      if (identical(_openingBox, future)) {
+        _openingBox = null;
+      }
+    }
   }
 
   static List<Dhikr> _readAllFromBox(Box box) {
@@ -21,7 +40,9 @@ class SlideHiveHelper {
   }
 
   static Future<void> _writeAllToBox(Box box, List<Dhikr> list) async {
-    final normalized = list.map((d) => d.copyWith(id: list.indexOf(d))).toList();
+    final normalized = list
+        .map((d) => d.copyWith(id: list.indexOf(d)))
+        .toList();
     await box.put(_itemsKey, normalized.map((d) => d.toMap()).toList());
   }
 

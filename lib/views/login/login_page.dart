@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:quran_app/core/components/custom_button.dart';
-import 'package:quran_app/core/components/custom_text_form_field.dart';
-import 'package:quran_app/core/helpers/mqscale.dart';
-import 'package:quran_app/core/router/app_navigation.dart';
-import 'package:quran_app/core/theme/app_theme.dart';
-import 'package:quran_app/generated/locale_keys.g.dart';
+import 'package:azan/core/router/app_navigation.dart';
+import 'package:azan/core/theme/app_theme.dart';
+import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class LoginPage extends StatefulWidget {
@@ -31,12 +28,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement actual login logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing Data')),
-      );
-      // Example: Navigate to home page after successful login
-      // AppNavigator.pushReplacementNamed(context, '/home');
+      AppNavigator.pushReplacementNamed(context, '/home');
     }
   }
 

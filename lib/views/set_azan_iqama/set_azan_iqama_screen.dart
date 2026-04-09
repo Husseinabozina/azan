@@ -1,36 +1,19 @@
-import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
-import 'package:azan/controllers/cubits/appcubit/app_state.dart';
-import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
-import 'package:azan/core/components/appbutton.dart';
-import 'package:azan/core/components/horizontal_space.dart';
-import 'package:azan/core/components/vertical_space.dart';
-import 'package:azan/core/helpers/azan_adjust_model.dart';
-import 'package:azan/core/router/app_navigation.dart';
-import 'package:azan/core/theme/app_theme.dart';
-import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/mqscale.dart';
-import 'package:azan/gen/assets.gen.dart';
-import 'package:azan/generated/locale_keys.g.dart';
-import 'package:azan/views/home/home_screen.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:azan/core/components/global_copyright_footer.dart';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
+import 'package:azan/core/components/global_copyright_footer.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
+import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
+import 'package:azan/core/helpers/azan_adjust_model.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/helpers/azan_adjust_model.dart';
+import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -66,289 +49,15 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
   }
 
   Future<void> _loadIqamaOnce() async {
-    await appCubit.getIqamaTime();
+    final storedIqama = await appCubit.getStoredIqamaMinutes();
     if (!mounted) return;
 
     setState(() {
-      if (appCubit.iqamaMinutes != null && appCubit.iqamaMinutes!.isNotEmpty) {
-        iqamaMinutes = List<int>.from(appCubit.iqamaMinutes!);
+      if (storedIqama.isNotEmpty) {
+        iqamaMinutes = List<int>.from(storedIqama);
       }
-      // لو جمعة: cubit بيحط الجمعة في index=2 (الظهر) بالفعل
       friDaySermonMinutes = CacheHelper.getFridayTime();
     });
-  }
-
-  // ========= Iqama dialogs (نفس دوالي القديمة) =========
-  Future<void> _editIqamaMinutes(int index) async {
-    final current = iqamaMinutes[index];
-
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        int localValue = current;
-
-        return AlertDialog(
-          backgroundColor: AppTheme.dialogBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          title: Text(
-            '${LocaleKeys.set_iqama_time.tr()} ${appCubit.prayers(context)[index].title}',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.accentColor,
-            ),
-          ),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    LocaleKeys.select_minutes_after_adhan.tr(),
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryTextColor,
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (localValue > 0) {
-                            setStateDialog(() => localValue -= 1);
-                          }
-                        },
-                        icon: Icon(Icons.remove, color: AppTheme.accentColor),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: AppTheme.primaryTextColor,
-                            width: 1.5,
-                          ),
-                          color: Colors.white,
-                        ),
-                        child: Text(
-                          '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => setStateDialog(() => localValue += 1),
-                        icon: Icon(Icons.add, color: AppTheme.accentColor),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
-                    children: [0, 5, 10, 15, 20, 25, 30]
-                        .map(
-                          (v) => ChoiceChip(
-                            color: WidgetStatePropertyAll(
-                              AppTheme.primaryButtonBackground,
-                            ),
-                            label: Text(
-                              '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
-                              style: TextStyle(
-                                color: AppTheme.primaryButtonTextColor,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            selected: localValue == v,
-                            onSelected: (_) =>
-                                setStateDialog(() => localValue = v),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                LocaleKeys.common_cancel.tr(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                  color: AppTheme.cancelButtonBackgroundColor,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(localValue),
-              child: Text(
-                LocaleKeys.common_ok.tr(),
-                style: TextStyle(
-                  color: AppTheme.accentColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result != null && mounted) {
-      setState(() => iqamaMinutes[index] = result);
-    }
-  }
-
-  Future<void> _editFridaySermonMinutes() async {
-    final current = friDaySermonMinutes;
-
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        int localValue = current;
-
-        return AlertDialog(
-          backgroundColor: AppTheme.dialogBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          title: Text(
-            LocaleKeys.friday_sermon_time.tr(),
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.accentColor,
-            ),
-          ),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    LocaleKeys.select_minutes_after_adhan.tr(),
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryTextColor,
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (localValue > 0) {
-                            setStateDialog(() => localValue -= 1);
-                          }
-                        },
-                        icon: Icon(Icons.remove, color: AppTheme.accentColor),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: AppTheme.primaryTextColor,
-                            width: 1.5,
-                          ),
-                          color: Colors.white,
-                        ),
-                        child: Text(
-                          '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$localValue') : localValue} ${LocaleKeys.min.tr()}',
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => setStateDialog(() => localValue += 1),
-                        icon: Icon(Icons.add, color: AppTheme.accentColor),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
-                    children: [0, 5, 10, 15, 20, 25, 30]
-                        .map(
-                          (v) => ChoiceChip(
-                            color: WidgetStatePropertyAll(
-                              AppTheme.primaryButtonBackground,
-                            ),
-                            label: Text(
-                              '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits('$v') : v} ${LocaleKeys.min.tr()}',
-                              style: TextStyle(
-                                color: AppTheme.primaryButtonTextColor,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            selected: localValue == v,
-                            onSelected: (_) =>
-                                setStateDialog(() => localValue = v),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                LocaleKeys.common_cancel.tr(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                  color: AppTheme.cancelButtonBackgroundColor,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(localValue),
-              child: Text(
-                LocaleKeys.common_ok.tr(),
-                style: TextStyle(
-                  color: AppTheme.accentColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result != null && mounted) {
-      setState(() => friDaySermonMinutes = result);
-    }
   }
 
   Future<void> _saveIqama() async {
@@ -470,7 +179,6 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
           }
         },
         builder: (context, state) {
-          final size = MediaQuery.of(context).size;
           final isLandscape = UiRotationCubit().isLandscape();
 
           // ✅ designSize

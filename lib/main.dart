@@ -1,6 +1,7 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
+import 'package:azan/core/helpers/managed_azkar_hive_helper.dart';
 import 'package:azan/core/helpers/slide_hive_helper.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -31,6 +32,7 @@ void main() async {
   await EasyLocalization.ensureInitialized();
   await Hive.initFlutter();
   await DhikrHiveHelper.ensureInitialAzkar(azkar);
+  await ManagedAzkarHiveHelper.ensureInitialAzkarSets();
   await SlideHiveHelper.ensureInitialSlides(ayat);
 
   runApp(

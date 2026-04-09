@@ -219,7 +219,9 @@
 "change_app_logo":"Change app logo",
 "select_from_device":"Select from device",
 "default_app_logo":"Default app logo"
-,"put_prayers_titles_in_center_in_landscape": "Put prayers titles in center in landscape","enlarge_iqama_and_adhan_in_landscape":"Enlarge iqama and adhan in landscape"
+,"put_prayers_titles_in_center_in_landscape": "Put prayers titles in center in landscape"
+,"put_prayers_titles_in_center_in_portrait": "Put prayers titles in center in portrait"
+,"enlarge_iqama_and_adhan_in_landscape":"Enlarge iqama and adhan in landscape"
 ,"hide_iqamah_times": "Home Clock - Hide Iqamah Times"
 ,"enlarge_remaining_time_counter": "Enlarge remaining time counter for next prayer",
 "enable_hadith_before_iqama": "Enable displaying Prophet's Hadith before Iqama",
@@ -227,6 +229,43 @@
 "hadith_display_seconds": "seconds before Iqama",
 "hadith_text_arabic": "قال رسول الله : \"من صلى على واحدة صلى الله عليه عشراً\"",
 "hadith_text_english": "The Prophet Muhammad said: \"Whoever sends blessings upon me once, Allah sends blessings upon him ten times\"",
+"display_board_mode": "Display Board Mode",
+"display_board_management": "Display Board Management",
+"display_board_note": "Create a polished alternate screen with large announcements, prayer times, and the live clock for public displays.",
+"display_board_enabled": "Enabled now",
+"display_board_disabled": "Disabled",
+"display_board_enable": "Enable Display Board",
+"display_board_return_main": "Return to Main Screen",
+"display_board_title": "Title",
+"display_board_body": "Body",
+"display_board_pinned": "Pinned",
+"display_board_active": "Active",
+"display_board_inactive": "Inactive",
+"display_board_pin": "Pin",
+"display_board_rotation_duration": "Board rotation duration",
+"display_board_empty_state": "No active display boards yet",
+"display_board_add_announcement": "Add board",
+"display_board_edit_announcement": "Edit board",
+"display_board_title_size": "Title size",
+"display_board_body_size": "Body size",
+"display_board_title_font": "Title font",
+"display_board_body_font": "Body font",
+"display_board_title_color": "Title color",
+"display_board_body_color": "Body color",
+"display_board_preview_title": "Important Notice",
+"display_board_preview_body": "This is a live preview of how the announcement will appear on screen.",
+"display_board_move_up": "Move up",
+"display_board_move_down": "Move down",
+"display_board_no_title": "Untitled",
+"prayer_calendar_title": "Hijri Prayer Calendar",
+"prayer_calendar_note": "Browsing the full current Hijri year and edit today or future days so the mosque schedule matches the approved local timetable.",
+"prayer_calendar_editable_today_future": "Today and future days can be edited",
+"prayer_calendar_read_only_past": "Past days are view only",
+"prayer_calendar_no_days": "No saved days yet for this year",
+"prayer_calendar_hijri_year": "Hijri year",
+"prayer_calendar_gregorian": "Gregorian",
+"prayer_calendar_edited": "Edited",
+"prayer_calendar_reset_day": "Reset default",
 
   "dialogs_examples_title": "Dialogs Examples",
   "dialogs_examples_subtitle": "Tap any button to try the Dialog",
@@ -287,6 +326,8 @@
   "please_fill_all_fields": "Please fill all fields",
   "invalid_coordinates": "Invalid coordinates",
   "latitude": "Latitude",
-  "longitude": "Longitude"
-
+  "longitude": "Longitude",
+  "time_hour": "Hour",
+  "time_minute": "Minute",
+  "hijriPrayerCalendarTitle" : "Managing prayer times according to the Umm al-Qura calendar"
 }

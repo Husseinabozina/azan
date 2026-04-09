@@ -4,12 +4,16 @@ import 'package:azan/core/components/global_copyright_footer.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/core/helpers/date_helper.dart';
+import 'package:azan/core/helpers/display_board_schedule_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/simple_sound_player.dart';
 import 'package:azan/core/models/next_Iqama.dart';
+import 'package:azan/core/models/home_display_mode.dart';
+import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -17,12 +21,14 @@ import 'package:azan/views/additional_settings/components/azkar_time_helper.dart
 import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/components/RotatingAyahBanner.dart';
 import 'package:azan/views/home/components/azkar_view.dart';
+import 'package:azan/views/home/components/black_screen_info_overlay.dart';
 import 'package:azan/views/home/components/clock_and_left_time_widget.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
+import 'package:azan/views/home/components/iqama_focus_section.dart';
 import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
-import 'package:azan/views/home/components/iqama_progress_bar.dart';
+import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +63,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
   // ✅ Futures (لا تتولد في build)
   Future<bool> _hideFuture = Future.value(false);
   Future<prayerModel.Prayer?> _nextPrayerFuture = Future.value(null);
+  bool _isRoutingByDisplayMode = false;
 
   bool isloading = false;
 
@@ -78,6 +85,31 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
       if (!mounted) return;
       cubit.setHomeBlackScreenVisible(visible);
     });
+  }
+
+  void _syncDisplayBoardMode(DateTime now) {
+    if (_isRoutingByDisplayMode || !mounted) return;
+
+    final manualMode = CacheHelper.getHomeDisplayMode();
+    final effectiveMode = DisplayBoardScheduleResolver.effectiveDisplayMode(
+      manualMode: manualMode,
+      items: cubit.displayAnnouncementList ?? const [],
+      now: now,
+    );
+    final scheduledBoardActive =
+        DisplayBoardScheduleResolver.hasScheduledAnnouncementsDue(
+          cubit.displayAnnouncementList ?? const [],
+          now,
+        );
+
+    if (effectiveMode != HomeDisplayMode.displayBoard) {
+      return;
+    }
+
+    if (manualMode == HomeDisplayMode.displayBoard || scheduledBoardActive) {
+      _isRoutingByDisplayMode = true;
+      AppNavigator.pushAndRemoveUntil(context, const HomeScreen());
+    }
   }
 
   Future<void> _assignHijriDate() async {
@@ -102,6 +134,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     unawaited(cubit.getIqamaTime());
     unawaited(cubit.assignAdhkar());
     unawaited(cubit.assignSlides());
+    unawaited(cubit.assignDisplayAnnouncements());
 
     // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
     unawaited(
@@ -144,6 +177,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
       _checkAndPlayPrayerSound(now);
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
+      _syncDisplayBoardMode(now);
 
       // ✅ تحقق من الوصول لوقت الإقامة لفتح شاشة الإقامة مباشرة
       final remainingToIqama = cubit.remainingToIqama();
@@ -196,6 +230,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     if (!mounted) return;
     setState(() => isloading = false);
     _azkarOverlay.tick(now: DateTime.now());
+    _syncDisplayBoardMode(DateTime.now());
 
     // ✅ الباقي في الخلفية
     // unawaited(_assignHijriDate());
@@ -218,9 +253,32 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
 
     unawaited(cubit.assignAdhkar());
     unawaited(cubit.assignSlides());
+    unawaited(cubit.assignDisplayAnnouncements());
 
     // ✅ شغل التايمرز بعد ما الأساسيات خلصت
     _startTimers();
+  }
+
+  String _localizedDurationText(Duration duration) {
+    final raw = duration.formatDuration();
+    return LocalizationHelper.isArAndArNumberEnable()
+        ? DateHelper.toArabicDigits(raw)
+        : DateHelper.toWesternDigits(raw);
+  }
+
+  List<IqamaPrayerSummaryData> _iqamaPrayerItems(BuildContext context) {
+    final prayers = List<prayerModel.Prayer>.from(cubit.prayers(context))
+      ..sort((a, b) => a.id.compareTo(b.id));
+
+    return prayers.where((p) => p.id >= 1 && p.id <= 6).map((p) {
+      final baseTimeStr = CacheHelper.getUse24HoursFormat()
+          ? (p.time24 ?? p.time)
+          : (p.time ?? p.time24);
+      final adhanTime = baseTimeStr != null
+          ? DateHelper.displayHHmmNoPeriod(baseTimeStr, context)
+          : '--:--';
+      return IqamaPrayerSummaryData(prayerName: p.title, adhanTime: adhanTime);
+    }).toList();
   }
 
   late final AzkarOverlayController _azkarOverlay;
@@ -401,7 +459,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
 
     int clampMinutes(int v) => v.clamp(1, 600); // 1..600 دقيقة
 
-    await showDialog(
+    await showAppDialog(
       context: context,
       builder: (ctx) {
         return StatefulBuilder(
@@ -412,73 +470,70 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
               required VoidCallback onMinus,
               required VoidCallback onPlus,
             }) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.sp,
+              return DialogContentCard(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          color: DialogPalette.bodyTextColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: onMinus,
-                    icon: Icon(
-                      Icons.remove_circle_outline,
-                      color: AppTheme.primaryTextColor,
+                    IconButton(
+                      onPressed: onMinus,
+                      icon: const Icon(
+                        Icons.remove_circle_outline_rounded,
+                        color: DialogPalette.primaryButtonBackground,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '$value',
-                    style: TextStyle(
-                      color: AppTheme.secondaryTextColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
+                    Text(
+                      '$value',
+                      style: TextStyle(
+                        color: DialogPalette.titleTextColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: onPlus,
-                    icon: Icon(
-                      Icons.add_circle_outline,
-                      color: AppTheme.primaryTextColor,
+                    IconButton(
+                      onPressed: onPlus,
+                      icon: const Icon(
+                        Icons.add_circle_outline_rounded,
+                        color: DialogPalette.primaryButtonBackground,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 6.w),
-                  Text(
-                    'دقيقة',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor.withOpacity(.8),
-                      fontSize: 12.sp,
+                    SizedBox(width: 6.w),
+                    Text(
+                      'دقيقة',
+                      style: TextStyle(
+                        color: DialogPalette.mutedTextColor,
+                        fontSize: 12.sp,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }
 
-            return AlertDialog(
-              backgroundColor: Colors.black.withOpacity(0.85),
-              title: Text(
-                'إعدادات الأذكار',
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: SizedBox(
-                width: 420.w, // مناسب لعرض TV
+            return UniversalDialogShell(
+              customMaxWidth: 420.w,
+              child: SizedBox(
+                width: 420.w,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const DialogTitle('إعدادات الأذكار'),
+                    SizedBox(height: 12.h),
                     SwitchListTile(
                       value: morningEnabled,
-                      activeColor: AppTheme.secondaryTextColor,
+                      activeColor: DialogPalette.primaryButtonBackground,
                       title: Text(
                         'تفعيل أذكار الصباح',
                         style: TextStyle(
-                          color: AppTheme.primaryTextColor,
+                          color: DialogPalette.bodyTextColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -497,11 +552,11 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                     SizedBox(height: 12.h),
                     SwitchListTile(
                       value: eveningEnabled,
-                      activeColor: AppTheme.secondaryTextColor,
+                      activeColor: DialogPalette.primaryButtonBackground,
                       title: Text(
                         'تفعيل أذكار المساء',
                         style: TextStyle(
-                          color: AppTheme.primaryTextColor,
+                          color: DialogPalette.bodyTextColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -517,40 +572,33 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                         eveningMinutes = clampMinutes(eveningMinutes + 5);
                       }),
                     ),
+                    SizedBox(height: 16.h),
+                    DialogButtonRow(
+                      leftButton: DialogButton(
+                        text: 'إلغاء',
+                        variant: DialogButtonVariant.secondary,
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                      rightButton: DialogButton(
+                        text: 'حفظ',
+                        onPressed: () async {
+                          await CacheHelper.setMorningAzkarEnabled(morningEnabled);
+                          await CacheHelper.setEveningAzkarEnabled(eveningEnabled);
+                          await CacheHelper.setMorningAzkarWindowMinutes(
+                            morningMinutes,
+                          );
+                          await CacheHelper.setEveningAzkarWindowMinutes(
+                            eveningMinutes,
+                          );
+                          unawaited(cubit.assignAdhkar());
+                          if (mounted) setState(() {});
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(
-                    'إلغاء',
-                    style: TextStyle(color: AppTheme.primaryTextColor),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    await CacheHelper.setMorningAzkarEnabled(morningEnabled);
-                    await CacheHelper.setEveningAzkarEnabled(eveningEnabled);
-                    await CacheHelper.setMorningAzkarWindowMinutes(
-                      morningMinutes,
-                    );
-                    await CacheHelper.setEveningAzkarWindowMinutes(
-                      eveningMinutes,
-                    );
-
-                    // ✅ عشان لو محتوى الأذكار بيتغير حسب الوقت
-                    unawaited(cubit.assignAdhkar());
-
-                    if (mounted) setState(() {});
-                    if (ctx.mounted) Navigator.pop(ctx);
-                  },
-                  child: Text(
-                    'حفظ',
-                    style: TextStyle(color: AppTheme.secondaryTextColor),
-                  ),
-                ),
-              ],
             );
           },
         );
@@ -746,6 +794,16 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                       fit: BoxFit.cover,
                     ),
                   ),
+                  if (AppTheme.backgroundReadabilityOverlayAlpha > 0)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: ColoredBox(
+                          color: Colors.black.withValues(
+                            alpha: AppTheme.backgroundReadabilityOverlayAlpha,
+                          ),
+                        ),
+                      ),
+                    ),
                   SafeArea(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -820,34 +878,6 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                                       },
                                     ),
                                   ),
-                                  if (cubit.isBetweenAdhanAndIqama)
-                                    Builder(
-                                      builder: (_) {
-                                        final d = cubit.remainingToIqama();
-                                        if (d == null || d.inSeconds <= 0) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        final text = d.formatDuration();
-                                        final localized =
-                                            LocalizationHelper.isArAndArNumberEnable()
-                                            ? DateHelper.toArabicDigits(text)
-                                            : DateHelper.toWesternDigits(text);
-                                        return Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 6.h,
-                                          ),
-                                          child: Center(
-                                            child: IqamaProgressBar(
-                                              progress: cubit.iqamaProgress(),
-                                              label:
-                                                  '${LocaleKeys.remaining_for_iqamaa.tr()} $localized',
-                                              height: 28 * scale,
-                                              width: width * 0.4,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
                                 ],
                               ),
                             ),
@@ -873,28 +903,67 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                                 fontFamily: CacheHelper.getAzkarFontFamily(),
                                 textColor: AppTheme.primaryTextColor,
                               ),
-                            Spacer(),
+                            Expanded(
+                              child: Builder(
+                                builder: (context) {
+                                  final remainingToIqama = cubit
+                                      .remainingToIqama();
+                                  final showIqamaFocus =
+                                      cubit.isBetweenAdhanAndIqama &&
+                                      remainingToIqama != null &&
+                                      remainingToIqama.inSeconds > 0;
 
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: hPadding,
-                              ), // ✅ raw
-                              child: Row(
-                                // mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(rows.length, (index) {
-                                  return Padding(
-                                    padding: EdgeInsetsDirectional.only(
-                                      end: index != rows.length - 1
-                                          ? itemSpacing
-                                          : 0,
-                                    ),
-                                    child: PrayerLandScapeItem(
-                                      row: rows[index],
-                                      width: itemWidth,
-                                      height: prayerRowH,
-                                    ),
+                                  if (showIqamaFocus) {
+                                    return Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: width * 0.06,
+                                      ),
+                                      child: IqamaFocusSection(
+                                        countdownText: _localizedDurationText(
+                                          remainingToIqama,
+                                        ),
+                                        progress: cubit.iqamaProgress(),
+                                        prayers: _iqamaPrayerItems(context),
+                                        isLandscape: true,
+                                      ),
+                                    );
+                                  }
+
+                                  return Column(
+                                    children: [
+                                      const Spacer(),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: hPadding,
+                                        ),
+                                        child: Row(
+                                          children: List.generate(rows.length, (
+                                            index,
+                                          ) {
+                                            return Padding(
+                                              padding:
+                                                  EdgeInsetsDirectional.only(
+                                                    end:
+                                                        index != rows.length - 1
+                                                        ? itemSpacing
+                                                        : 0,
+                                                  ),
+                                              child: PrayerLandScapeItem(
+                                                row: rows[index],
+                                                width: itemWidth,
+                                                height: prayerRowH,
+                                                onBackgroundChanged: () {
+                                                  if (!mounted) return;
+                                                  setState(() {});
+                                                },
+                                              ),
+                                            );
+                                          }),
+                                        ),
+                                      ),
+                                    ],
                                   );
-                                }),
+                                },
                               ),
                             ),
 
@@ -920,8 +989,14 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                   FutureBuilder<bool>(
                     future: _hideFuture,
                     builder: (context, snapshot) {
+                      final currentPrayerId = cubit.currentPrayer?.id;
+                      final hideAfterCurrentPrayerEnabled = currentPrayerId == 6
+                          ? CacheHelper.getHideScreenAfterIshaaEnabled()
+                          : currentPrayerId == 2
+                          ? CacheHelper.getHideScreenAfterSunriseEnabled()
+                          : false;
                       final shouldHide =
-                          CacheHelper.getHideScreenAfterIshaaEnabled() &&
+                          hideAfterCurrentPrayerEnabled &&
                           (snapshot.data == true);
 
                       final azanActive =
@@ -972,11 +1047,8 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                           }
                           // 3) ثالث أولوية: black screen
                           else if (shouldHide) {
-                            overlay = Container(
+                            overlay = BlackScreenInfoOverlay(
                               key: const ValueKey('black_screen'),
-                              height: 1.sh,
-                              width: 1.sw,
-                              color: Colors.black,
                             );
                           }
                           // 4) رابع أولوية: Azkar
@@ -989,7 +1061,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                               onTap: _azkarOverlay.dismissForNow,
                               child: AzkarView(
                                 azkarType: w.type,
-                                // prayerId: w.prayerId,
+                                prayerId: w.prayerId,
                               ),
                             );
                           }
@@ -1033,11 +1105,58 @@ class PrayerLandScapeItem extends StatelessWidget {
     required this.row,
     required this.width,
     required this.height,
+    required this.onBackgroundChanged,
   });
 
   final PrayerRowData row;
   final double width;
   final double height;
+  final VoidCallback onBackgroundChanged;
+
+  Future<void> _handleBackgroundChange(String tappedValue) async {
+    if (row.prayerName == LocaleKeys.fajr.tr() &&
+        tappedValue == row.prayerName) {
+      final currentIndex = CacheHelper.getBackgroundThemeIndex();
+      final nextIndex = currentIndex == 0
+          ? CacheHelper.getAllBackgrounds().length - 1
+          : currentIndex - 1;
+      await CacheHelper.setBackgroundChangeMode(BackgroundChangeMode.manual);
+      await CacheHelper.setBackgroundThemeIndex(nextIndex);
+      onBackgroundChanged();
+    } else if (row.prayerName == LocaleKeys.fajr.tr() &&
+        tappedValue == row.adhanTime) {
+      final currentIndex = CacheHelper.getBackgroundThemeIndex();
+      final nextIndex =
+          currentIndex == CacheHelper.getAllBackgrounds().length - 1
+          ? 0
+          : currentIndex + 1;
+      await CacheHelper.setBackgroundChangeMode(BackgroundChangeMode.manual);
+      await CacheHelper.setBackgroundThemeIndex(nextIndex);
+      onBackgroundChanged();
+    }
+  }
+
+  Widget _buildTappableCell({
+    required String text,
+    required TextStyle style,
+    bool enableTap = false,
+  }) {
+    final child = Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(text, style: style),
+      ),
+    );
+
+    if (!enableTap) return child;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () async => _handleBackgroundChange(text),
+      child: child,
+    );
+  }
+
   Color _color(bool dimmed, Color color) {
     if (dimmed && CacheHelper.getIsPreviousPrayersDimmed()) {
       return color.withOpacity(0.5);
@@ -1073,148 +1192,127 @@ class PrayerLandScapeItem extends StatelessWidget {
         children: CacheHelper.getPrayerTimeTileInCenter()
             ? [
                 Flexible(
-                  child: FittedBox(
-                    child: Text(
-                      row.adhanTime,
-                      // 'الفجر',
-                      style: TextStyle(
-                        color: _color(row.dimmed, AppTheme.secondaryTextColor),
-                        fontWeight: FontWeight.bold,
-                        fontSize:
-                            CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
-                            ? height * 0.3
-                            : height * 0.2,
-                        fontFamily: CacheHelper.getTimesFontFamily(),
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.4),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
+                  child: _buildTappableCell(
+                    text: row.adhanTime,
+                    enableTap: row.prayerName == LocaleKeys.fajr.tr(),
+                    style: TextStyle(
+                      color: _color(row.dimmed, AppTheme.secondaryTextColor),
+                      fontWeight: FontWeight.bold,
+                      fontSize:
+                          CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
+                          ? height * 0.3
+                          : height * 0.2,
+                      fontFamily: CacheHelper.getTimesFontFamily(),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.4),
+                          offset: const Offset(1, 1),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 Flexible(
-                  child: FittedBox(
-                    child: Text(
-                      row.prayerName,
-                      // 'الفجر',
-                      style: TextStyle(
-                        color: _color(row.dimmed, AppTheme.secondaryTextColor),
-                        fontWeight: FontWeight.bold,
-                        fontSize: height * 0.2,
-                        fontFamily: CacheHelper.getTimesFontFamily(),
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.4),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
+                  child: _buildTappableCell(
+                    text: row.prayerName,
+                    enableTap: row.prayerName == LocaleKeys.fajr.tr(),
+                    style: TextStyle(
+                      color: _color(row.dimmed, AppTheme.secondaryTextColor),
+                      fontWeight: FontWeight.bold,
+                      fontSize: height * 0.2,
+                      fontFamily: CacheHelper.getTimesFontFamily(),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.4),
+                          offset: const Offset(1, 1),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),
 
                 Flexible(
-                  child: FittedBox(
-                    child: Text(
-                      row.iqamaTime,
-                      // 'الفجر',
-                      style: TextStyle(
-                        color: _color(row.dimmed, AppTheme.primaryTextColor),
-                        fontWeight: FontWeight.bold,
-                        fontSize:
-                            CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
-                            ? height * 0.3
-                            : height * 0.2,
-                        fontFamily: CacheHelper.getTimesFontFamily(),
-
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.4),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
+                  child: _buildTappableCell(
+                    text: row.iqamaTime,
+                    style: TextStyle(
+                      color: _color(row.dimmed, AppTheme.primaryTextColor),
+                      fontWeight: FontWeight.bold,
+                      fontSize:
+                          CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
+                          ? height * 0.3
+                          : height * 0.2,
+                      fontFamily: CacheHelper.getTimesFontFamily(),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.4),
+                          offset: const Offset(1, 1),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ]
             : [
                 Flexible(
-                  // flex: 10,
-                  child: FittedBox(
-                    child: Text(
-                      row.prayerName,
-                      style: TextStyle(
-                        color: _color(row.dimmed, AppTheme.primaryTextColor),
-
-                        // fontWeight: FontWeight.bold,
-                        fontSize: height * 0.2,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.4),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
+                  child: _buildTappableCell(
+                    text: row.prayerName,
+                    enableTap: row.prayerName == LocaleKeys.fajr.tr(),
+                    style: TextStyle(
+                      color: _color(row.dimmed, AppTheme.primaryTextColor),
+                      fontSize: height * 0.2,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.4),
+                          offset: const Offset(1, 1),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 Flexible(
-                  // flex: 17,
-                  child: FittedBox(
-                    child: Text(
-                      row.adhanTime,
-                      // 'الفجر',
-                      style: TextStyle(
-                        color: _color(row.dimmed, AppTheme.secondaryTextColor),
-                        fontWeight: FontWeight.bold,
-                        fontSize:
-                            CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
-                            ? height * 0.3
-                            : height * 0.2,
-                        fontFamily: CacheHelper.getTimesFontFamily(),
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.4),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
+                  child: _buildTappableCell(
+                    text: row.adhanTime,
+                    enableTap: row.prayerName == LocaleKeys.fajr.tr(),
+                    style: TextStyle(
+                      color: _color(row.dimmed, AppTheme.secondaryTextColor),
+                      fontWeight: FontWeight.bold,
+                      fontSize:
+                          CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
+                          ? height * 0.3
+                          : height * 0.2,
+                      fontFamily: CacheHelper.getTimesFontFamily(),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.4),
+                          offset: const Offset(1, 1),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 Flexible(
-                  // flex: 17,
-                  child: FittedBox(
-                    child: Text(
-                      row.iqamaTime,
-                      // 'الفجر',
-                      style: TextStyle(
-                        color: _color(row.dimmed, AppTheme.primaryTextColor),
-
-                        fontWeight: FontWeight.bold,
-                        fontSize:
-                            CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
-                            ? height * 0.3
-                            : height * 0.2,
-                        fontFamily: CacheHelper.getTimesFontFamily(),
-
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.4),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
+                  child: _buildTappableCell(
+                    text: row.iqamaTime,
+                    style: TextStyle(
+                      color: _color(row.dimmed, AppTheme.primaryTextColor),
+                      fontWeight: FontWeight.bold,
+                      fontSize:
+                          CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape()
+                          ? height * 0.3
+                          : height * 0.2,
+                      fontFamily: CacheHelper.getTimesFontFamily(),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.4),
+                          offset: const Offset(1, 1),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),

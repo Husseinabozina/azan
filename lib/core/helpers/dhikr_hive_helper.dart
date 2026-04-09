@@ -5,10 +5,29 @@ import 'package:hive/hive.dart';
 class DhikrHiveHelper {
   static const String _boxName = 'azkar_box';
   static const String _itemsKey = 'items';
+  static Future<Box>? _openingBox;
 
   /// افتح الـ Box
   static Future<Box> _openBox() async {
-    return await Hive.openBox(_boxName);
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box(_boxName);
+    }
+
+    final inFlight = _openingBox;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = Hive.openBox(_boxName);
+    _openingBox = future;
+
+    try {
+      return await future;
+    } finally {
+      if (identical(_openingBox, future)) {
+        _openingBox = null;
+      }
+    }
   }
 
   /// اقرأ كل الأذكار من الـ box
@@ -37,7 +56,7 @@ class DhikrHiveHelper {
   }
 
   /// ✅ تستخدمها في main عشان تسيّد الأذكار الافتراضية أول مرة
-  /// هنا بناخد List<Dhikr> عشان تقدر تحط معاها schedule لو حبيت
+  /// هنا بناخد ليست `Dhikr` عشان تقدر تحط معاها schedule لو حبيت
   static Future<void> ensureInitialAzkar(List<Dhikr> defaultDhikrList) async {
     final box = await _openBox();
 
@@ -46,7 +65,7 @@ class DhikrHiveHelper {
     }
   }
 
-  /// لو لسه حابب نسخة تعتمد على List<String> بس:
+  /// لو لسه حابب نسخة تعتمد على ليست نصوص فقط:
   static Future<void> ensureInitialAzkarFromTexts(
     List<String> azkarTexts,
   ) async {

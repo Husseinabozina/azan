@@ -1,18 +1,20 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:azan/core/components/global_copyright_footer.dart';
 
 import 'package:adhan/adhan.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
+import 'package:azan/core/helpers/display_board_schedule_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/location_helper.dart';
 import 'package:azan/core/helpers/simple_sound_player.dart';
 import 'package:azan/core/models/next_Iqama.dart';
+import 'package:azan/core/models/home_display_mode.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -20,22 +22,25 @@ import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/selection_dialoge.dart';
 import 'package:azan/core/utils/temp_icon_result.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/keyboard_test.dart';
 import 'package:azan/views/additional_settings/components/azkar_time_helper.dart';
 import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/components/RotatingAyahBanner.dart';
 import 'package:azan/views/home/components/azan_time_tile.dart';
 import 'package:azan/views/home/components/azkar_view.dart';
+import 'package:azan/views/home/components/black_screen_info_overlay.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/home_star_hint.dart';
 import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
+import 'package:azan/views/home/components/iqama_focus_section.dart';
+import 'package:azan/views/home/components/legacy_mosque_top_cluster.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
 import 'package:azan/views/home/components/mosque_shape_registry.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
 import 'package:azan/views/home/components/prayer_times_header_row.dart';
 import 'package:azan/views/home/components/prayer_times_table.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/components/iqama_progress_bar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:azan/core/theme/app_theme.dart';
@@ -79,6 +84,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   // ✅ Futures (ما تتولدش في build)
   Future<bool> _hideFuture = Future.value(false);
   Future<prayerModel.Prayer?> _nextPrayerFuture = Future.value(null);
+  bool _isRoutingByDisplayMode = false;
 
   bool isloading = false;
 
@@ -103,6 +109,31 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     });
   }
 
+  void _syncDisplayBoardMode(DateTime now) {
+    if (_isRoutingByDisplayMode || !mounted) return;
+
+    final manualMode = CacheHelper.getHomeDisplayMode();
+    final effectiveMode = DisplayBoardScheduleResolver.effectiveDisplayMode(
+      manualMode: manualMode,
+      items: cubit.displayAnnouncementList ?? const [],
+      now: now,
+    );
+    final scheduledBoardActive =
+        DisplayBoardScheduleResolver.hasScheduledAnnouncementsDue(
+          cubit.displayAnnouncementList ?? const [],
+          now,
+        );
+
+    if (effectiveMode != HomeDisplayMode.displayBoard) {
+      return;
+    }
+
+    if (manualMode == HomeDisplayMode.displayBoard || scheduledBoardActive) {
+      _isRoutingByDisplayMode = true;
+      AppNavigator.pushAndRemoveUntil(context, const HomeScreen());
+    }
+  }
+
   Future<void> _assignHijriDate() async {
     await cubit.getTodayHijriDate(context);
   }
@@ -125,6 +156,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     unawaited(cubit.getIqamaTime());
     unawaited(cubit.assignAdhkar());
     unawaited(cubit.assignSlides());
+    unawaited(cubit.assignDisplayAnnouncements());
 
     // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
     unawaited(
@@ -137,6 +169,28 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     );
 
     _refreshMinuteFutures();
+  }
+
+  String _localizedDurationText(Duration duration, {bool showSeconds = false}) {
+    final raw = duration.formatDuration(showSeconds: showSeconds);
+    return LocalizationHelper.isArAndArNumberEnable()
+        ? DateHelper.toArabicDigits(raw)
+        : DateHelper.toWesternDigits(raw);
+  }
+
+  List<IqamaPrayerSummaryData> _iqamaPrayerItems(BuildContext context) {
+    final prayers = List<prayerModel.Prayer>.from(cubit.prayers(context))
+      ..sort((a, b) => a.id.compareTo(b.id));
+
+    return prayers.where((p) => p.id >= 1 && p.id <= 6).map((p) {
+      final baseTimeStr = CacheHelper.getUse24HoursFormat()
+          ? (p.time24 ?? p.time)
+          : (p.time ?? p.time24);
+      final adhanTime = baseTimeStr != null
+          ? DateHelper.displayHHmmNoPeriod(baseTimeStr, context)
+          : '--:--';
+      return IqamaPrayerSummaryData(prayerName: p.title, adhanTime: adhanTime);
+    }).toList();
   }
 
   // =========================
@@ -177,6 +231,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       _checkAndPlayPrayerSound(now);
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
+      _syncDisplayBoardMode(now);
 
       // ✅ تحقق من الوصول لوقت الإقامة لفتح شاشة الإقامة مباشرة
       final remainingToIqama = cubit.remainingToIqama();
@@ -230,6 +285,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     if (!mounted) return;
     setState(() => isloading = false);
     _azkarOverlay.tick(now: DateTime.now());
+    _syncDisplayBoardMode(DateTime.now());
 
     // ✅ الباقي في الخلفية
     // unawaited(_assignHijriDate());
@@ -252,6 +308,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
     unawaited(cubit.assignAdhkar());
     unawaited(cubit.assignSlides());
+    unawaited(cubit.assignDisplayAnnouncements());
 
     // ✅ شغل التايمرز بعد ما الأساسيات خلصت
     _startTimers();
@@ -571,27 +628,35 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
               isLegacyVrBackground(selectedBackground) &&
               clipSpec != null;
           final clipProfile = clipSpec?.profile;
-          final topClusterWidthFactor = enablePortraitMosqueClip
-              ? (clipProfile == MosqueArchProfile.denseArch ? 0.70 : 0.78)
-              : 1.0;
-          final topSafeProbeWidthFactor = enablePortraitMosqueClip
-              ? (clipProfile == MosqueArchProfile.denseArch ? 0.44 : 0.50)
-              : 1.0;
-          final weekdayStripHeight = enablePortraitMosqueClip ? 36.h : 42.h;
-          final hijriStripHeight = enablePortraitMosqueClip ? 50.h : 55.h;
+          final legacyTopClusterSpec = enablePortraitMosqueClip
+              ? legacyTopClusterSpecForProfile(clipProfile!)
+              : null;
           final topCounterFontSize = enablePortraitMosqueClip ? 34.sp : 36.sp;
-          final clockStripTallHeight = enablePortraitMosqueClip ? 92.h : 100.h;
-          final clockStripCompactHeight = enablePortraitMosqueClip
-              ? 76.h
+          final weekdayStripHeight = enablePortraitMosqueClip
+              ? legacyTopClusterSpec!.weekdayHeight
+              : 42.h;
+          final hijriStripHeight = enablePortraitMosqueClip
+              ? legacyTopClusterSpec!.hijriHeight
+              : 55.h;
+          final topMetaRowHeight = enablePortraitMosqueClip
+              ? legacyTopClusterSpec!.metaHeight
+              : 76.h;
+          final baseClockStripTallHeight = enablePortraitMosqueClip
+              ? 80.h
+              : 100.h;
+          final baseClockStripCompactHeight = enablePortraitMosqueClip
+              ? 66.h
               : 80.h;
           final liveClockTimeFontSize = enablePortraitMosqueClip
-              ? 72.sp
+              ? 64.sp
               : 79.sp;
           final liveClockPeriodFontSize = enablePortraitMosqueClip
-              ? 22.sp
+              ? 19.sp
               : 24.sp;
-          final slidesBannerHeight = enablePortraitMosqueClip ? 56.h : 60.h;
-          final bottomSliderHeight = enablePortraitMosqueClip ? 76.h : 80.h;
+          final baseSlidesBannerHeight = enablePortraitMosqueClip ? 48.h : 60.h;
+          final baseBottomSliderHeight = enablePortraitMosqueClip ? 68.h : 80.h;
+          final tableTargetRowHeight = enablePortraitMosqueClip ? 66.h : null;
+          final tableMinRowHeight = enablePortraitMosqueClip ? 60.h : null;
 
           return Stack(
             children: [
@@ -602,6 +667,16 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                 height: double.infinity,
                 fit: BoxFit.fill,
               ),
+              if (AppTheme.backgroundReadabilityOverlayAlpha > 0)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: ColoredBox(
+                      color: Colors.black.withValues(
+                        alpha: AppTheme.backgroundReadabilityOverlayAlpha,
+                      ),
+                    ),
+                  ),
+                ),
 
               Padding(
                 padding: EdgeInsets.only(
@@ -661,63 +736,192 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                             ),
                             VerticalSpace(height: 5),
                             Expanded(
-                              child: PortraitMosqueClipBody(
-                                enabled: enablePortraitMosqueClip,
-                                spec: clipSpec,
-                                child: LayoutBuilder(
-                                  builder: (context, bodyConstraints) {
-                                    final topSafeRatio =
-                                        enablePortraitMosqueClip
-                                        ? clipSpec.safeTopForWidth(
-                                            topSafeProbeWidthFactor,
-                                            margin: 0.010,
-                                          )
-                                        : 0.0;
-                                    final safeTopPx =
-                                        (bodyConstraints.maxHeight *
-                                                topSafeRatio)
-                                            .clamp(
-                                              0.0,
-                                              bodyConstraints.maxHeight * 0.24,
-                                            )
-                                            .toDouble();
-                                    final topHorizontalPadding =
-                                        enablePortraitMosqueClip ? 18.w : 24.w;
-                                    final iqamaBarWidth =
-                                        enablePortraitMosqueClip
-                                        ? bodyConstraints.maxWidth *
-                                              topClusterWidthFactor *
-                                              0.95
-                                        : 0.7.sw;
+                              child: LayoutBuilder(
+                                builder: (context, bodyConstraints) {
+                                  final showSlides =
+                                      CacheHelper.getSlidesEnabled();
+                                  final showSlider =
+                                      CacheHelper.getSliderOpened();
+                                  final showPrayerTableHeader =
+                                      !enablePortraitMosqueClip;
+                                  final legacyTopInset =
+                                      enablePortraitMosqueClip
+                                      ? bodyConstraints.maxHeight *
+                                            legacyTopClusterSpec!.topInsetRatio
+                                      : 0.0;
+                                  final verticalBudget =
+                                      _resolveMosqueVerticalBudget(
+                                        enabled: enablePortraitMosqueClip,
+                                        bodyHeight: bodyConstraints.maxHeight,
+                                        rowCount: rows.length,
+                                        showSlides: showSlides,
+                                        showSlider: showSlider,
+                                        baseTopInset: enablePortraitMosqueClip
+                                            ? legacyTopInset
+                                            : 0.0,
+                                        baseGapBeforeHijri: 0.0,
+                                        baseExtraTopGuard: 0.0,
+                                        baseClockTallHeight:
+                                            baseClockStripTallHeight,
+                                        baseClockCompactHeight:
+                                            baseClockStripCompactHeight,
+                                        baseSlidesHeight:
+                                            baseSlidesBannerHeight,
+                                        baseBottomSliderHeight:
+                                            baseBottomSliderHeight,
+                                        baseTopMetaHeight:
+                                            enablePortraitMosqueClip
+                                            ? legacyTopClusterSpec!.totalHeight
+                                            : topMetaRowHeight + 3.h,
+                                        tablePreferredMinRowHeight:
+                                            tableMinRowHeight ?? 58.h,
+                                        tableHeaderHeight: showPrayerTableHeader
+                                            ? 19.h
+                                            : 0.0,
+                                        tableHeaderSpacing:
+                                            showPrayerTableHeader ? 3.h : 0.0,
+                                        hasIqamaProgress: false,
+                                        protectTopCluster:
+                                            enablePortraitMosqueClip,
+                                      );
+                                  final topHorizontalPadding =
+                                      enablePortraitMosqueClip
+                                      ? legacyTopClusterSpec!
+                                            .clusterHorizontalPadding
+                                      : 24.w;
+                                  final content = Column(
+                                    children: [
+                                      if (verticalBudget.topInset > 0)
+                                        SizedBox(
+                                          height: verticalBudget.topInset,
+                                        ),
+                                      if (enablePortraitMosqueClip)
+                                        Builder(
+                                          builder: (context) {
+                                            final legacySpec =
+                                                legacyTopClusterSpec!;
+                                            return FractionallySizedBox(
+                                              widthFactor:
+                                                  legacySpec.clusterWidthFactor,
+                                              child: FutureBuilder<prayerModel.Prayer?>(
+                                                future: _nextPrayerFuture,
+                                                builder: (context, asyncSnapshot) {
+                                                  final nextPrayer =
+                                                      asyncSnapshot.data;
+                                                  final nextPrayerDateTime =
+                                                      nextPrayer?.dateTime;
+                                                  final countdownText =
+                                                      nextPrayerDateTime == null
+                                                      ? '--:--'
+                                                      : LocalizationHelper.isArAndArNumberEnable()
+                                                      ? DateHelper.toArabicDigits(
+                                                          nextPrayerDateTime
+                                                              .difference(
+                                                                DateTime.now(),
+                                                              )
+                                                              .formatDuration(
+                                                                showSeconds:
+                                                                    CacheHelper.getShowSecondsInNextPrayer(),
+                                                              ),
+                                                        )
+                                                      : nextPrayerDateTime
+                                                            .difference(
+                                                              DateTime.now(),
+                                                            )
+                                                            .formatDuration(
+                                                              showSeconds:
+                                                                  CacheHelper.getShowSecondsInNextPrayer(),
+                                                            );
+                                                  final leftForText =
+                                                      LocalizationHelper.isArabic()
+                                                      ? '${LocaleKeys.left_for.tr()}${nextPrayer?.title.substring(1) ?? ''}'
+                                                      : '${LocaleKeys.left_for.tr()} ${nextPrayer?.title ?? ''}';
+                                                  final gregorianText =
+                                                      LocalizationHelper.isArAndArNumberEnable()
+                                                      ? DateHelper.toArabicDigits(
+                                                          DateFormat(
+                                                            'dd/MM/yyyy',
+                                                          ).format(
+                                                            DateTime.now(),
+                                                          ),
+                                                        )
+                                                      : DateHelper.toWesternDigits(
+                                                          DateFormat(
+                                                            'dd/MM/yyyy',
+                                                          ).format(
+                                                            DateTime.now(),
+                                                          ),
+                                                        );
+                                                  final hijriText =
+                                                      (cubit.hijriDate !=
+                                                              null &&
+                                                          cubit.hijriDate!
+                                                              .trim()
+                                                              .isNotEmpty)
+                                                      ? cubit.hijriDate!.trim()
+                                                      : '--:--';
+                                                  final isCounterUrgent =
+                                                      CacheHelper.getIsChangeCounterEnabled() &&
+                                                      nextPrayerDateTime !=
+                                                          null &&
+                                                      nextPrayerDateTime
+                                                              .difference(
+                                                                DateTime.now(),
+                                                              )
+                                                              .inSeconds <=
+                                                          90;
 
-                                    return Column(
-                                      children: [
-                                        if (safeTopPx > 0)
-                                          SizedBox(height: safeTopPx),
-                                        FractionallySizedBox(
-                                          widthFactor: topClusterWidthFactor,
-                                          child: Column(
-                                            children: [
-                                              // Text(
-                                              //   context.locale.languageCode == 'en'
-                                              //       ? AppCubit.get(
-                                              //           context,
-                                              //         ).getCity()!.nameEn
-                                              //       : AppCubit.get(
-                                              //           context,
-                                              //         ).getCity()!.nameAr,
-                                              //   style: TextStyle(
-                                              //     fontSize: 14.sp,
-                                              //     color: AppTheme.secondaryTextColor,
-                                              //     fontWeight: FontWeight.bold,
-                                              //   ),
-                                              // ),
-                                              // Spacer(flex: 1),
-                                              GestureDetector(
-                                                onTap: () {},
-                                                child: SizedBox(
-                                                  height: weekdayStripHeight,
+                                                  return LegacyMosqueTopCluster(
+                                                    spec: legacySpec,
+                                                    weekdayText:
+                                                        LocalizationHelper.isArabic()
+                                                        ? DateTime.now()
+                                                              .weekdayNameAr
+                                                        : DateTime.now().weekday
+                                                              .toWeekDay(),
+                                                    hijriText: hijriText,
+                                                    gregorianText:
+                                                        gregorianText,
+                                                    countdownText:
+                                                        countdownText,
+                                                    leftForText: leftForText,
+                                                    isCounterUrgent:
+                                                        isCounterUrgent,
+                                                    weatherWidget:
+                                                        CacheHelper.getWeatherEnabled()
+                                                        ? TemperatureBadge(
+                                                            iconSize: 30.sp,
+                                                            textSize: 36.sp,
+                                                            gapWidth: 8.w,
+                                                          )
+                                                        : null,
+                                                    onHijriTap: () async {
+                                                      await CacheHelper.stepHijriOffsetCycle();
+                                                      await AppCubit.get(
+                                                        context,
+                                                      ).getTodayHijriDate(
+                                                        context,
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      else
+                                        Column(
+                                          children: [
+                                            SizedBox(
+                                              height: weekdayStripHeight,
+                                              child: Center(
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                    vertical: 3.h,
+                                                  ),
                                                   child: FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    alignment: Alignment.center,
                                                     child: Text(
                                                       LocalizationHelper.isArabic()
                                                           ? DateTime.now()
@@ -726,296 +930,316 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                                 .weekday
                                                                 .toWeekDay(),
                                                       style: TextStyle(
-                                                        // fontSize: 100.sp, // from height h
+                                                        fontSize: 30.sp,
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         color: AppTheme
                                                             .primaryTextColor,
+                                                        fontFamily:
+                                                            CacheHelper.getTextsFontFamily(),
+                                                        height: 1.14,
                                                       ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-
-                                              // VerticalSpace(height: 10.h),
-                                              // Spacer(),
-                                              // Spacer(flex: 1),
-                                              // VerticalSpace(height: 5),
-                                              GestureDetector(
-                                                onTap: () async {
-                                                  await CacheHelper.stepHijriOffsetCycle();
-                                                  await AppCubit.get(
-                                                    context,
-                                                  ).getTodayHijriDate(context);
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.only(
-                                                    left: 10.w,
-                                                    right: 10.w,
-                                                  ),
-                                                  height: hijriStripHeight,
-
-                                                  child: Row(
-                                                    children: [
+                                            ),
+                                            GestureDetector(
+                                              onTap: () async {
+                                                await CacheHelper.stepHijriOffsetCycle();
+                                                await AppCubit.get(
+                                                  context,
+                                                ).getTodayHijriDate(context);
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.only(
+                                                  left: 10.w,
+                                                  right: 10.w,
+                                                  top: 2.h,
+                                                  bottom: 2.h,
+                                                ),
+                                                height: hijriStripHeight,
+                                                child: Row(
+                                                  children: [
+                                                    if (CacheHelper.getWeatherEnabled())
                                                       TemperatureBadge(
-                                                        // tempC: cubit.maxTemp,
-                                                        // weatherCode:
-                                                        //     cubit.todayWeather?.weatherCode, // ✅
                                                         iconSize: 30.sp,
                                                         textSize: 36.sp,
+                                                        gapWidth: 8.w,
                                                       ),
-
-                                                      // temperatureWidget(
-                                                      //   context: context,
-                                                      //   tempC: cubit.maxTemp,
-                                                      //   tempText: cubit.maxTemp == null
-                                                      //       ? "--"
-                                                      //       : LocalizationHelper.isArAndArNumberEnable()
-                                                      //       ? DateHelper.toArabicDigits(
-                                                      //           cubit.maxTemp!.toInt().toString(),
-                                                      //         )
-                                                      //       : cubit.maxTemp!.toInt().toString(),
-                                                      // ),
-                                                      Flexible(
-                                                        child: Center(
-                                                          child: Builder(
-                                                            builder: (_) {
-                                                              final text = cubit
-                                                                  .hijriDate;
-                                                              if (text ==
-                                                                      null ||
-                                                                  text.isEmpty) {
-                                                                return Text(
-                                                                  "--:--",
-                                                                  style: TextStyle(
-                                                                    fontSize:
-                                                                        32.sp,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: AppTheme
-                                                                        .secondaryTextColor,
-                                                                  ),
-                                                                );
-                                                              }
-
-                                                              // ناخد آخر 4 chars (السنة)
-                                                              final int
-                                                              yearLen = 4;
-                                                              final String
-                                                              yearPart =
-                                                                  text.length >=
-                                                                      yearLen
-                                                                  ? text.substring(
-                                                                      text.length -
-                                                                          yearLen,
-                                                                    )
-                                                                  : text;
-
-                                                              final String
-                                                              prefixPart =
-                                                                  text.length >=
-                                                                      yearLen
-                                                                  ? text.substring(
-                                                                      0,
-                                                                      text.length -
-                                                                          yearLen,
-                                                                    )
-                                                                  : "";
-
-                                                              return RichText(
-                                                                text: TextSpan(
-                                                                  children: [
-                                                                    TextSpan(
-                                                                      text:
-                                                                          prefixPart,
-                                                                      style: TextStyle(
-                                                                        fontSize:
-                                                                            32.sp,
-                                                                        // fontSize: 25.sp,
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                        color: AppTheme
-                                                                            .secondaryTextColor,
-                                                                      ),
-                                                                    ),
-                                                                    TextSpan(
-                                                                      text:
-                                                                          yearPart,
-                                                                      style: TextStyle(
-                                                                        fontSize:
-                                                                            32.sp,
-                                                                        // fontSize: 25.sp,
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                        color: AppTheme
-                                                                            .secondaryTextColor,
-                                                                        letterSpacing:
-                                                                            .4.w, // 👈 هنا المسافة بين أرقام السنة
-                                                                      ),
-                                                                    ),
-                                                                  ],
+                                                    Flexible(
+                                                      child: Center(
+                                                        child: Builder(
+                                                          builder: (_) {
+                                                            final text =
+                                                                cubit.hijriDate;
+                                                            if (text == null ||
+                                                                text.isEmpty) {
+                                                              return Text(
+                                                                '--:--',
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      32.sp,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: AppTheme
+                                                                      .secondaryTextColor,
+                                                                  fontFamily:
+                                                                      CacheHelper.getTextsFontFamily(),
+                                                                  height: 1.14,
                                                                 ),
                                                               );
-                                                            },
+                                                            }
+
+                                                            const yearLen = 4;
+                                                            final yearPart =
+                                                                text.length >=
+                                                                    yearLen
+                                                                ? text.substring(
+                                                                    text.length -
+                                                                        yearLen,
+                                                                  )
+                                                                : text;
+                                                            final prefixPart =
+                                                                text.length >=
+                                                                    yearLen
+                                                                ? text.substring(
+                                                                    0,
+                                                                    text.length -
+                                                                        yearLen,
+                                                                  )
+                                                                : '';
+
+                                                            return RichText(
+                                                              text: TextSpan(
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text:
+                                                                        prefixPart,
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          32.sp,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: AppTheme
+                                                                          .secondaryTextColor,
+                                                                      fontFamily:
+                                                                          CacheHelper.getTextsFontFamily(),
+                                                                      height:
+                                                                          1.14,
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text:
+                                                                        yearPart,
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          32.sp,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: AppTheme
+                                                                          .secondaryTextColor,
+                                                                      fontFamily:
+                                                                          CacheHelper.getTextsFontFamily(),
+                                                                      letterSpacing:
+                                                                          .4.w,
+                                                                      height:
+                                                                          1.14,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                left: topHorizontalPadding,
+                                                right: topHorizontalPadding,
+                                                top: 5.h,
+                                              ),
+                                              child: SizedBox(
+                                                height: topMetaRowHeight,
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: SizedBox(
+                                                          width:
+                                                              double.infinity,
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              if (CacheHelper.getWeatherEnabled())
+                                                                Padding(
+                                                                  padding:
+                                                                      EdgeInsets.only(
+                                                                        bottom:
+                                                                            4.h,
+                                                                      ),
+                                                                  child: TemperatureBadge(
+                                                                    iconSize:
+                                                                        22.sp,
+                                                                    textSize:
+                                                                        26.sp,
+                                                                    gapWidth:
+                                                                        6.w,
+                                                                  ),
+                                                                ),
+                                                              FittedBox(
+                                                                fit: BoxFit
+                                                                    .scaleDown,
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                child: Text(
+                                                                  LocalizationHelper.isArAndArNumberEnable()
+                                                                      ? DateHelper.toArabicDigits(
+                                                                          DateFormat(
+                                                                            'dd/MM/yyyy',
+                                                                          ).format(
+                                                                            DateTime.now(),
+                                                                          ),
+                                                                        )
+                                                                      : DateHelper.toWesternDigits(
+                                                                          DateFormat(
+                                                                            'dd/MM/yyyy',
+                                                                          ).format(
+                                                                            DateTime.now(),
+                                                                          ),
+                                                                        ),
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        28.sp,
+                                                                    color: AppTheme
+                                                                        .primaryTextColor,
+                                                                    fontFamily:
+                                                                        CacheHelper.getTextsFontFamily(),
+                                                                    height:
+                                                                        1.10,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
                                                       ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-
-                                              // VerticalSpace(height: 1),
-                                              Padding(
-                                                padding: EdgeInsets.only(
-                                                  left: topHorizontalPadding,
-                                                  right: topHorizontalPadding,
-                                                  top: 5.h,
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  // crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    FittedBox(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            LocalizationHelper.isArAndArNumberEnable()
-                                                                ? DateHelper.toArabicDigits(
-                                                                    DateFormat(
-                                                                      'dd/MM/yyyy',
-                                                                    ).format(
-                                                                      DateTime.now(),
-                                                                    ),
-                                                                  )
-                                                                : DateHelper.toWesternDigits(
-                                                                    DateFormat(
-                                                                      'dd/MM/yyyy',
-                                                                    ).format(
-                                                                      DateTime.now(),
-                                                                    ),
-                                                                  ),
-                                                            style: TextStyle(
-                                                              fontSize: 28.sp,
-                                                              color: AppTheme
-                                                                  .primaryTextColor,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
                                                     ),
-
-                                                    FittedBox(
+                                                    SizedBox(width: 8.w),
+                                                    Expanded(
                                                       child: FutureBuilder<prayerModel.Prayer?>(
                                                         future:
                                                             _nextPrayerFuture,
                                                         builder: (context, asyncSnapshot) {
-                                                          // if (asyncSnapshot.data !=
-                                                          //     null) {
-                                                          //   cubit.assignNextPrayerVar(
-                                                          //     asyncSnapshot.data,
-                                                          //   );
-                                                          // }
                                                           return Column(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
                                                                     .center,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
                                                             children: [
-                                                              Text(
-                                                                asyncSnapshot
-                                                                            .data
-                                                                            ?.dateTime ==
-                                                                        null
-                                                                    ? "--:--"
-                                                                    : LocalizationHelper.isArAndArNumberEnable()
-                                                                    ? DateHelper.toArabicDigits(
-                                                                        asyncSnapshot
-                                                                            .data!
-                                                                            .dateTime!
-                                                                            .difference(
-                                                                              DateTime.now(),
-                                                                            )
-                                                                            .formatDuration(
-                                                                              showSeconds: CacheHelper.getShowSecondsInNextPrayer(),
-                                                                            ),
-                                                                      )
-                                                                    : asyncSnapshot
-                                                                          .data!
-                                                                          .dateTime!
-                                                                          .difference(
-                                                                            DateTime.now(),
+                                                              SizedBox(
+                                                                width: double
+                                                                    .infinity,
+                                                                child: FittedBox(
+                                                                  fit: BoxFit
+                                                                      .scaleDown,
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .center,
+                                                                  child: Text(
+                                                                    asyncSnapshot.data?.dateTime ==
+                                                                            null
+                                                                        ? '--:--'
+                                                                        : LocalizationHelper.isArAndArNumberEnable()
+                                                                        ? DateHelper.toArabicDigits(
+                                                                            asyncSnapshot.data!.dateTime!
+                                                                                .difference(
+                                                                                  DateTime.now(),
+                                                                                )
+                                                                                .formatDuration(
+                                                                                  showSeconds: CacheHelper.getShowSecondsInNextPrayer(),
+                                                                                ),
                                                                           )
-                                                                          .formatDuration(
-                                                                            showSeconds:
-                                                                                CacheHelper.getShowSecondsInNextPrayer(),
-                                                                          ),
-                                                                textHeightBehavior:
-                                                                    const TextHeightBehavior(
-                                                                      applyHeightToFirstAscent:
-                                                                          false,
-                                                                      applyHeightToLastDescent:
-                                                                          false,
+                                                                        : asyncSnapshot
+                                                                              .data!
+                                                                              .dateTime!
+                                                                              .difference(
+                                                                                DateTime.now(),
+                                                                              )
+                                                                              .formatDuration(
+                                                                                showSeconds: CacheHelper.getShowSecondsInNextPrayer(),
+                                                                              ),
+                                                                    style: TextStyle(
+                                                                      fontFamily:
+                                                                          CacheHelper.getTimesFontFamily(),
+                                                                      fontSize:
+                                                                          topCounterFontSize,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color:
+                                                                          (CacheHelper.getIsChangeCounterEnabled() &&
+                                                                              asyncSnapshot.data?.dateTime !=
+                                                                                  null &&
+                                                                              asyncSnapshot.data!.dateTime!
+                                                                                      .difference(
+                                                                                        DateTime.now(),
+                                                                                      )
+                                                                                      .inSeconds <=
+                                                                                  90)
+                                                                          ? Colors.red
+                                                                          : AppTheme.secondaryTextColor,
+                                                                      height:
+                                                                          1.12,
                                                                     ),
-                                                                style: TextStyle(
-                                                                  fontFamily:
-                                                                      CacheHelper.getTimesFontFamily(),
-                                                                  fontSize:
-                                                                      topCounterFontSize,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color:
-                                                                      (CacheHelper.getIsChangeCounterEnabled() &&
-                                                                          asyncSnapshot.data?.dateTime !=
-                                                                              null &&
-                                                                          asyncSnapshot.data!.dateTime!
-                                                                                  .difference(
-                                                                                    DateTime.now(),
-                                                                                  )
-                                                                                  .inSeconds <=
-                                                                              90)
-                                                                      ? Colors
-                                                                            .red
-                                                                      : AppTheme
-                                                                            .secondaryTextColor,
+                                                                  ),
                                                                 ),
                                                               ),
-
-                                                              Text(
-                                                                LocalizationHelper.isArabic()
-                                                                    ? LocaleKeys
-                                                                              .left_for
-                                                                              .tr() +
-                                                                          (asyncSnapshot.data?.title.substring(
-                                                                                1,
-                                                                              ) ??
-                                                                              "")
-                                                                    : LocaleKeys
-                                                                              .left_for
-                                                                              .tr() +
-                                                                          " " +
-                                                                          (asyncSnapshot.data?.title ??
-                                                                              ""),
-                                                                textHeightBehavior:
-                                                                    const TextHeightBehavior(
-                                                                      applyHeightToFirstAscent:
-                                                                          false,
-                                                                      applyHeightToLastDescent:
-                                                                          false,
+                                                              SizedBox(
+                                                                height: 2.h,
+                                                              ),
+                                                              SizedBox(
+                                                                width: double
+                                                                    .infinity,
+                                                                child: FittedBox(
+                                                                  fit: BoxFit
+                                                                      .scaleDown,
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .center,
+                                                                  child: Text(
+                                                                    LocalizationHelper.isArabic()
+                                                                        ? '${LocaleKeys.left_for.tr()}${asyncSnapshot.data?.title.substring(1) ?? ''}'
+                                                                        : '${LocaleKeys.left_for.tr()} ${asyncSnapshot.data?.title ?? ''}',
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          19.sp,
+                                                                      color: AppTheme
+                                                                          .primaryTextColor,
+                                                                      fontFamily:
+                                                                          CacheHelper.getTextsFontFamily(),
+                                                                      height:
+                                                                          1.12,
                                                                     ),
-                                                                style: TextStyle(
-                                                                  fontSize:
-                                                                      19.sp,
-                                                                  color: AppTheme
-                                                                      .primaryTextColor,
-                                                                  fontFamily:
-                                                                      CacheHelper.getTextsFontFamily(),
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ],
@@ -1026,399 +1250,397 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                   ],
                                                 ),
                                               ),
-                                              if (cubit.isBetweenAdhanAndIqama)
-                                                Builder(
-                                                  builder: (_) {
-                                                    final d = cubit
-                                                        .remainingToIqama();
-                                                    if (d == null ||
-                                                        d.inSeconds <= 0) {
-                                                      return const SizedBox.shrink();
-                                                    }
-                                                    final text = d
-                                                        .formatDuration();
-                                                    final localized =
-                                                        LocalizationHelper.isArAndArNumberEnable()
-                                                        ? DateHelper.toArabicDigits(
-                                                            text,
-                                                          )
-                                                        : DateHelper.toWesternDigits(
-                                                            text,
-                                                          );
-                                                    return Padding(
-                                                      padding: EdgeInsets.only(
-                                                        top: 4.h,
-                                                        left:
-                                                            topHorizontalPadding,
-                                                        right:
-                                                            topHorizontalPadding,
-                                                      ),
-                                                      child: Center(
-                                                        child: IqamaProgressBar(
-                                                          progress: cubit
-                                                              .iqamaProgress(),
-                                                          label:
-                                                              '${LocaleKeys.remaining_for_iqamaa.tr()} $localized',
-                                                          height: 20.h,
-                                                          width: iqamaBarWidth,
+                                            ),
+                                          ],
+                                        ),
+                                      // Spacer(flex: 1),
+                                      Container(
+                                        // color: Colors.red,
+                                        height: cubit.isBetweenAdhanAndIqama
+                                            ? verticalBudget
+                                                  .clockStripCompactHeight
+                                            : verticalBudget
+                                                  .clockStripTallHeight, // تقليل الارتفاع عند ظهور العداد لتعويض المساحة
+
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                            right: 10.w,
+                                            left: 10.w,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            // crossAxisAlignment:
+                                            //     CrossAxisAlignment.end,
+                                            children: [
+                                              if (CacheHelper.getShowFitrEid())
+                                                Flexible(
+                                                  flex: 15,
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      FittedBox(
+                                                        child: Text(
+                                                          LocaleKeys.eid_al_fitr
+                                                              .tr(),
+                                                          style: TextStyle(
+                                                            fontSize: 24.sp,
+                                                            color: AppTheme
+                                                                .primaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
                                                         ),
                                                       ),
-                                                    );
-                                                  },
+                                                      VerticalSpace(height: 5),
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getFitrEid()?[0] ??
+                                                              '--/--/--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      VerticalSpace(height: 5),
+
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getFitrEid()?[1] ??
+                                                              '--:--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+
+                                              Flexible(
+                                                flex: 75,
+                                                child: Container(
+                                                  // height: 100.h,
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 10.w,
+                                                      right: 10.w,
+                                                    ),
+                                                    child: BlocBuilder<UiRotationCubit, bool>(
+                                                      builder: (context, state) {
+                                                        return GestureDetector(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              CacheHelper.setIsFullTimeEnabled(
+                                                                !CacheHelper.getIsFullTimeEnabled(),
+                                                              );
+                                                            });
+
+                                                            // final UiRotationCubit
+                                                            // cubit = context
+                                                            //     .read<UiRotationCubit>();
+                                                            // cubit.changeIsLandscape(
+                                                            //   state == true
+                                                            //       ? false
+                                                            //       : true,
+                                                            // );
+                                                          },
+                                                          child: Container(
+                                                            // alignment: Alignment
+                                                            //     .bottomCenter,
+
+                                                            // height: 100.h,
+                                                            alignment: Alignment
+                                                                .center,
+                                                            child: FittedBox(
+                                                              child: LiveClockRow(
+                                                                timeFontSize:
+                                                                    liveClockTimeFontSize,
+                                                                periodFontSize:
+                                                                    liveClockPeriodFontSize,
+                                                                use24Format:
+                                                                    CacheHelper.getUse24HoursFormat(),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              if (CacheHelper.getShowAdhaEid())
+                                                Flexible(
+                                                  flex: 15,
+
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    // mainAxisAlignment:
+                                                    //     MainAxisAlignment
+                                                    //         .center,
+                                                    children: [
+                                                      FittedBox(
+                                                        child: Text(
+                                                          LocaleKeys.eid_al_adha
+                                                              .tr(),
+                                                          style: TextStyle(
+                                                            fontSize: 24.sp,
+                                                            color: AppTheme
+                                                                .primaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      VerticalSpace(height: 5),
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getAdhaEid()?[0] ??
+                                                              '--/--/--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      VerticalSpace(height: 5),
+
+                                                      FittedBox(
+                                                        child: Text(
+                                                          CacheHelper.getAdhaEid()?[1] ??
+                                                              '--:--',
+                                                          style: TextStyle(
+                                                            fontSize: 16.sp,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: AppTheme
+                                                                .secondaryTextColor,
+                                                            fontFamily:
+                                                                CacheHelper.getTimesFontFamily(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                             ],
                                           ),
                                         ),
-                                        // Spacer(flex: 1),
+                                      ),
+
+                                      // Spacer(flex: 1),
+                                      if (showSlides)
                                         Container(
-                                          // color: Colors.red,
-                                          height: cubit.isBetweenAdhanAndIqama
-                                              ? clockStripCompactHeight
-                                              : clockStripTallHeight, // تقليل الارتفاع عند ظهور العداد لتعويض المساحة
-
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                              right: 10.w,
-                                              left: 10.w,
+                                          child: RotatingAyahBanner(
+                                            ayat:
+                                                (cubit.todaysSlides != null &&
+                                                    cubit
+                                                        .todaysSlides!
+                                                        .isNotEmpty)
+                                                ? cubit.todaysSlides!
+                                                      .map((e) => e.text)
+                                                      .toList()
+                                                : ayat,
+                                            height: verticalBudget
+                                                .slidesBannerHeight,
+                                            maxFontSize: 20.sp,
+                                            minFontSize: 12.sp,
+                                            interval: Duration(
+                                              seconds:
+                                                  CacheHelper.getSlidesDisplaySeconds(),
                                             ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              // crossAxisAlignment:
-                                              //     CrossAxisAlignment.end,
-                                              children: [
-                                                if (CacheHelper.getShowFitrEid())
-                                                  Flexible(
-                                                    flex: 15,
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        FittedBox(
-                                                          child: Text(
-                                                            LocaleKeys
-                                                                .eid_al_fitr
-                                                                .tr(),
-                                                            style: TextStyle(
-                                                              fontSize: 24.sp,
-                                                              color: AppTheme
-                                                                  .primaryTextColor,
-                                                              fontFamily:
-                                                                  CacheHelper.getTimesFontFamily(),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        VerticalSpace(
-                                                          height: 5,
-                                                        ),
-                                                        FittedBox(
-                                                          child: Text(
-                                                            CacheHelper.getFitrEid()?[0] ??
-                                                                '--/--/--',
-                                                            style: TextStyle(
-                                                              fontSize: 16.sp,
-                                                              color: AppTheme
-                                                                  .secondaryTextColor,
-                                                              fontFamily:
-                                                                  CacheHelper.getTimesFontFamily(),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        VerticalSpace(
-                                                          height: 5,
-                                                        ),
+                                            randomOrder:
+                                                CacheHelper.getSlidesRandomOrder(),
+                                            fontFamily:
+                                                CacheHelper.getTextsFontFamily(),
+                                            textColor:
+                                                AppTheme.primaryTextColor,
+                                          ),
+                                        ),
+                                      VerticalSpace(height: 5),
+                                      Expanded(
+                                        child: Builder(
+                                          builder: (context) {
+                                            final remainingToIqama = cubit
+                                                .remainingToIqama();
+                                            final showIqamaFocus =
+                                                cubit.isBetweenAdhanAndIqama &&
+                                                remainingToIqama != null &&
+                                                remainingToIqama.inSeconds > 0;
 
-                                                        FittedBox(
-                                                          child: Text(
-                                                            CacheHelper.getFitrEid()?[1] ??
-                                                                '--:--',
-                                                            style: TextStyle(
-                                                              fontSize: 16.sp,
-                                                              color: AppTheme
-                                                                  .secondaryTextColor,
-                                                              fontFamily:
-                                                                  CacheHelper.getTimesFontFamily(),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                Flexible(
-                                                  flex: 75,
-                                                  child: Container(
-                                                    // height: 100.h,
-                                                    child: Padding(
-                                                      padding: EdgeInsets.only(
-                                                        left: 10.w,
-                                                        right: 10.w,
+                                            if (showIqamaFocus) {
+                                              return Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 18.w,
+                                                ),
+                                                child: IqamaFocusSection(
+                                                  countdownText:
+                                                      _localizedDurationText(
+                                                        remainingToIqama,
                                                       ),
-                                                      child: BlocBuilder<UiRotationCubit, bool>(
-                                                        builder: (context, state) {
-                                                          return GestureDetector(
-                                                            onTap: () {
-                                                              setState(() {
-                                                                CacheHelper.setIsFullTimeEnabled(
-                                                                  !CacheHelper.getIsFullTimeEnabled(),
-                                                                );
-                                                              });
-
-                                                              // final UiRotationCubit
-                                                              // cubit = context
-                                                              //     .read<UiRotationCubit>();
-                                                              // cubit.changeIsLandscape(
-                                                              //   state == true
-                                                              //       ? false
-                                                              //       : true,
-                                                              // );
-                                                            },
-                                                            child: Container(
-                                                              // alignment: Alignment
-                                                              //     .bottomCenter,
-
-                                                              // height: 100.h,
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                              child: FittedBox(
-                                                                child: LiveClockRow(
-                                                                  timeFontSize:
-                                                                      liveClockTimeFontSize,
-                                                                  periodFontSize:
-                                                                      liveClockPeriodFontSize,
-                                                                  use24Format:
-                                                                      CacheHelper.getUse24HoursFormat(),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
+                                                  progress: cubit
+                                                      .iqamaProgress(),
+                                                  prayers: _iqamaPrayerItems(
+                                                    context,
                                                   ),
                                                 ),
-                                                if (CacheHelper.getShowAdhaEid())
-                                                  Flexible(
-                                                    flex: 15,
+                                              );
+                                            }
 
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      // mainAxisAlignment:
-                                                      //     MainAxisAlignment
-                                                      //         .center,
-                                                      children: [
-                                                        FittedBox(
-                                                          child: Text(
-                                                            LocaleKeys
-                                                                .eid_al_adha
-                                                                .tr(),
-                                                            style: TextStyle(
-                                                              fontSize: 24.sp,
-                                                              color: AppTheme
-                                                                  .primaryTextColor,
-                                                              fontFamily:
-                                                                  CacheHelper.getTimesFontFamily(),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        VerticalSpace(
-                                                          height: 5,
-                                                        ),
-                                                        FittedBox(
-                                                          child: Text(
-                                                            CacheHelper.getAdhaEid()?[0] ??
-                                                                '--/--/--',
-                                                            style: TextStyle(
-                                                              fontSize: 16.sp,
-                                                              color: AppTheme
-                                                                  .secondaryTextColor,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              fontFamily:
-                                                                  CacheHelper.getTimesFontFamily(),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        VerticalSpace(
-                                                          height: 5,
-                                                        ),
+                                            return Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 16.w,
+                                              ),
+                                              child: SizedBox(
+                                                child: PrayerTimesTable(
+                                                  rows: rows,
+                                                  enableGlass: enableGlass,
+                                                  headerStyle: headerStyle,
+                                                  prayerStyle: prayerStyle,
+                                                  adhanStyle: adhanStyle,
+                                                  iqamaStyle: iqamaStyle,
+                                                  centerPrayerColumn:
+                                                      CacheHelper.getPrayerTimeTileInCenterInPortrait(),
+                                                  onBackgroundChanged: () {
+                                                    if (!mounted) return;
+                                                    setState(() {});
+                                                  },
+                                                  showHeader:
+                                                      showPrayerTableHeader,
+                                                  targetRowHeight:
+                                                      tableTargetRowHeight,
+                                                  minRowHeight:
+                                                      tableMinRowHeight,
+                                                  allowScrollIfOverflow:
+                                                      !enablePortraitMosqueClip,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
 
-                                                        FittedBox(
-                                                          child: Text(
-                                                            CacheHelper.getAdhaEid()?[1] ??
-                                                                '--:--',
-                                                            style: TextStyle(
-                                                              fontSize: 16.sp,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: AppTheme
-                                                                  .secondaryTextColor,
-                                                              fontFamily:
-                                                                  CacheHelper.getTimesFontFamily(),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
+                                      // Column(
+                                      //   children: [
+                                      //     // عناوين الأعمدة (اختياري تحطها فوق)
+                                      //     Padding(
+                                      //       padding: const EdgeInsets.symmetric(
+                                      //         horizontal: 16,
+                                      //       ),
+                                      //       child: Row(
+                                      //         children: [
+                                      //           Expanded(
+                                      //             child: Align(
+                                      //               alignment: Alignment.centerLeft,
+                                      //               child: Text(
+                                      //                 LocaleKeys.iqama_time.tr(),
+                                      //               ),
+                                      //             ),
+                                      //           ),
+                                      //           Expanded(
+                                      //             child: Center(
+                                      //               child: Text(
+                                      //                 LocaleKeys.adhan_time.tr(),
+                                      //               ),
+                                      //             ),
+                                      //           ),
+                                      //           Expanded(
+                                      //             child: Align(
+                                      //               alignment: Alignment.centerRight,
+                                      //               child: Text(LocaleKeys.prayer.tr()),
+                                      //             ),
+                                      //           ),
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //     // const SizedBox(height: 10),
+
+                                      //     // ✅ Rows
+                                      //     Column(
+                                      //       children: [
+                                      //         PrayerTimesHeaderRow(style: headerStyle),
+                                      //         SizedBox(height: 10.h),
+
+                                      //         SizedBox(
+                                      //           height: 200.h,
+                                      //           child: Container(
+                                      //             // color: Colors.red,
+                                      //             child: Column(
+                                      //               children: [
+                                      //                 ...rows.map(
+                                      //                   (r) => PrayerGlassRow(
+                                      //                     data: r,
+                                      //                     enableGlass: enableGlass,
+                                      //                     textStylePrayer: prayerStyle,
+                                      //                     textStyleAdhan: adhanStyle,
+                                      //                     textStyleIqama: iqamaStyle,
+                                      //                     rowHeight: 15
+                                      //                         .h, // لو عايز أكبر: 66 أو 70
+                                      //                   ),
+                                      //                 ),
+                                      //               ],
+                                      //             ),
+                                      //           ),
+                                      //         ),
+                                      //       ],
+                                      //     ),
+                                      //   ],
+                                      // ),
+
+                                      // Spacer(flex: 1),
+                                      if (showSlider)
+                                        Container(
+                                          child: AzkarSlider(
+                                            adhkar: cubit.todaysAdkar != null
+                                                ? cubit.todaysAdkar!
+                                                      .map((e) => e.text)
+                                                      .toList()
+                                                : [],
+                                            height: verticalBudget
+                                                .bottomSliderHeight,
+                                            maxFontSize: 18.sp,
+                                            minFontSize: 11.sp,
+                                            fontFamily:
+                                                CacheHelper.getTextsFontFamily(),
                                           ),
                                         ),
+                                    ],
+                                  );
+                                  if (!enablePortraitMosqueClip) {
+                                    return content;
+                                  }
 
-                                        // Spacer(flex: 1),
-                                        if (CacheHelper.getSlidesEnabled())
-                                          Container(
-                                            child: RotatingAyahBanner(
-                                              ayat:
-                                                  (cubit.todaysSlides != null &&
-                                                      cubit
-                                                          .todaysSlides!
-                                                          .isNotEmpty)
-                                                  ? cubit.todaysSlides!
-                                                        .map((e) => e.text)
-                                                        .toList()
-                                                  : ayat,
-                                              height: slidesBannerHeight,
-                                              maxFontSize: 20.sp,
-                                              minFontSize: 12.sp,
-                                              interval: Duration(
-                                                seconds:
-                                                    CacheHelper.getSlidesDisplaySeconds(),
-                                              ),
-                                              randomOrder:
-                                                  CacheHelper.getSlidesRandomOrder(),
-                                              fontFamily:
-                                                  CacheHelper.getTextsFontFamily(),
-                                              textColor:
-                                                  AppTheme.primaryTextColor,
-                                            ),
-                                          ),
-                                        VerticalSpace(height: 5),
-                                        Expanded(
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 16.w,
-                                            ),
-                                            child: SizedBox(
-                                              // width: .86.sw,
-                                              child: PrayerTimesTable(
-                                                rows: rows,
-                                                enableGlass: enableGlass,
-                                                headerStyle: headerStyle,
-                                                prayerStyle: prayerStyle,
-                                                adhanStyle: adhanStyle,
-                                                iqamaStyle: iqamaStyle,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-
-                                        // Column(
-                                        //   children: [
-                                        //     // عناوين الأعمدة (اختياري تحطها فوق)
-                                        //     Padding(
-                                        //       padding: const EdgeInsets.symmetric(
-                                        //         horizontal: 16,
-                                        //       ),
-                                        //       child: Row(
-                                        //         children: [
-                                        //           Expanded(
-                                        //             child: Align(
-                                        //               alignment: Alignment.centerLeft,
-                                        //               child: Text(
-                                        //                 LocaleKeys.iqama_time.tr(),
-                                        //               ),
-                                        //             ),
-                                        //           ),
-                                        //           Expanded(
-                                        //             child: Center(
-                                        //               child: Text(
-                                        //                 LocaleKeys.adhan_time.tr(),
-                                        //               ),
-                                        //             ),
-                                        //           ),
-                                        //           Expanded(
-                                        //             child: Align(
-                                        //               alignment: Alignment.centerRight,
-                                        //               child: Text(LocaleKeys.prayer.tr()),
-                                        //             ),
-                                        //           ),
-                                        //         ],
-                                        //       ),
-                                        //     ),
-                                        //     // const SizedBox(height: 10),
-
-                                        //     // ✅ Rows
-                                        //     Column(
-                                        //       children: [
-                                        //         PrayerTimesHeaderRow(style: headerStyle),
-                                        //         SizedBox(height: 10.h),
-
-                                        //         SizedBox(
-                                        //           height: 200.h,
-                                        //           child: Container(
-                                        //             // color: Colors.red,
-                                        //             child: Column(
-                                        //               children: [
-                                        //                 ...rows.map(
-                                        //                   (r) => PrayerGlassRow(
-                                        //                     data: r,
-                                        //                     enableGlass: enableGlass,
-                                        //                     textStylePrayer: prayerStyle,
-                                        //                     textStyleAdhan: adhanStyle,
-                                        //                     textStyleIqama: iqamaStyle,
-                                        //                     rowHeight: 15
-                                        //                         .h, // لو عايز أكبر: 66 أو 70
-                                        //                   ),
-                                        //                 ),
-                                        //               ],
-                                        //             ),
-                                        //           ),
-                                        //         ),
-                                        //       ],
-                                        //     ),
-                                        //   ],
-                                        // ),
-
-                                        // Spacer(flex: 1),
-                                        if (CacheHelper.getSliderOpened())
-                                          Container(
-                                            child: AzkarSlider(
-                                              adhkar: cubit.todaysAdkar != null
-                                                  ? cubit.todaysAdkar!
-                                                        .map((e) => e.text)
-                                                        .toList()
-                                                  : [],
-                                              height: bottomSliderHeight,
-                                              maxFontSize: 18.sp,
-                                              minFontSize: 11.sp,
-                                              fontFamily:
-                                                  CacheHelper.getTextsFontFamily(),
-                                            ),
-                                          ),
-                                      ],
-                                    );
-                                  },
-                                ),
+                                  return PortraitMosqueClipBody(
+                                    enabled: enablePortraitMosqueClip,
+                                    spec: clipSpec,
+                                    child: content,
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -1435,9 +1657,14 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
               FutureBuilder<bool>(
                 future: _hideFuture,
                 builder: (context, snapshot) {
+                  final currentPrayerId = cubit.currentPrayer?.id;
+                  final hideAfterCurrentPrayerEnabled = currentPrayerId == 6
+                      ? CacheHelper.getHideScreenAfterIshaaEnabled()
+                      : currentPrayerId == 2
+                      ? CacheHelper.getHideScreenAfterSunriseEnabled()
+                      : false;
                   final shouldHide =
-                      CacheHelper.getHideScreenAfterIshaaEnabled() &&
-                      (snapshot.data == true);
+                      hideAfterCurrentPrayerEnabled && (snapshot.data == true);
 
                   final azanActive =
                       (cubit.currentPrayer != null &&
@@ -1495,11 +1722,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                       }
                       // 3) ثالث أولوية: black screen
                       else if (shouldHide) {
-                        overlay = Container(
+                        overlay = BlackScreenInfoOverlay(
                           key: const ValueKey('black_screen'),
-                          height: 1.sh,
-                          width: 1.sw,
-                          color: Colors.black,
                         );
                       }
                       // 4) رابع أولوية: Azkar
@@ -1513,7 +1737,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                             onTap: _azkarOverlay.dismissForNow,
                             child: AzkarView(
                               azkarType: w.type,
-                              // prayerId: w.prayerId,
+                              prayerId: w.prayerId,
                             ),
                           ),
                         );
@@ -1546,6 +1770,342 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
     );
   }
 }
+
+@immutable
+class LegacyTopTextStripHeights {
+  const LegacyTopTextStripHeights({
+    required this.weekday,
+    required this.hijri,
+    required this.meta,
+  });
+
+  final double weekday;
+  final double hijri;
+  final double meta;
+}
+
+double _measureSingleLineTextHeight({
+  required String text,
+  required TextStyle style,
+  required material.TextDirection textDirection,
+}) {
+  final painter = TextPainter(
+    text: TextSpan(text: text.isEmpty ? ' ' : text, style: style),
+    textDirection: textDirection,
+    maxLines: 1,
+  )..layout();
+  return painter.height;
+}
+
+LegacyTopTextStripHeights resolveLegacyTopTextStripHeights({
+  required bool enabled,
+  required material.TextDirection textDirection,
+  required double baseWeekdayHeight,
+  required double baseHijriHeight,
+  required double baseMetaHeight,
+  required String weekdayText,
+  required String hijriText,
+  required String dateText,
+  required String countdownText,
+  required String leftForText,
+  required TextStyle weekdayStyle,
+  required TextStyle hijriStyle,
+  required TextStyle dateStyle,
+  required TextStyle countdownStyle,
+  required TextStyle leftForStyle,
+}) {
+  if (!enabled) {
+    return LegacyTopTextStripHeights(
+      weekday: baseWeekdayHeight,
+      hijri: baseHijriHeight,
+      meta: baseMetaHeight,
+    );
+  }
+
+  final weekdayMeasured = _measureSingleLineTextHeight(
+    text: weekdayText,
+    style: weekdayStyle,
+    textDirection: textDirection,
+  );
+  final hijriMeasured = _measureSingleLineTextHeight(
+    text: hijriText,
+    style: hijriStyle,
+    textDirection: textDirection,
+  );
+  final dateMeasured = _measureSingleLineTextHeight(
+    text: dateText,
+    style: dateStyle,
+    textDirection: textDirection,
+  );
+  final countdownMeasured = _measureSingleLineTextHeight(
+    text: countdownText,
+    style: countdownStyle,
+    textDirection: material.TextDirection.ltr,
+  );
+  final leftForMeasured = _measureSingleLineTextHeight(
+    text: leftForText,
+    style: leftForStyle,
+    textDirection: textDirection,
+  );
+
+  return LegacyTopTextStripHeights(
+    weekday: math.max(baseWeekdayHeight, weekdayMeasured + 8.h),
+    hijri: math.max(baseHijriHeight, hijriMeasured + 10.h),
+    meta: math.max(
+      baseMetaHeight,
+      dateMeasured + countdownMeasured + leftForMeasured + 8.h,
+    ),
+  );
+}
+
+@immutable
+class _MosqueLayoutTuning {
+  const _MosqueLayoutTuning({
+    required this.weekdayTopRatio,
+    required this.hijriTopRatio,
+    required this.metaTopRatio,
+    required this.weekdayTargetWidthFactor,
+    required this.hijriTargetWidthFactor,
+    required this.metaTargetWidthFactor,
+  });
+
+  final double weekdayTopRatio;
+  final double hijriTopRatio;
+  final double metaTopRatio;
+  final double weekdayTargetWidthFactor;
+  final double hijriTargetWidthFactor;
+  final double metaTargetWidthFactor;
+}
+
+_MosqueLayoutTuning defaultLayoutTuningForProfile(MosqueArchProfile profile) {
+  switch (profile) {
+    case MosqueArchProfile.denseArch:
+      return const _MosqueLayoutTuning(
+        weekdayTopRatio: 0.115,
+        hijriTopRatio: 0.165,
+        metaTopRatio: 0.228,
+        weekdayTargetWidthFactor: 0.28,
+        hijriTargetWidthFactor: 0.58,
+        metaTargetWidthFactor: 0.70,
+      );
+    case MosqueArchProfile.wideArch:
+      return const _MosqueLayoutTuning(
+        weekdayTopRatio: 0.108,
+        hijriTopRatio: 0.158,
+        metaTopRatio: 0.220,
+        weekdayTargetWidthFactor: 0.32,
+        hijriTargetWidthFactor: 0.62,
+        metaTargetWidthFactor: 0.76,
+      );
+  }
+}
+
+_MosqueLayoutTuning? layoutTuningFor(String backgroundPath) {
+  final normalized = backgroundPath.replaceAll('\\', '/');
+  switch (normalized) {
+    default:
+      return null;
+  }
+}
+
+@immutable
+class _MosqueVerticalBudget {
+  const _MosqueVerticalBudget({
+    required this.topInset,
+    required this.gapBeforeHijri,
+    required this.extraTopGuard,
+    required this.clockStripTallHeight,
+    required this.clockStripCompactHeight,
+    required this.slidesBannerHeight,
+    required this.bottomSliderHeight,
+  });
+
+  final double topInset;
+  final double gapBeforeHijri;
+  final double extraTopGuard;
+  final double clockStripTallHeight;
+  final double clockStripCompactHeight;
+  final double slidesBannerHeight;
+  final double bottomSliderHeight;
+}
+
+_MosqueVerticalBudget _resolveMosqueVerticalBudget({
+  required bool enabled,
+  required double bodyHeight,
+  required int rowCount,
+  required bool showSlides,
+  required bool showSlider,
+  required double baseTopInset,
+  required double baseGapBeforeHijri,
+  required double baseExtraTopGuard,
+  required double baseClockTallHeight,
+  required double baseClockCompactHeight,
+  required double baseSlidesHeight,
+  required double baseBottomSliderHeight,
+  required double baseTopMetaHeight,
+  required double tablePreferredMinRowHeight,
+  required double tableHeaderHeight,
+  required double tableHeaderSpacing,
+  required bool hasIqamaProgress,
+  bool protectTopCluster = false,
+}) {
+  if (!enabled || bodyHeight <= 0) {
+    return _MosqueVerticalBudget(
+      topInset: baseTopInset,
+      gapBeforeHijri: baseGapBeforeHijri,
+      extraTopGuard: baseExtraTopGuard,
+      clockStripTallHeight: baseClockTallHeight,
+      clockStripCompactHeight: baseClockCompactHeight,
+      slidesBannerHeight: baseSlidesHeight,
+      bottomSliderHeight: baseBottomSliderHeight,
+    );
+  }
+
+  double topInset = baseTopInset;
+  double gapBeforeHijri = baseGapBeforeHijri;
+  double extraTopGuard = baseExtraTopGuard;
+  double clockTall = baseClockTallHeight;
+  double clockCompact = baseClockCompactHeight;
+  double slidesHeight = showSlides ? baseSlidesHeight : 0.0;
+  double bottomSliderHeight = showSlider ? baseBottomSliderHeight : 0.0;
+
+  final tableMinHeight = _estimatePrayerTableMinHeight(
+    rowCount: rowCount,
+    minRowHeight: tablePreferredMinRowHeight,
+    headerHeight: tableHeaderHeight,
+    headerSpacing: tableHeaderSpacing,
+    rowGap: 3.h,
+  );
+  final iqamaProgressExtra = hasIqamaProgress ? 24.h : 0.0;
+  final verticalGapBeforeTable = 2.h;
+
+  double activeClockHeight() => hasIqamaProgress ? clockCompact : clockTall;
+  double fixedSectionsHeight() {
+    return topInset +
+        gapBeforeHijri +
+        extraTopGuard +
+        baseTopMetaHeight +
+        iqamaProgressExtra +
+        activeClockHeight() +
+        slidesHeight +
+        verticalGapBeforeTable +
+        bottomSliderHeight;
+  }
+
+  double deficit = (fixedSectionsHeight() + tableMinHeight) - bodyHeight;
+  if (deficit <= 0) {
+    return _MosqueVerticalBudget(
+      topInset: topInset,
+      gapBeforeHijri: gapBeforeHijri,
+      extraTopGuard: extraTopGuard,
+      clockStripTallHeight: clockTall,
+      clockStripCompactHeight: clockCompact,
+      slidesBannerHeight: showSlides ? slidesHeight : baseSlidesHeight,
+      bottomSliderHeight: showSlider
+          ? bottomSliderHeight
+          : baseBottomSliderHeight,
+    );
+  }
+
+  // 1) Tighten top spacing first unless the authored top cluster is locked.
+  if (!protectTopCluster) {
+    deficit = _reduceTo(deficit, topInset, 0.0, (v) => topInset = v);
+    deficit = _reduceTo(
+      deficit,
+      gapBeforeHijri,
+      0.0,
+      (v) => gapBeforeHijri = v,
+    );
+    deficit = _reduceTo(deficit, extraTopGuard, 0.0, (v) => extraTopGuard = v);
+  }
+
+  // 2) Then reduce clock strip heights by a small, capped amount.
+  final minClockTall = (baseClockTallHeight - 16.0).clamp(
+    0.0,
+    baseClockTallHeight,
+  );
+  final minClockCompact = (baseClockCompactHeight - 14.0).clamp(
+    0.0,
+    baseClockCompactHeight,
+  );
+  final pairReducible = _minDouble(
+    clockTall - minClockTall,
+    clockCompact - minClockCompact,
+  );
+  final clockReduce = _minDouble(deficit, pairReducible);
+  if (clockReduce > 0) {
+    clockTall -= clockReduce;
+    clockCompact -= clockReduce;
+    deficit -= clockReduce;
+  }
+
+  // 3) Then reduce slides banner slightly.
+  if (showSlides) {
+    final minSlides = (baseSlidesHeight - 10.0).clamp(0.0, baseSlidesHeight);
+    deficit = _reduceTo(
+      deficit,
+      slidesHeight,
+      minSlides,
+      (v) => slidesHeight = v,
+    );
+  }
+
+  // 4) Finally reduce bottom slider slightly.
+  if (showSlider) {
+    final minSlider = (baseBottomSliderHeight - 8.0).clamp(
+      0.0,
+      baseBottomSliderHeight,
+    );
+    deficit = _reduceTo(
+      deficit,
+      bottomSliderHeight,
+      minSlider,
+      (v) => bottomSliderHeight = v,
+    );
+  }
+
+  return _MosqueVerticalBudget(
+    topInset: topInset,
+    gapBeforeHijri: gapBeforeHijri,
+    extraTopGuard: extraTopGuard,
+    clockStripTallHeight: clockTall,
+    clockStripCompactHeight: clockCompact,
+    slidesBannerHeight: showSlides ? slidesHeight : baseSlidesHeight,
+    bottomSliderHeight: showSlider
+        ? bottomSliderHeight
+        : baseBottomSliderHeight,
+  );
+}
+
+double _estimatePrayerTableMinHeight({
+  required int rowCount,
+  required double minRowHeight,
+  required double headerHeight,
+  required double headerSpacing,
+  required double rowGap,
+}) {
+  if (rowCount <= 0) return headerHeight + headerSpacing;
+  return headerHeight +
+      headerSpacing +
+      (rowCount * minRowHeight) +
+      ((rowCount - 1) * rowGap);
+}
+
+double _reduceTo(
+  double deficit,
+  double current,
+  double minValue,
+  void Function(double) setter,
+) {
+  if (deficit <= 0) return deficit;
+  final reducible = (current - minValue).clamp(0.0, current);
+  final taken = _minDouble(deficit, reducible);
+  if (taken <= 0) return deficit;
+  setter(current - taken);
+  return deficit - taken;
+}
+
+double _minDouble(double a, double b) => a <= b ? a : b;
 
 class PortraitMosqueClipBody extends StatelessWidget {
   const PortraitMosqueClipBody({

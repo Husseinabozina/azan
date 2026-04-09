@@ -1,5 +1,6 @@
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/core/utils/new_dialog_system.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -241,7 +242,7 @@ class _NewDialogsExampleScreenState extends State<NewDialogsExampleScreen> {
   void _showCustomDialog() {
     final sizing = NewDialogConfig.getSizing(context);
 
-    showDialog(
+    showAppDialog(
       context: context,
       barrierDismissible: true,
       builder: (context) {

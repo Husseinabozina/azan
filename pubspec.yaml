@@ -55,6 +55,7 @@ dependencies:
   intl: ^0.20.2
   jhijri: ^1.0.0
   just_audio: ^0.10.5
+  package_info_plus: ^8.3.1
   path_provider: ^2.1.5
   # prayers_times:
   #   path: ./packages/prayers_times-main
@@ -68,6 +69,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   freezed: null
+  image: ^4.5.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

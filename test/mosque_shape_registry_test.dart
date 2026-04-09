@@ -57,4 +57,111 @@ void main() {
     expect(bounds.width, greaterThan(0));
     expect(bounds.height, greaterThan(0));
   });
+
+  test('inner bounds shrink as inset grows', () {
+    final spec = specFor('assets/images/VR-2.jpg');
+    expect(spec, isNotNull);
+
+    final base = spec!.innerBoundsAt(0.24);
+    final inset = spec.innerBoundsAt(0.24, inset: 0.03);
+
+    expect(inset.width, lessThan(base.width));
+    expect(inset.left, greaterThan(base.left));
+    expect(inset.right, lessThan(base.right));
+  });
+
+  test(
+    'meta inset keeps top text bounds more conservative than band inset',
+    () {
+      final spec = specFor('assets/images/VR-2.jpg');
+      expect(spec, isNotNull);
+
+      final bandInset = legacyMosqueBandInset(spec!.profile);
+      final metaInset = legacyMosqueBandInset(spec.profile, meta: true);
+      final bandBounds = spec.innerBoundsAt(0.24, inset: bandInset);
+      final metaBounds = spec.innerBoundsAt(0.24, inset: metaInset);
+
+      expect(metaInset, greaterThan(bandInset));
+      expect(metaBounds.width, lessThan(bandBounds.width));
+      expect(metaBounds.left, greaterThan(bandBounds.left));
+      expect(metaBounds.right, lessThan(bandBounds.right));
+    },
+  );
+
+  test('larger requested widths push minY downward', () {
+    final spec = specFor('assets/images/VR-9.jpg');
+    expect(spec, isNotNull);
+
+    final narrow = spec!.minYForInnerWidth(0.24, inset: 0.02);
+    final wide = spec.minYForInnerWidth(0.62, inset: 0.02);
+
+    expect(wide, greaterThanOrEqualTo(narrow));
+    expect(wide, lessThan(1));
+  });
+
+  test('minY is more conservative than safeTop for the same width', () {
+    final spec = specFor('assets/images/VR-2.jpg');
+    expect(spec, isNotNull);
+
+    final minY = spec!.minYForInnerWidth(0.28, inset: 0.022);
+    final safeTop = spec.safeTopForWidth(0.28, margin: 0.006);
+
+    expect(minY, greaterThanOrEqualTo(safeTop));
+  });
+
+  test(
+    'tightest band bounds are never wider than midpoint bounds for the same band',
+    () {
+      final spec = specFor('assets/images/VR-2.jpg');
+      expect(spec, isNotNull);
+
+      final top = spec!.minYForInnerWidth(0.28, inset: 0.022);
+      const height = 0.045;
+      final midpoint = spec.innerBoundsAt(top + (height / 2), inset: 0.022);
+      final tightest = spec.tightestInnerBoundsForBand(
+        top,
+        height,
+        inset: 0.022,
+      );
+
+      expect(tightest.width, lessThanOrEqualTo(midpoint.width));
+      expect(tightest.left, greaterThanOrEqualTo(midpoint.left));
+      expect(tightest.right, lessThanOrEqualTo(midpoint.right));
+    },
+  );
+
+  test('apex contour stays nearly flat across the center span', () {
+    final dense = specFor('assets/images/VR-2.jpg');
+    final wide = specFor('assets/images/VR-9.jpg');
+    expect(dense, isNotNull);
+    expect(wide, isNotNull);
+
+    final denseApex = dense!.apexY();
+    final wideApex = wide!.apexY();
+
+    expect((dense.yAt(0.46) - denseApex).abs(), lessThanOrEqualTo(0.006));
+    expect((dense.yAt(0.54) - denseApex).abs(), lessThanOrEqualTo(0.006));
+    expect((wide.yAt(0.46) - wideApex).abs(), lessThanOrEqualTo(0.006));
+    expect((wide.yAt(0.54) - wideApex).abs(), lessThanOrEqualTo(0.006));
+  });
+
+  test(
+    'legacy content helpers keep dense profile tighter than wide profile',
+    () {
+      expect(
+        legacyMosqueBodyContentWidthFactor(MosqueArchProfile.denseArch),
+        lessThan(
+          legacyMosqueBodyContentWidthFactor(MosqueArchProfile.wideArch),
+        ),
+      );
+      expect(
+        legacyMosqueBandInset(MosqueArchProfile.denseArch, meta: true),
+        greaterThan(legacyMosqueBandInset(MosqueArchProfile.denseArch)),
+      );
+      expect(
+        legacyMosqueBandInset(MosqueArchProfile.wideArch, meta: true),
+        greaterThan(legacyMosqueBandInset(MosqueArchProfile.wideArch)),
+      );
+    },
+  );
 }

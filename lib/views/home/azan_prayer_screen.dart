@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math' show min, max;
+import 'dart:math' show min;
 
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
@@ -9,12 +9,10 @@ import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
-import 'package:azan/views/additional_settings/components/azkar_time_helper.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
-import 'package:azan/views/home/components/iqama_visual_cutdown.dart';
+import 'package:azan/views/home/components/black_screen_info_overlay.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -124,10 +122,7 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
 
     _prayerWorkTimer = Timer(
       Duration(
-        minutes:
-            appCubit.getPrayerDurationForId(widget.currentPrayer.id) != null
-            ? appCubit.getPrayerDurationForId(widget.currentPrayer.id)
-            : 7,
+        minutes: appCubit.getPrayerDurationForId(widget.currentPrayer.id),
       ),
       () {
         if (!mounted) return;
@@ -153,10 +148,6 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
 
     final bool isLandscape = size.width >= size.height;
     final m = _AzanMetrics.auto(isLandscape: isLandscape);
-
-    final backgroundColor = _azanTerminat
-        ? Colors.black.withOpacity(0.94)
-        : Colors.transparent;
 
     final textColor =
         (_isIqamaTime && CacheHelper.getEnableHidingScreenDuringPrayer())
@@ -186,6 +177,16 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
               child: SafeArea(
                 child: Stack(
                   children: [
+                    if (AppTheme.backgroundReadabilityOverlayAlpha > 0)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: ColoredBox(
+                            color: Colors.black.withValues(
+                              alpha: AppTheme.backgroundReadabilityOverlayAlpha,
+                            ),
+                          ),
+                        ),
+                      ),
                     // Background
                     // Positioned.fill(
                     //   child: Image.asset(
@@ -200,63 +201,7 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
                         duration: const Duration(milliseconds: 1500),
                         transitionBuilder: (child, anim) =>
                             ScaleTransition(scale: anim, child: child),
-                        child: Container(
-                          color: backgroundColor,
-                          width: 1.sw,
-                          height: 1.sh,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (CacheHelper.getShowTimeOnBlackScreen())
-                                Flexible(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 20.w,
-                                      right: 20.w,
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // AzkarTimeHelper.currentWindow(
-                                        //   now:
-                                        // )
-                                      },
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: LiveClockRow(
-                                          timeFontSize: m.blackClockSize,
-                                          periodFontSize: m.blackClockSize,
-                                          textColor: Colors.white,
-                                          withIndicator: false,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              VerticalSpace(height: m.gapM),
-                              if (CacheHelper.getShowDateOnBlackScreen() &&
-                                  appCubit.hijriDate != null)
-                                FittedBox(
-                                  // FittedBox للـ date
-                                  fit: BoxFit.scaleDown,
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 20.w,
-                                      right: 20.w,
-                                    ),
-                                    child: Text(
-                                      appCubit.hijriDate.toString(),
-                                      style: TextStyle(
-                                        fontSize: m.blackDateSize,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+                        child: const BlackScreenInfoOverlay(),
                       ),
 
                     // ✅ BEFORE adhan terminate

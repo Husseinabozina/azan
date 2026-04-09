@@ -9,6 +9,7 @@ import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/core/utils/mqscale.dart';
+import 'package:azan/core/utils/temp_icon_result.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -132,6 +133,7 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
     required double yearSize,
     required TextAlign textAlign,
     VoidCallback? onTap,
+    Widget? topWidget,
   }) {
     final child = Center(
       child: FittedBox(
@@ -139,6 +141,9 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (topWidget != null) topWidget,
+            if (topWidget != null)
+              SizedBox(height: math.max(1, monthSize * 0.22)),
             AutoSizeText(
               data.lineOne,
               maxLines: 1,
@@ -347,6 +352,13 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
                                 monthSize: monthSize,
                                 yearSize: yearSize,
                                 textAlign: TextAlign.center,
+                                topWidget: CacheHelper.getWeatherEnabled()
+                                    ? TemperatureBadge(
+                                        iconSize: monthSize * 0.90,
+                                        textSize: yearSize * 0.92,
+                                        gapWidth: 4.w,
+                                      )
+                                    : null,
                               ),
                             ),
                             Expanded(

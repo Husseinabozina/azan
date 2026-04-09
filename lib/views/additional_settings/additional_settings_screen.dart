@@ -39,7 +39,6 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
   late bool showAzanScreen;
   late bool arabicNumbers;
   late bool checkInternet;
-  late int sliderTime;
   late bool morningAzkarEnabled;
   late bool eveningAzkarEnabled;
   late int morningWindowMinutes;
@@ -49,6 +48,7 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
   late bool showSecondsInNextPrayer;
   late bool showIqamaCountdownLastMinuteOnly;
   late bool putPrayerTimesTitleInCenter;
+  late bool putPrayerTimesTitleInCenterInPortrait;
   late bool getEnlargeAdhanAndIqamaTimeInLandeScape;
   late bool hideIqamahTimes;
   late bool enlargeRemainingTimeCounter;
@@ -93,6 +93,11 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     CacheHelper.setPrayerTimeTileInCenter(v);
   }
 
+  void _setPutPrayerTimesTitleInCenterInPortrait(bool v) {
+    setState(() => putPrayerTimesTitleInCenterInPortrait = v);
+    CacheHelper.setPrayerTimeTileInCenterInPortrait(v);
+  }
+
   void _setHideIqamahTimes(bool v) {
     setState(() => hideIqamahTimes = v);
     CacheHelper.setHideIqamahTimes(v);
@@ -124,7 +129,6 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     showAzanScreen = CacheHelper.getShowAzanScreen();
     arabicNumbers = CacheHelper.getIsArabicNumbersEnabled();
     checkInternet = CacheHelper.getEnableCheckInternetConnection();
-    sliderTime = CacheHelper.getSliderTime();
     morningAzkarEnabled = CacheHelper.getMorningAzkarEnabled();
     eveningAzkarEnabled = CacheHelper.getEveningAzkarEnabled();
     morningWindowMinutes = CacheHelper.getMorningAzkarWindowMinutes();
@@ -135,6 +139,8 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     showIqamaCountdownLastMinuteOnly =
         CacheHelper.getShowIqamaCountdownLastMinuteOnly();
     putPrayerTimesTitleInCenter = CacheHelper.getPrayerTimeTileInCenter();
+    putPrayerTimesTitleInCenterInPortrait =
+        CacheHelper.getPrayerTimeTileInCenterInPortrait();
     getEnlargeAdhanAndIqamaTimeInLandeScape =
         CacheHelper.getEnlargeAdhanAndIqamaTimeInLandeScape();
     hideIqamahTimes = CacheHelper.getHideIqamahTimes();
@@ -196,11 +202,6 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
     CacheHelper.setEnableCheckInternetConnection(v);
   }
 
-  void _setSliderTime(int v) {
-    setState(() => sliderTime = v);
-    CacheHelper.setSliderTime(v);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -254,6 +255,10 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                                   _setPutPrayerTimesTitleInCenter,
                               putPrayerTimesInNextPrayer:
                                   putPrayerTimesTitleInCenter,
+                              onPutPrayerTimesInPortraitCenter:
+                                  _setPutPrayerTimesTitleInCenterInPortrait,
+                              putPrayerTimesInPortraitCenter:
+                                  putPrayerTimesTitleInCenterInPortrait,
                               showSecondsInNextPrayer: showSecondsInNextPrayer,
                               onShowSecondsInNextPrayer:
                                   _setShowSecondsInNextPrayer,
@@ -280,8 +285,6 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                               onEnableShadow: (value) => setState(() {
                                 CacheHelper.setEnableGlassEffect(value);
                               }),
-                              sliderTime: sliderTime,
-                              onSliderTime: _setSliderTime,
                               use24h: use24h,
                               fullTime: fullTime,
                               dimPrev: dimPrev,
@@ -343,6 +346,10 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                                           _setPutPrayerTimesTitleInCenter,
                                       putPrayerTimeTitlesInCenter:
                                           putPrayerTimesTitleInCenter,
+                                      onPutPrayerTimeTitlesInCenterInPortrait:
+                                          _setPutPrayerTimesTitleInCenterInPortrait,
+                                      putPrayerTimeTitlesInCenterInPortrait:
+                                          putPrayerTimesTitleInCenterInPortrait,
                                       showSecondsInNextPrayer:
                                           showSecondsInNextPrayer,
                                       onShowSecondsInNextPrayer:
@@ -378,8 +385,6 @@ class _AdditionalSettingsScreenState extends State<AdditionalSettingsScreen> {
                                       }),
                                       enableShadow:
                                           CacheHelper.getEnableGlassEffect(),
-                                      onSliderTime: _setSliderTime,
-                                      sliderTime: sliderTime,
 
                                       use24h: use24h,
                                       fullTime: fullTime,
@@ -486,8 +491,6 @@ class _PortraitContent extends StatelessWidget {
     required this.onArabicNumbers,
     required this.onCheckInternet,
     required this.onRefresh,
-    required this.sliderTime,
-    required this.onSliderTime,
     required this.enableShadow,
     required this.onEnableShadow,
     required this.morningAzkarEnabled,
@@ -508,6 +511,8 @@ class _PortraitContent extends StatelessWidget {
     required this.onShowIqamaCountdownLastMinuteOnly,
     required this.putPrayerTimesInNextPrayer,
     required this.onPutPrayerTimesInNextPrayer,
+    required this.putPrayerTimesInPortraitCenter,
+    required this.onPutPrayerTimesInPortraitCenter,
     required this.getEnlargeAdhanAndIqamaTimeInLandeScape,
     required this.onEnlargeAdhanAndIqamaTimeInLandeScape,
     required this.hideIqamahTimes,
@@ -529,6 +534,7 @@ class _PortraitContent extends StatelessWidget {
   final int hadithDisplaySeconds;
   final void Function(int) onHadithDisplaySeconds;
   final bool putPrayerTimesInNextPrayer;
+  final bool putPrayerTimesInPortraitCenter;
   final bool morningAzkarEnabled;
   final bool eveningAzkarEnabled;
   final int morningWindowMinutes;
@@ -542,6 +548,7 @@ class _PortraitContent extends StatelessWidget {
   final void Function(int) onMorningWindowMinutes;
   final void Function(int) onEveningWindowMinutes;
   final void Function(bool) onPutPrayerTimesInNextPrayer;
+  final void Function(bool) onPutPrayerTimesInPortraitCenter;
   final bool afterPrayerAzkarEnabled;
   final int afterPrayerWindowMinutes;
 
@@ -561,10 +568,6 @@ class _PortraitContent extends StatelessWidget {
   final bool arabicNumbers;
   final bool checkInternet;
   final bool enableShadow;
-
-  final int sliderTime;
-
-  final void Function(int) onSliderTime;
 
   final Future<void> Function(bool) onUse24h;
   final void Function(bool) onFullTime;
@@ -677,13 +680,10 @@ class _PortraitContent extends StatelessWidget {
           value: putPrayerTimesInNextPrayer,
         ),
         VerticalSpace(height: 12),
-
-        PlusAndMinusWidget(
-          duration: LocaleKeys.second.tr(),
-          title: LocaleKeys.zekr_appear_duration.tr(),
-          onChange: onSliderTime,
-          value: sliderTime,
-          layout: PlusMinusLayout.wrap,
+        CustomCheckTile(
+          onChanged: onPutPrayerTimesInPortraitCenter,
+          title: LocaleKeys.put_prayers_titles_in_center_in_portrait.tr(),
+          value: putPrayerTimesInPortraitCenter,
         ),
         VerticalSpace(height: 12),
 
@@ -836,9 +836,6 @@ class _LandscapeLeftPanel extends StatelessWidget {
     required this.onArabicNumbers,
     required this.onCheckInternet,
     required this.onRefresh,
-
-    required this.sliderTime,
-    required this.onSliderTime,
     required this.enableShadow,
     required this.onEnableShadow,
     required this.morningAzkarEnabled,
@@ -863,6 +860,8 @@ class _LandscapeLeftPanel extends StatelessWidget {
     required this.putPrayerTimeTitlesInCenter,
 
     required this.onPutPrayerTimeTitlesInCenter,
+    required this.putPrayerTimeTitlesInCenterInPortrait,
+    required this.onPutPrayerTimeTitlesInCenterInPortrait,
 
     required this.getEnlargeAdhanAndIqamaTimeInLandeScape,
 
@@ -882,7 +881,6 @@ class _LandscapeLeftPanel extends StatelessWidget {
   final bool showAzanScreen;
   final bool arabicNumbers;
   final bool checkInternet;
-  final int sliderTime;
   final bool enableShadow;
   final bool showSecondsInNextPrayer;
   final bool showIqamaCountdownLastMinuteOnly;
@@ -899,7 +897,6 @@ class _LandscapeLeftPanel extends StatelessWidget {
 
   final void Function(bool) onShowSecondsInNextPrayer;
   final void Function(bool) onShowIqamaCountdownLastMinuteOnly;
-  final void Function(int) onSliderTime;
   final void Function(bool) onEnableShadow;
 
   final Future<void> Function(bool) onUse24h;
@@ -914,8 +911,10 @@ class _LandscapeLeftPanel extends StatelessWidget {
   final int morningWindowMinutes;
   final int eveningWindowMinutes;
   final bool putPrayerTimeTitlesInCenter;
+  final bool putPrayerTimeTitlesInCenterInPortrait;
 
   final void Function(bool) onPutPrayerTimeTitlesInCenter;
+  final void Function(bool) onPutPrayerTimeTitlesInCenterInPortrait;
 
   final void Function(bool) onMorningAzkarEnabled;
   final void Function(bool) onEveningAzkarEnabled;
@@ -1026,14 +1025,14 @@ class _LandscapeLeftPanel extends StatelessWidget {
           title: LocaleKeys.put_prayers_titles_in_center_in_landscape.tr(),
           value: putPrayerTimeTitlesInCenter,
         ),
+        VerticalSpace(height: 10),
 
-        PlusAndMinusWidget(
-          duration: LocaleKeys.second.tr(),
-          title: LocaleKeys.zekr_appear_duration.tr(),
-          onChange: onSliderTime,
-          value: sliderTime,
+        CustomCheckTile(
+          onChanged: onPutPrayerTimeTitlesInCenterInPortrait,
+          title: LocaleKeys.put_prayers_titles_in_center_in_portrait.tr(),
+          value: putPrayerTimeTitlesInCenterInPortrait,
         ),
-        VerticalSpace(height: 8),
+
         const _DividerLine(),
         VerticalSpace(height: 10),
 

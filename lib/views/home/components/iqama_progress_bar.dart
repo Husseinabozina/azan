@@ -20,6 +20,7 @@ class IqamaProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final double effectiveHeight = height ?? 24.h;
     final double effectiveWidth = width ?? 1.sw * 0.8;
+    final hasLabel = label.trim().isNotEmpty;
 
     return Container(
       width: effectiveWidth,
@@ -59,29 +60,30 @@ class IqamaProgressBar extends StatelessWidget {
             ),
           ),
           // Label Text centered inside
-          Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.w),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: (effectiveHeight * 0.55).sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.accentColor,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black45,
-                        offset: Offset(0, 1.h),
-                        blurRadius: 2.r,
-                      ),
-                    ],
+          if (hasLabel)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: (effectiveHeight * 0.55).sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.accentColor,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black45,
+                          offset: Offset(0, 1.h),
+                          blurRadius: 2.r,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

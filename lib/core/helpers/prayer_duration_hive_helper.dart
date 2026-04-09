@@ -3,9 +3,28 @@ import 'package:hive/hive.dart';
 class PrayerDurationHiveHelper {
   static const String _boxName = 'prayer_duration_box';
   static const String _minutesKey = 'prayer_durations_minutes';
+  static Future<Box>? _openingBox;
 
   static Future<Box> _openBox() async {
-    return await Hive.openBox(_boxName);
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box(_boxName);
+    }
+
+    final inFlight = _openingBox;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = Hive.openBox(_boxName);
+    _openingBox = future;
+
+    try {
+      return await future;
+    } finally {
+      if (identical(_openingBox, future)) {
+        _openingBox = null;
+      }
+    }
   }
 
   /// قراءة مدة الصلاة (بالدقائق) لكل الصلوات

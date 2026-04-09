@@ -228,6 +228,7 @@
 
   "default_app_logo":"الشعار الإفتراضي",
   "put_prayers_titles_in_center_in_landscape":"وضع أسماء الصلوات في المنتصف في العرض الأفقي"
+  ,"put_prayers_titles_in_center_in_portrait":"وضع أسماء الصلوات في المنتصف في الوضع العمودي"
 ,"enlarge_iqama_and_adhan_in_landscape":"تكبير الإقامة والائذان في وضع العرض الأفقي"
 ,"hide_iqamah_times": "ساعة المنزل- اخفاء أوقات الاقامة"
 ,"enlarge_remaining_time_counter": "تكبير عداد المتبقي للصلاة القادمة",
@@ -236,6 +237,43 @@
   "hadith_display_seconds": "ثانية قبل الإقامة",
   "hadith_text_arabic": "قال رسول الله ﷺ: \"من صلى على واحدة صلى الله عليه عشراً\"",
   "hadith_text_english": "The Prophet Muhammad ﷺ said: \"Whoever sends blessings upon me once, Allah sends blessings upon him ten times\"",
+  "display_board_mode": "وضع لوحات العرض",
+  "display_board_management": "إدارة لوحات العرض",
+  "display_board_note": "أنشئ شاشة عرض بديلة تعرض رسالة كبيرة مع المواقيت والساعة بشكل مناسب للشاشات العامة.",
+  "display_board_enabled": "مفعل الآن",
+  "display_board_disabled": "غير مفعل",
+  "display_board_enable": "تفعيل لوحات العرض",
+  "display_board_return_main": "العودة للرئيسية",
+  "display_board_title": "العنوان",
+  "display_board_body": "النص",
+  "display_board_pinned": "مثبت",
+  "display_board_active": "مفعل",
+  "display_board_inactive": "غير مفعل",
+  "display_board_pin": "تثبيت",
+  "display_board_rotation_duration": "مدة تدوير اللوحات",
+  "display_board_empty_state": "لا توجد لوحات عرض مفعلة بعد",
+  "display_board_add_announcement": "إضافة لوحة",
+  "display_board_edit_announcement": "تحرير اللوحة",
+  "display_board_title_size": "حجم العنوان",
+  "display_board_body_size": "حجم النص",
+  "display_board_title_font": "خط العنوان",
+  "display_board_body_font": "خط النص",
+  "display_board_title_color": "لون العنوان",
+  "display_board_body_color": "لون النص",
+  "display_board_preview_title": "تنبيه مهم",
+  "display_board_preview_body": "هذا مثال حي لشكل الرسالة على الشاشة.",
+  "display_board_move_up": "تحريك لأعلى",
+  "display_board_move_down": "تحريك لأسفل",
+  "display_board_no_title": "بدون عنوان",
+  "prayer_calendar_title": "تقويم المواقيت الهجري",
+  "prayer_calendar_note": "عرض السنة الهجرية الحالية كاملة، وحرر اليوم والأيام القادمة لضبط المواقيت وفق الجدول المحلي المعتمد.",
+  "prayer_calendar_editable_today_future": "اليوم والأيام القادمة قابلة للتحرير",
+  "prayer_calendar_read_only_past": "الأيام الماضية للعرض فقط",
+  "prayer_calendar_no_days": "لا توجد أيام محفوظة لهذه السنة بعد",
+  "prayer_calendar_hijri_year": "السنة الهجرية",
+  "prayer_calendar_gregorian": "الميلادي",
+  "prayer_calendar_edited": "تم التعديل",
+  "prayer_calendar_reset_day": "إعادة للأصل",
 
   "dialogs_examples_title": "أمثلة على Dialogs",
   "dialogs_examples_subtitle": "اضغط على أي زر لتجربة الـ Dialog",
@@ -296,6 +334,9 @@
   "please_fill_all_fields": "يرجى ملء جميع الحقول",
   "invalid_coordinates": "إحداثيات غير صحيحة",
   "latitude": "خط العرض",
-  "longitude": "خط الطول"
+  "longitude": "خط الطول",
+  "time_hour": "الساعة",
+  "time_minute": "الدقيقة",
+  "hijriPrayerCalendarTitle":"إدارة مواقيت الصلاة حسب توقيت أم القري"
 
 }

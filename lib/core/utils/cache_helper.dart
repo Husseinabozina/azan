@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:azan/core/helpers/azan_adjust_model.dart';
+import 'package:azan/core/models/display_board_schedule.dart';
+import 'package:azan/core/models/home_display_mode.dart';
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/latlng.dart';
 import 'package:azan/core/utils/constants.dart';
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
@@ -88,6 +89,24 @@ class CacheHelper {
   static const String _slidesEnabled = "_slidesEnabled";
   static const String _slidesRandomOrder = "_slidesRandomOrder";
   static const String _slidesDisplaySeconds = "_slidesDisplaySeconds";
+  static const String _homeDisplayMode = "_homeDisplayMode";
+  static const String _displayBoardRotationSeconds =
+      "_displayBoardRotationSeconds";
+  static const String _displayBoardTitleFontFamily =
+      "_displayBoardTitleFontFamily";
+  static const String _displayBoardBodyFontFamily =
+      "_displayBoardBodyFontFamily";
+  static const String _displayBoardTitleBold = "_displayBoardTitleBold";
+  static const String _displayBoardTitleItalic = "_displayBoardTitleItalic";
+  static const String _displayBoardBodyBold = "_displayBoardBodyBold";
+  static const String _displayBoardBodyItalic = "_displayBoardBodyItalic";
+  static const String _displayBoardTitleSize = "_displayBoardTitleSize";
+  static const String _displayBoardBodySize = "_displayBoardBodySize";
+  static const String _displayBoardTitleColorIndex =
+      "_displayBoardTitleColorIndex";
+  static const String _displayBoardBodyColorIndex =
+      "_displayBoardBodyColorIndex";
+  static const String _displayBoardSchedule = "_displayBoardSchedule";
   static const String _hijriOffsetDays = "_hijriOffsetDays"; // int: -2..+2
 
   static const String _hijriOffsetDir = "_hijriOffsetDir"; // int: 1 or -1
@@ -117,6 +136,8 @@ class CacheHelper {
       "_showIqamaCountdownLastMinuteOnly";
   static const _mosqueLogoPathKey = 'mosque_logo_path';
   static const _prayerTimeTileInCenter = "_prayerTimeTileInCenter";
+  static const _prayerTimeTileInCenterInPortrait =
+      "_prayerTimeTileInCenterInPortrait";
   static const _enlargeAdhanIqamaTimeInLandscape =
       "_enlargeAdhanIqamaTimeInLandscape";
   static const _hideIqamahTimes = "_hideIqamahTimes";
@@ -451,6 +472,15 @@ class CacheHelper {
 
   static bool getPrayerTimeTileInCenter() {
     return sharedPreferences.getBool(_prayerTimeTileInCenter) ?? false;
+  }
+
+  static Future<void> setPrayerTimeTileInCenterInPortrait(bool v) async {
+    await sharedPreferences.setBool(_prayerTimeTileInCenterInPortrait, v);
+  }
+
+  static bool getPrayerTimeTileInCenterInPortrait() {
+    return sharedPreferences.getBool(_prayerTimeTileInCenterInPortrait) ??
+        false;
   }
 
   // 1) Enable hiding during prayer
@@ -912,6 +942,156 @@ class CacheHelper {
 
   static Future<void> setBackgroundChangeMode(BackgroundChangeMode mode) async {
     await save(key: _kBgMode, value: mode.id);
+  }
+
+  static Future<void> setHomeDisplayMode(HomeDisplayMode mode) async {
+    await save(key: _homeDisplayMode, value: mode.id);
+  }
+
+  static HomeDisplayMode getHomeDisplayMode() {
+    return HomeDisplayMode.fromId(
+      sharedPreferences.getString(_homeDisplayMode),
+    );
+  }
+
+  static Future<void> setDisplayBoardRotationSeconds(int value) async {
+    await sharedPreferences.setInt(
+      _displayBoardRotationSeconds,
+      value.clamp(3, 120),
+    );
+  }
+
+  static int getDisplayBoardRotationSeconds() {
+    return sharedPreferences.getInt(_displayBoardRotationSeconds) ?? 10;
+  }
+
+  static Future<void> setDisplayBoardTitleFontFamily(String value) async {
+    await sharedPreferences.setString(_displayBoardTitleFontFamily, value);
+  }
+
+  static String getDisplayBoardTitleFontFamily() {
+    return sharedPreferences.getString(_displayBoardTitleFontFamily) ??
+        sultanFont;
+  }
+
+  static Future<void> setDisplayBoardBodyFontFamily(String value) async {
+    await sharedPreferences.setString(_displayBoardBodyFontFamily, value);
+  }
+
+  static String getDisplayBoardBodyFontFamily() {
+    return sharedPreferences.getString(_displayBoardBodyFontFamily) ??
+        amiriFont;
+  }
+
+  static Future<void> setDisplayBoardTitleBold(bool value) async {
+    await sharedPreferences.setBool(_displayBoardTitleBold, value);
+  }
+
+  static bool getDisplayBoardTitleBold() {
+    return sharedPreferences.getBool(_displayBoardTitleBold) ?? false;
+  }
+
+  static Future<void> setDisplayBoardTitleItalic(bool value) async {
+    await sharedPreferences.setBool(_displayBoardTitleItalic, value);
+  }
+
+  static bool getDisplayBoardTitleItalic() {
+    return sharedPreferences.getBool(_displayBoardTitleItalic) ?? false;
+  }
+
+  static Future<void> setDisplayBoardBodyBold(bool value) async {
+    await sharedPreferences.setBool(_displayBoardBodyBold, value);
+  }
+
+  static bool getDisplayBoardBodyBold() {
+    return sharedPreferences.getBool(_displayBoardBodyBold) ?? false;
+  }
+
+  static Future<void> setDisplayBoardBodyItalic(bool value) async {
+    await sharedPreferences.setBool(_displayBoardBodyItalic, value);
+  }
+
+  static bool getDisplayBoardBodyItalic() {
+    return sharedPreferences.getBool(_displayBoardBodyItalic) ?? false;
+  }
+
+  static Future<void> setDisplayBoardTitleSize(int value) async {
+    await sharedPreferences.setInt(
+      _displayBoardTitleSize,
+      value.clamp(30, 120),
+    );
+  }
+
+  static int getDisplayBoardTitleSize() {
+    return sharedPreferences.getInt(_displayBoardTitleSize) ?? 60;
+  }
+
+  static Future<void> setDisplayBoardBodySize(int value) async {
+    await sharedPreferences.setInt(_displayBoardBodySize, value.clamp(18, 90));
+  }
+
+  static int getDisplayBoardBodySize() {
+    return sharedPreferences.getInt(_displayBoardBodySize) ?? 34;
+  }
+
+  static Future<void> setDisplayBoardTitleColorIndex(int value) async {
+    await sharedPreferences.setInt(_displayBoardTitleColorIndex, value);
+  }
+
+  static int getDisplayBoardTitleColorIndex() {
+    return sharedPreferences.getInt(_displayBoardTitleColorIndex) ?? 0;
+  }
+
+  static Future<void> setDisplayBoardBodyColorIndex(int value) async {
+    await sharedPreferences.setInt(_displayBoardBodyColorIndex, value);
+  }
+
+  static int getDisplayBoardBodyColorIndex() {
+    return sharedPreferences.getInt(_displayBoardBodyColorIndex) ?? 1;
+  }
+
+  static Future<void> setDisplayBoardSchedule(
+    DisplayBoardSchedule schedule,
+  ) async {
+    await sharedPreferences.setString(
+      _displayBoardSchedule,
+      jsonEncode(schedule.toMap()),
+    );
+  }
+
+  static DisplayBoardSchedule? getDisplayBoardSchedule() {
+    final raw = sharedPreferences.getString(_displayBoardSchedule);
+    if (raw == null || raw.isEmpty) return null;
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return null;
+      return DisplayBoardSchedule.fromMap(decoded);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> clearDisplayBoardSchedule() async {
+    await sharedPreferences.remove(_displayBoardSchedule);
+  }
+
+  static Future<void> setDisplayBoardScheduleDismissedUntil(
+    DateTime? dismissedUntilEndAt,
+  ) async {
+    final current = getDisplayBoardSchedule();
+    if (current == null) return;
+
+    await setDisplayBoardSchedule(
+      current.copyWith(
+        dismissedUntilEndAt: dismissedUntilEndAt,
+        clearDismissedUntilEndAt: dismissedUntilEndAt == null,
+      ),
+    );
+  }
+
+  static DateTime? getDisplayBoardScheduleDismissedUntil() {
+    return getDisplayBoardSchedule()?.dismissedUntilEndAt;
   }
 
   static BackgroundChangeMode getBackgroundChangeMode() {

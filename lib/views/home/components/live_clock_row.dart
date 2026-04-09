@@ -94,35 +94,39 @@ class _LiveClockRowState extends State<LiveClockRow> {
   @override
   Widget build(BuildContext context) {
     final period = _periodLabel(context);
-    return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _formattedTime(),
-            style: TextStyle(
-              fontFamily: CacheHelper.getTimeFontFamily(),
-              fontSize: widget.timeFontSize,
-              fontWeight: FontWeight.bold,
-              color: widget.textColor ?? AppTheme.secondaryTextColor,
-              letterSpacing: 3.w,
-            ),
-          ),
-          if (widget.withIndicator) HorizontalSpace(width: 10),
-          if (widget.withIndicator)
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 1.h),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
             Text(
-              period ?? '',
-
+              _formattedTime(),
               style: TextStyle(
                 fontFamily: CacheHelper.getTimeFontFamily(),
+                fontSize: widget.timeFontSize,
                 fontWeight: FontWeight.bold,
-
-                fontSize: widget.periodFontSize,
-
-                color: widget.textColor ?? AppTheme.primaryTextColor,
+                color: widget.textColor ?? AppTheme.secondaryTextColor,
+                letterSpacing: 3.w,
+                height: 1.08,
               ),
             ),
-        ],
+            if (widget.withIndicator) HorizontalSpace(width: 10),
+            if (widget.withIndicator)
+              Text(
+                period ?? '',
+                style: TextStyle(
+                  fontFamily: CacheHelper.getTimeFontFamily(),
+                  fontWeight: FontWeight.bold,
+                  fontSize: widget.periodFontSize,
+                  color: widget.textColor ?? AppTheme.primaryTextColor,
+                  height: 1.08,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

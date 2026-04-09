@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
+import '../utils/dialoge_helper.dart';
 
 void showCircularDialogue(BuildContext context) {
-  showDialog(
-    barrierDismissible: false,
+  showAppDialog(
     context: context,
-
+    barrierDismissible: false,
     builder: (ctx) {
-      return Center(
-        child: CircularProgressIndicator(color: AppTheme.primaryTextColor),
+      return UniversalDialogShell(
+        customMaxWidth: 160,
+        customMaxHeight: 160,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: DialogPalette.primaryButtonBackground,
+          ),
+        ),
       );
     },
   );

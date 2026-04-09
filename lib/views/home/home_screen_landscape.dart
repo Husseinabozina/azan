@@ -16,6 +16,7 @@ import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/core/utils/selection_dialoge.dart';
 import 'package:azan/core/utils/temp_icon_result.dart';
@@ -24,6 +25,7 @@ import 'package:azan/views/additional_settings/components/azkar_time_helper.dart
 import 'package:azan/views/home/azan_prayer_screen.dart';
 import 'package:azan/views/home/components/RotatingAyahBanner.dart';
 import 'package:azan/views/home/components/azkar_view.dart';
+import 'package:azan/views/home/components/black_screen_info_overlay.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
@@ -364,7 +366,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
 
     int clampMinutes(int v) => v.clamp(1, 600); // 1..600 دقيقة
 
-    await showDialog(
+    await showAppDialog(
       context: context,
       builder: (ctx) {
         return StatefulBuilder(
@@ -375,73 +377,70 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
               required VoidCallback onMinus,
               required VoidCallback onPlus,
             }) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.sp,
+              return DialogContentCard(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          color: DialogPalette.bodyTextColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: onMinus,
-                    icon: Icon(
-                      Icons.remove_circle_outline,
-                      color: AppTheme.primaryTextColor,
+                    IconButton(
+                      onPressed: onMinus,
+                      icon: const Icon(
+                        Icons.remove_circle_outline_rounded,
+                        color: DialogPalette.primaryButtonBackground,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '$value',
-                    style: TextStyle(
-                      color: AppTheme.secondaryTextColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
+                    Text(
+                      '$value',
+                      style: TextStyle(
+                        color: DialogPalette.titleTextColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: onPlus,
-                    icon: Icon(
-                      Icons.add_circle_outline,
-                      color: AppTheme.primaryTextColor,
+                    IconButton(
+                      onPressed: onPlus,
+                      icon: const Icon(
+                        Icons.add_circle_outline_rounded,
+                        color: DialogPalette.primaryButtonBackground,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 6.w),
-                  Text(
-                    'دقيقة',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor.withOpacity(.8),
-                      fontSize: 12.sp,
+                    SizedBox(width: 6.w),
+                    Text(
+                      'دقيقة',
+                      style: TextStyle(
+                        color: DialogPalette.mutedTextColor,
+                        fontSize: 12.sp,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }
 
-            return AlertDialog(
-              backgroundColor: Colors.black.withOpacity(0.85),
-              title: Text(
-                'إعدادات الأذكار',
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: SizedBox(
-                width: 420.w, // مناسب لعرض TV
+            return UniversalDialogShell(
+              customMaxWidth: 420.w,
+              child: SizedBox(
+                width: 420.w,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const DialogTitle('إعدادات الأذكار'),
+                    SizedBox(height: 12.h),
                     SwitchListTile(
                       value: morningEnabled,
-                      activeColor: AppTheme.secondaryTextColor,
+                      activeColor: DialogPalette.primaryButtonBackground,
                       title: Text(
                         'تفعيل أذكار الصباح',
                         style: TextStyle(
-                          color: AppTheme.primaryTextColor,
+                          color: DialogPalette.bodyTextColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -460,11 +459,11 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                     SizedBox(height: 12.h),
                     SwitchListTile(
                       value: eveningEnabled,
-                      activeColor: AppTheme.secondaryTextColor,
+                      activeColor: DialogPalette.primaryButtonBackground,
                       title: Text(
                         'تفعيل أذكار المساء',
                         style: TextStyle(
-                          color: AppTheme.primaryTextColor,
+                          color: DialogPalette.bodyTextColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -480,40 +479,33 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                         eveningMinutes = clampMinutes(eveningMinutes + 5);
                       }),
                     ),
+                    SizedBox(height: 16.h),
+                    DialogButtonRow(
+                      leftButton: DialogButton(
+                        text: 'إلغاء',
+                        variant: DialogButtonVariant.secondary,
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                      rightButton: DialogButton(
+                        text: 'حفظ',
+                        onPressed: () async {
+                          await CacheHelper.setMorningAzkarEnabled(morningEnabled);
+                          await CacheHelper.setEveningAzkarEnabled(eveningEnabled);
+                          await CacheHelper.setMorningAzkarWindowMinutes(
+                            morningMinutes,
+                          );
+                          await CacheHelper.setEveningAzkarWindowMinutes(
+                            eveningMinutes,
+                          );
+                          unawaited(cubit.assignAdhkar());
+                          if (mounted) setState(() {});
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(
-                    'إلغاء',
-                    style: TextStyle(color: AppTheme.primaryTextColor),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    await CacheHelper.setMorningAzkarEnabled(morningEnabled);
-                    await CacheHelper.setEveningAzkarEnabled(eveningEnabled);
-                    await CacheHelper.setMorningAzkarWindowMinutes(
-                      morningMinutes,
-                    );
-                    await CacheHelper.setEveningAzkarWindowMinutes(
-                      eveningMinutes,
-                    );
-
-                    // ✅ عشان لو محتوى الأذكار بيتغير حسب الوقت
-                    unawaited(cubit.assignAdhkar());
-
-                    if (mounted) setState(() {});
-                    if (ctx.mounted) Navigator.pop(ctx);
-                  },
-                  child: Text(
-                    'حفظ',
-                    style: TextStyle(color: AppTheme.secondaryTextColor),
-                  ),
-                ),
-              ],
             );
           },
         );
@@ -659,6 +651,16 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                     fit: BoxFit.cover,
                   ),
                 ),
+                if (AppTheme.backgroundReadabilityOverlayAlpha > 0)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: ColoredBox(
+                        color: Colors.black.withValues(
+                          alpha: AppTheme.backgroundReadabilityOverlayAlpha,
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // Main fixed-grid layout
                 SafeArea(
@@ -738,6 +740,10 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                                                 prayerStyle: prayerStyle,
                                                 adhanStyle: adhanStyle,
                                                 iqamaStyle: iqamaStyle,
+                                                onBackgroundChanged: () {
+                                                  if (!mounted) return;
+                                                  setState(() {});
+                                                },
                                               ),
                                             ),
                                             //  _PrayerTableFixed(
@@ -830,8 +836,14 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                 FutureBuilder<bool>(
                   future: _hideFuture,
                   builder: (context, snapshot) {
+                    final currentPrayerId = cubit.currentPrayer?.id;
+                    final hideAfterCurrentPrayerEnabled = currentPrayerId == 6
+                        ? CacheHelper.getHideScreenAfterIshaaEnabled()
+                        : currentPrayerId == 2
+                        ? CacheHelper.getHideScreenAfterSunriseEnabled()
+                        : false;
                     final shouldHide =
-                        CacheHelper.getHideScreenAfterIshaaEnabled() &&
+                        hideAfterCurrentPrayerEnabled &&
                         (snapshot.data == true);
 
                     final azanActive =
@@ -856,11 +868,8 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                         }
                         // 2) ثاني أولوية: black screen
                         else if (shouldHide) {
-                          overlay = Container(
+                          overlay = BlackScreenInfoOverlay(
                             key: const ValueKey('black_screen'),
-                            height: 1.sh,
-                            width: 1.sw,
-                            color: Colors.black,
                           );
                         }
                         // 3) ثالث أولوية: Azkar
@@ -873,7 +882,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                             onTap: _azkarOverlay.dismissForNow,
                             child: AzkarView(
                               azkarType: w.type,
-                              // prayerId: w.prayerId,
+                              prayerId: w.prayerId,
                             ),
                           );
                         }

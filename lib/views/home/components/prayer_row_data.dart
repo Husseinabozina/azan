@@ -1,8 +1,6 @@
-import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
@@ -37,6 +35,8 @@ class PrayerGlassRow extends StatelessWidget {
     required this.textStyleAdhan,
     required this.textStyleIqama,
     required this.rowHeight,
+    this.centerPrayerColumn = false,
+    this.onBackgroundChanged,
     this.outerMargin, // ✅ جديد
   });
 
@@ -46,27 +46,28 @@ class PrayerGlassRow extends StatelessWidget {
   final TextStyle textStyleAdhan;
   final TextStyle textStyleIqama;
   final double rowHeight;
+  final bool centerPrayerColumn;
+  final VoidCallback? onBackgroundChanged;
 
   final EdgeInsetsDirectional? outerMargin;
 
-  void _handleBackgroundChange(String s) {
+  Future<void> _handleBackgroundChange(String s) async {
     if (data.prayerName == LocaleKeys.fajr.tr() && s == LocaleKeys.fajr.tr()) {
-      if (CacheHelper.getBackgroundThemeIndex() == 0) {
-        CacheHelper.setBackgroundThemeIndex(BackgroundThemes.all.length - 1);
-      }
-
-      CacheHelper.setBackgroundThemeIndex(
-        CacheHelper.getBackgroundThemeIndex() - 1,
-      );
+      final currentIndex = CacheHelper.getBackgroundThemeIndex();
+      final nextIndex = currentIndex == 0
+          ? BackgroundThemes.all.length - 1
+          : currentIndex - 1;
+      await CacheHelper.setBackgroundChangeMode(BackgroundChangeMode.manual);
+      await CacheHelper.setBackgroundThemeIndex(nextIndex);
+      onBackgroundChanged?.call();
     } else if (data.prayerName == LocaleKeys.fajr.tr() && s == data.adhanTime) {
-      if (CacheHelper.getBackgroundThemeIndex() ==
-          BackgroundThemes.all.length - 1) {
-        CacheHelper.setBackgroundThemeIndex(0);
-      } else {
-        CacheHelper.setBackgroundThemeIndex(
-          CacheHelper.getBackgroundThemeIndex() + 1,
-        );
-      }
+      final currentIndex = CacheHelper.getBackgroundThemeIndex();
+      final nextIndex = currentIndex == BackgroundThemes.all.length - 1
+          ? 0
+          : currentIndex + 1;
+      await CacheHelper.setBackgroundChangeMode(BackgroundChangeMode.manual);
+      await CacheHelper.setBackgroundThemeIndex(nextIndex);
+      onBackgroundChanged?.call();
     }
   }
 
@@ -78,13 +79,9 @@ class PrayerGlassRow extends StatelessWidget {
               : 1.0
         : 1.0;
 
-    final vPad = rowHeight * 0.18; // بدون clamp زي ما طلبت
-
     Widget cellText(String s, TextStyle st, {String? nextTime}) {
       return GestureDetector(
-        onTap: () {
-          _handleBackgroundChange(s);
-        },
+        onTap: () async => _handleBackgroundChange(s),
         child: Opacity(
           opacity: opacity,
           child: FittedBox(
@@ -124,6 +121,7 @@ class PrayerGlassRow extends StatelessWidget {
         margin: outerMargin ?? EdgeInsetsDirectional.zero, // ✅ هنا
         padding: EdgeInsetsDirectional.only(start: 12.w, end: 12.w),
         child: Prayer3Cols(
+          centerPrayerColumn: centerPrayerColumn,
           prayer: cellText(
             data.prayerName,
             textStylePrayer,
@@ -143,6 +141,7 @@ class Prayer3Cols extends StatelessWidget {
     required this.prayer,
     required this.adhan,
     required this.iqama,
+    this.centerPrayerColumn = false,
     this.startAlignment = AlignmentDirectional.centerStart,
     this.centerAlignment = AlignmentDirectional.center,
     this.endAlignment = AlignmentDirectional.centerEnd,
@@ -151,24 +150,27 @@ class Prayer3Cols extends StatelessWidget {
   final Widget prayer; // ✅ start
   final Widget adhan; // ✅ center
   final Widget iqama; // ✅ end
+  final bool centerPrayerColumn;
   final AlignmentDirectional startAlignment;
   final AlignmentDirectional centerAlignment;
   final AlignmentDirectional endAlignment;
 
   @override
   Widget build(BuildContext context) {
+    final children = centerPrayerColumn
+        ? <Widget>[
+            Expanded(child: Align(alignment: startAlignment, child: adhan)),
+            Expanded(child: Align(alignment: centerAlignment, child: prayer)),
+            Expanded(child: Align(alignment: endAlignment, child: iqama)),
+          ]
+        : <Widget>[
+            Expanded(child: Align(alignment: startAlignment, child: prayer)),
+            Expanded(child: Align(alignment: centerAlignment, child: adhan)),
+            Expanded(child: Align(alignment: endAlignment, child: iqama)),
+          ];
+
     return Row(
-      children: [
-        Expanded(
-          child: Align(alignment: startAlignment, child: prayer),
-        ),
-        Expanded(
-          child: Align(alignment: centerAlignment, child: adhan),
-        ),
-        Expanded(
-          child: Align(alignment: endAlignment, child: iqama),
-        ),
-      ],
+      children: children,
     );
   }
 }

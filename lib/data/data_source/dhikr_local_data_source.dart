@@ -3,9 +3,28 @@ import 'package:hive/hive.dart';
 
 class DhikrLocalDataSource {
   static const _boxName = 'dhikr_box';
+  static Future<Box>? _openingBox;
 
   Future<Box> _openBox() async {
-    return Hive.openBox(_boxName);
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box(_boxName);
+    }
+
+    final inFlight = _openingBox;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = Hive.openBox(_boxName);
+    _openingBox = future;
+
+    try {
+      return await future;
+    } finally {
+      if (identical(_openingBox, future)) {
+        _openingBox = null;
+      }
+    }
   }
 
   Future<void> saveDhikrList(List<Dhikr> list) async {

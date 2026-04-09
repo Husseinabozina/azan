@@ -17,14 +17,19 @@ class AppTheme {
   static const Color _softWhite = Color(0xFFEAEFF6);
   static const Color _brownDark = Color(0xFF3A2415);
   static const Color _brown = Color(0xFF5A3520);
-  static const Color _brown2 = Color(0xFF8A5A35);
+  static const Color _bronze = Color(0xFF8C5C24);
   static const Color _teal = Color(0xFF3BAFBF);
+  static const Color _tealDeep = Color(0xFF236C72);
   static const Color _blue = Color(0xFF5FA8D3);
+  static const Color _displayBoardPrimaryFallback = _softWhite;
+  static const Color _displayBoardSecondaryFallback = Color(0xFFD8E7FF);
+  static const Color _displayBoardAccentFallback = _goldText;
+  static const Color _displayBoardSurfaceReference = Color(0xFF12171D);
 
   static const _ThemePack _vrLightPack = _ThemePack(
     primaryText: _brownDark,
-    secondaryText: _brown2,
-    accent: _gold,
+    secondaryText: _brown,
+    accent: _bronze,
     baseBg: Color(0xFFF4E8D8),
     dialogBg: _brown,
     appBarForeground: _brownDark,
@@ -66,6 +71,24 @@ class AppTheme {
     appBarForeground: _creamText,
   );
 
+  static const _ThemePack _blueHighContrastPack = _ThemePack(
+    primaryText: _softWhite,
+    secondaryText: Color(0xFFDDEBFF),
+    accent: _goldText,
+    baseBg: Color(0xFF103A61),
+    dialogBg: Color(0xFF0B2238),
+    appBarForeground: _softWhite,
+  );
+
+  static const _ThemePack _redHighContrastPack = _ThemePack(
+    primaryText: _softWhite,
+    secondaryText: Color(0xFFFFF1E3),
+    accent: _goldText,
+    baseBg: Color(0xFF5A1115),
+    dialogBg: Color(0xFF2B0D10),
+    appBarForeground: _softWhite,
+  );
+
   // =========================
   // THEME PACK
   // =========================
@@ -102,9 +125,9 @@ class AppTheme {
       dialogBg: Color(0xFF032D25),
     ),
     Assets.images.backgroundLight2.path: const _ThemePack(
-      primaryText: _brown,
-      secondaryText: _brown2,
-      accent: _gold,
+      primaryText: _brownDark,
+      secondaryText: _brown,
+      accent: _bronze,
       baseBg: Color(0xFFF7EDE0),
       dialogBg: _brown,
     ),
@@ -134,9 +157,9 @@ class AppTheme {
       dialogBg: Color(0xFF1E1715),
     ),
     Assets.images.lightBackground1.path: const _ThemePack(
-      primaryText: _brown,
-      secondaryText: _brown2,
-      accent: _gold,
+      primaryText: _brownDark,
+      secondaryText: _brown,
+      accent: _bronze,
       baseBg: Color(0xFFFCF3E6),
       dialogBg: _brown,
     ),
@@ -163,8 +186,8 @@ class AppTheme {
     ),
     Assets.images.whiteBackgroundWithNaqsh.path: const _ThemePack(
       primaryText: _brownDark,
-      secondaryText: _brown2,
-      accent: _gold,
+      secondaryText: _brown,
+      accent: _bronze,
       baseBg: Color(0xFFFBF7F3),
       dialogBg: _brown,
     ),
@@ -174,8 +197,8 @@ class AppTheme {
     // =========================
     Assets.images.elegantTealArabesqueBackground.path: const _ThemePack(
       primaryText: _brownDark,
-      secondaryText: Color(0xFF6D4B35),
-      accent: _gold,
+      secondaryText: _brown,
+      accent: _tealDeep,
       baseBg: Color(0xFFEEF6F1),
       dialogBg: _brown,
     ),
@@ -187,23 +210,23 @@ class AppTheme {
       dialogBg: Color(0xFF2A0E12),
     ),
     Assets.images.convinentOliveGreenBackground.path: const _ThemePack(
-      primaryText: _creamText,
-      secondaryText: Color(0xFFFFFFFF),
+      primaryText: _softWhite,
+      secondaryText: Color(0xFFFFF3DD),
       accent: _teal,
       baseBg: Color(0xFF2F2C1B),
       dialogBg: Color(0xFF1F2418),
     ),
     Assets.images.convinentBeigeBackground.path: const _ThemePack(
       primaryText: _brownDark,
-      secondaryText: _brown2,
-      accent: _gold,
+      secondaryText: _brown,
+      accent: _bronze,
       baseBg: Color(0xFFFBF3E6),
       dialogBg: _brown,
     ),
     Assets.images.tealBlueBackground.path: const _ThemePack(
-      primaryText: _goldText,
+      primaryText: _softWhite,
       secondaryText: _softWhite,
-      accent: _gold,
+      accent: _goldText,
       baseBg: Color(0xFF0E3A4A),
       dialogBg: Color(0xFF0E3A4A),
     ),
@@ -219,13 +242,7 @@ class AppTheme {
       baseBg: Color(0xFF181614),
       dialogBg: Color(0xFF2D2520),
     ),
-    Assets.images.hr1.path: const _ThemePack(
-      primaryText: _brownDark,
-      secondaryText: _brown2,
-      accent: _gold,
-      baseBg: Color(0xFFFBF3E6),
-      dialogBg: _brown,
-    ),
+    Assets.images.hr1.path: _blueHighContrastPack,
     Assets.images.hr2.path: const _ThemePack(
       primaryText: _goldText,
       secondaryText: _softWhite,
@@ -233,13 +250,7 @@ class AppTheme {
       baseBg: Color(0xFF2A0E12),
       dialogBg: Color(0xFF1D0A0D),
     ),
-    Assets.images.hr3.path: const _ThemePack(
-      primaryText: _brownDark,
-      secondaryText: _brown2,
-      accent: _gold,
-      baseBg: Color(0xFFEEF6F1),
-      dialogBg: _brown,
-    ),
+    Assets.images.hr3.path: _redHighContrastPack,
     Assets.images.hr4.path: const _ThemePack(
       primaryText: _creamText,
       secondaryText: Color(0xFFFFFFFF),
@@ -278,7 +289,7 @@ class AppTheme {
       dialogBg: Color(0xFF1D0A0D),
     ),
     Assets.images.hr9.path: const _ThemePack(
-      primaryText: _goldText,
+      primaryText: _softWhite,
       secondaryText: _softWhite,
       accent: _gold,
       baseBg: Color(0xFF0B2A4A),
@@ -362,13 +373,7 @@ class AppTheme {
       dialogBg: Color(0xFF081C1D),
     ),
 
-    Assets.images.hr19.path: const _ThemePack(
-      primaryText: _brownDark,
-      secondaryText: _brown2,
-      accent: _gold,
-      baseBg: Color(0xFFE9F1F8),
-      dialogBg: _brown,
-    ),
+    Assets.images.hr19.path: _blueHighContrastPack,
     Assets.images.hr20.path: const _ThemePack(
       primaryText: _creamText,
       secondaryText: Color(0xFFFFFFFF),
@@ -536,21 +541,27 @@ class AppTheme {
     'assets/images/VR-1.jpg': _vrLightPack,
     'assets/images/VR-2.jpg': _vrRedPack,
     'assets/images/VR-3.jpg': _vrBluePack,
-    'assets/images/VR-4.jpg': _vrTealPack,
+    'assets/images/VR-4.jpg': _redHighContrastPack,
     'assets/images/VR-5.jpg': _vrRedPack,
-    'assets/images/VR-6.jpg': _vrBluePack,
+    'assets/images/VR-6.jpg': _redHighContrastPack,
     'assets/images/VR-7.jpg': _vrWarmPack,
-    'assets/images/VR-8.jpg': _vrBluePack,
-    'assets/images/VR-9.jpg': _vrRedPack,
-    'assets/images/VR-10.jpg': _vrTealPack,
+    'assets/images/VR-8.jpg': _redHighContrastPack,
+    'assets/images/VR-9.jpg': _redHighContrastPack,
+    'assets/images/VR-10.jpg': _redHighContrastPack,
     'assets/images/VR-11.jpg': _vrBluePack,
-    'assets/images/VR-12.jpg': _vrWarmPack,
+    'assets/images/VR-12.jpg': const _ThemePack(
+      primaryText: _softWhite,
+      secondaryText: Color(0xFFFFF3DD),
+      accent: _goldText,
+      baseBg: Color(0xFF4B2F1A),
+      dialogBg: Color(0xFF2A1A0F),
+    ),
     'assets/images/VR-13.jpg': _vrRedPack,
     'assets/images/VR-14.jpg': _vrBluePack,
-    'assets/images/VR-15.jpg': _vrRedPack,
+    'assets/images/VR-15.jpg': _redHighContrastPack,
     'assets/images/VR-16.jpg': _vrTealPack,
     'assets/images/VR-17.jpg': _vrBluePack,
-    'assets/images/VR-18.jpg': _vrTealPack,
+    'assets/images/VR-18.jpg': _redHighContrastPack,
     'assets/images/VR-19.jpg': _vrLightPack,
 
     // =========================
@@ -729,12 +740,24 @@ class AppTheme {
 
     // VR-39 — Red geometric pattern
     Assets.images.vr39.path: const _ThemePack(
-      primaryText: _goldText,
+      primaryText: _softWhite,
       secondaryText: _softWhite,
       accent: _teal,
       baseBg: Color(0xFF7A0F12),
       dialogBg: Color(0xFF2C0C0E),
     ),
+  };
+
+  static const Map<String, double> _backgroundReadabilityOverlayAlpha = {
+    'assets/images/VR-4.jpg': 0.68,
+    'assets/images/VR-6.jpg': 0.68,
+    'assets/images/VR-8.jpg': 0.68,
+    'assets/images/VR-9.jpg': 0.68,
+    'assets/images/VR-10.jpg': 0.68,
+    'assets/images/VR-18.jpg': 0.12,
+    'assets/images/convinent_olive_green_background.png': 0.18,
+    'assets/images/light_brown_background.png': 0.26,
+    'assets/images/teal_blue_background.png': 0.22,
   };
 
   static _ThemePack get _p =>
@@ -747,18 +770,35 @@ class AppTheme {
         dialogBg: Color(0xFF163A63),
       );
 
+  static const _ThemePack _homeTimedOverlayPack = _ThemePack(
+    primaryText: Color(0xFFE9C06B),
+    secondaryText: Color(0xFFFFFFFF),
+    accent: _blue,
+    baseBg: Color(0xFF1B375D),
+    dialogBg: Color(0xFF163A63),
+  );
+
   static bool get _isLightBase =>
       ThemeData.estimateBrightnessForColor(_p.baseBg) == Brightness.light;
+
+  static double get backgroundReadabilityOverlayAlpha =>
+      _backgroundReadabilityOverlayAlpha[_bg] ?? 0.0;
+
+  static double get homeBackgroundReadabilityOverlayAlpha =>
+      _backgroundReadabilityOverlayAlpha[Assets.images.home.path] ?? 0.0;
 
   // =========================
   // PRIMARY TEXT
   // =========================
   static Color get primaryTextColor => _p.primaryText;
+  static Color get homePrimaryTextColor => _homeTimedOverlayPack.primaryText;
 
   // =========================
   // SECONDARY TEXT
   // =========================
   static Color get secondaryTextColor => _p.secondaryText;
+  static Color get homeSecondaryTextColor =>
+      _homeTimedOverlayPack.secondaryText;
 
   static Color get appBarForegroundColor => _p.appBarForeground;
 
@@ -766,6 +806,7 @@ class AppTheme {
   // ACCENT
   // =========================
   static Color get accentColor => _p.accent;
+  static Color get homeAccentColor => _homeTimedOverlayPack.accent;
 
   // =========================
   // BASE BACKGROUND (بديل darkBlue)
@@ -797,6 +838,24 @@ class AppTheme {
     return brightness == Brightness.dark ? _softWhite : _brownDark;
   }
 
+  static Color get dialogMutedTextColor {
+    final brightness = ThemeData.estimateBrightnessForColor(
+      dialogBackgroundColor,
+    );
+    return dialogBodyTextColor.withValues(
+      alpha: brightness == Brightness.dark ? 0.74 : 0.68,
+    );
+  }
+
+  static Color get dialogIconColor {
+    final brightness = ThemeData.estimateBrightnessForColor(
+      dialogBackgroundColor,
+    );
+    return dialogBodyTextColor.withValues(
+      alpha: brightness == Brightness.dark ? 0.90 : 0.82,
+    );
+  }
+
   // =========================
   // BUTTON COLORS
   // =========================
@@ -807,9 +866,48 @@ class AppTheme {
   }
 
   static Color get primaryButtonTextColor {
-    // لو الـ base فاتح + زر دهبي: نص بني
-    if (_isLightBase) return _brown;
-    return const Color(0xFFFFFFFF);
+    final brightness = ThemeData.estimateBrightnessForColor(
+      primaryButtonBackground,
+    );
+    return brightness == Brightness.dark ? Colors.white : _brownDark;
+  }
+
+  static Color get displayBoardPrimaryTextColor => _ensureDisplayBoardContrast(
+    primaryTextColor,
+    fallback: _displayBoardPrimaryFallback,
+    minContrast: 7.0,
+  );
+
+  static Color get displayBoardSecondaryTextColor =>
+      _ensureDisplayBoardContrast(
+        secondaryTextColor,
+        fallback: _displayBoardSecondaryFallback,
+        minContrast: 4.5,
+      );
+
+  static Color get displayBoardAccentColor => _ensureDisplayBoardContrast(
+    accentColor,
+    fallback: _displayBoardAccentFallback,
+    minContrast: 3.0,
+  );
+
+  static Color _ensureDisplayBoardContrast(
+    Color candidate, {
+    required Color fallback,
+    required double minContrast,
+  }) {
+    return _contrastRatio(candidate, _displayBoardSurfaceReference) >=
+            minContrast
+        ? candidate
+        : fallback;
+  }
+
+  static double _contrastRatio(Color a, Color b) {
+    final l1 = a.computeLuminance();
+    final l2 = b.computeLuminance();
+    final bright = l1 > l2 ? l1 : l2;
+    final dark = l1 > l2 ? l2 : l1;
+    return (bright + 0.05) / (dark + 0.05);
   }
 
   static const List<Shadow> defaultTextShadow = [

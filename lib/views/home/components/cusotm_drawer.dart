@@ -2,40 +2,42 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
+import 'package:azan/core/helpers/display_board_schedule_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
-import 'package:azan/core/utils/device_kind_helper.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
-import 'package:azan/core/utils/native_orientation.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/about_app/about_app_screen.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
+import 'package:azan/views/display_board/display_board_settings_screen.dart';
+import 'package:azan/views/home/home_screen.dart';
+import 'package:azan/views/managed_azkar/managed_azkar_screen.dart';
+import 'package:azan/views/prayer_calendar/hijri_prayer_calendar_screen.dart';
 import 'package:azan/views/select_location/select_location_screen.dart';
-import 'package:azan/views/set_Iqama_azan_sound/set_iqama_azan_sound.dart';
 import 'package:azan/views/set_azan_iqama/set_azan_iqama_screen.dart';
 import 'package:azan/views/set_hide_screen/set_hide_screen.dart';
-import 'package:azan/views/set_iqama/set_iqama_screen.dart';
 import 'package:azan/views/slides/slides_screen.dart';
 import 'package:azan/views/weather_status/weather_status_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+
+const String _hijriPrayerCalendarTitle =
+    'إدارة مواقيت الصلاة حسب توقيت أم القري';
 
 /// ===============================
 /// CustomDrawer
@@ -51,20 +53,21 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  Locale _nextLocale(String locale) =>
-      locale == 'ar' ? const Locale('en') : const Locale('ar');
+  Future<void> _reopenHome() async {
+    final cubit = AppCubit();
+    await DisplayBoardScheduleResolver.switchBackToHomeMode(
+      items: cubit.displayAnnouncementList ?? const [],
+      now: DateTime.now(),
+      dismissCurrentScheduled: true,
+    );
+    await cubit.assignDisplayAnnouncements();
+    if (!mounted) return;
+    await AppNavigator.pushAndRemoveUntil(widget.context, const HomeScreen());
+  }
 
   @override
   Widget build(BuildContext context) {
-    final cubit = AppCubit.get(widget.context);
-
-    // ✅ 1) اقرأ وضع الـ UI مرة واحدة من Rotation Cubit
-    final int qt = 1; // 0 or 1
-
-    // ✅ 2) اشتقاق واضح
-
     bool isLandscape = UiRotationCubit().isLandscape();
-    final double vPad = isLandscape ? 6.h : 10.h;
 
     final String targetLabel = isLandscape
         ? LocaleKeys.portrait.tr()
@@ -107,15 +110,27 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
             ),
             _DrawerEntry(
+              title: LocaleKeys.morning_evening_adhkar.tr(),
+              onTap: () {
+                AppNavigator.push(context, const ManagedAzkarScreen());
+              },
+            ),
+            _DrawerEntry(
               title: LocaleKeys.view_slides.tr(),
               onTap: () {
                 AppNavigator.push(context, SlidesScreen());
               },
             ),
             _DrawerEntry(
+              title: LocaleKeys.display_board_management.tr(),
+              onTap: () {
+                AppNavigator.push(context, const DisplayBoardSettingsScreen());
+              },
+            ),
+            _DrawerEntry(
               title: LocaleKeys.change_app_logo.tr(),
               onTap: () {
-                showDialog(
+                showAppDialog(
                   context: context,
                   barrierDismissible: true,
                   builder: (context) {
@@ -134,17 +149,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               }
 
                               Navigator.pop(context); // اقفل الديالوج
-
-                              // اعمل refresh للهوم زي ما بتعمل في اللغة
-                              if (UiRotationCubit().isLandscape()) {
-                                AppCubit.get(
-                                  widget.context,
-                                ).homeScreenLandscape?.homeScreenWork();
-                              } else {
-                                AppCubit.get(
-                                  widget.context,
-                                ).homeScreenMobile?.homeScreenWork();
-                              }
+                              _reopenHome();
                             },
                           ),
                         ),
@@ -172,6 +177,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
               title: LocaleKeys.iqama_azan_settings.tr(),
               onTap: () {
                 AppNavigator.push(context, AzanAdjustScreen());
+              },
+            ),
+            _DrawerEntry(
+              title: _hijriPrayerCalendarTitle,
+              onTap: () {
+                AppNavigator.push(context, const HijriPrayerCalendarScreen());
               },
             ),
             _DrawerEntry(
@@ -308,13 +319,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   setState(() {
                     CacheHelper.setLang(code);
                   });
-                  isLandscape
-                      ? AppCubit.get(
-                          widget.context,
-                        ).homeScreenLandscape?.homeScreenWork()
-                      : AppCubit.get(
-                          widget.context,
-                        ).homeScreenMobile?.homeScreenWork();
+                  await _reopenHome();
                 },
               );
             },
@@ -496,6 +501,7 @@ class _LandscapeNoScrollGrid extends StatelessWidget {
 class _DrawerEntry {
   final String title;
   final VoidCallback onTap;
+
   _DrawerEntry({required this.title, required this.onTap});
 }
 
@@ -529,6 +535,7 @@ class DrawerListTile extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.symmetric(vertical: vPad),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 height: 9.h,
@@ -545,7 +552,12 @@ class DrawerListTile extends StatelessWidget {
               SizedBox(width: 10.w),
 
               // AutoSize عشان لو العنوان طويل في landscape ما يعملش overflow
-              Expanded(child: _DrawerTitleText(title: title)),
+              Expanded(
+                child: _DrawerTitleText(
+                  title: title,
+                  denseLandscape: denseLandscape,
+                ),
+              ),
             ],
           ),
         ),
@@ -555,8 +567,10 @@ class DrawerListTile extends StatelessWidget {
 }
 
 class _DrawerTitleText extends StatelessWidget {
-  const _DrawerTitleText({required this.title});
+  const _DrawerTitleText({required this.title, this.denseLandscape = false});
+
   final String title;
+  final bool denseLandscape;
 
   @override
   Widget build(BuildContext context) {
@@ -564,12 +578,14 @@ class _DrawerTitleText extends StatelessWidget {
       builder: (context, c) {
         return Text(
           title,
-          maxLines: 1,
+          maxLines: 2,
+          softWrap: true,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 24.sp,
+            fontSize: (denseLandscape ? 20 : 24).sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryTextColor,
+            height: 1.2,
           ),
         );
       },

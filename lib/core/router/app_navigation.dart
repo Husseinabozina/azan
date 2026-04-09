@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quran_app/views/login/login_page.dart'; // Import the LoginPage
+// import 'package:quran_app/views/login/login_page.dart'; // Import the LoginPage
 
 /// A smarter and reusable navigator utility for managing app navigation.
 class AppNavigator {
@@ -112,12 +112,14 @@ class AppNavigator {
   // --- Route Generation ---
   static Route<dynamic>? generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case loginRoute:
-        return MaterialPageRoute(builder: (_) => const LoginPage());
+      // case loginRoute:
+      //   return MaterialPageRoute(builder: (_) => const LoginPage());
       // case homeRoute:
       //   return MaterialPageRoute(builder: (_) => const HomePage()); // Example
       default:
-        return MaterialPageRoute(builder: (_) => const ErrorScreen()); // Handle unknown routes
+        return MaterialPageRoute(
+          builder: (_) => const ErrorScreen(),
+        ); // Handle unknown routes
     }
   }
 }
@@ -131,7 +133,9 @@ class ErrorScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Error')),
       body: Center(
-        child: Text('Route not found: ${ModalRoute.of(context)?.settings.name}'),
+        child: Text(
+          'Route not found: ${ModalRoute.of(context)?.settings.name}',
+        ),
       ),
     );
   }

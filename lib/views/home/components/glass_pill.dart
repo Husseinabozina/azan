@@ -49,14 +49,15 @@ class GlassPill extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withOpacity(0.08),
-                  Colors.white.withOpacity(0.08),
+                  // Slightly darker than before for clearer row separation.
+                  Colors.black.withOpacity(0.15),
+                  Colors.black.withOpacity(0.12),
                 ],
               ),
-              // border: Border.all(
-              //   color: Colors.white.withOpacity(0.22),
-              //   width: 1.w,
-              // ),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.08),
+                width: 0.8.w,
+              ),
             ),
             child: child,
           ),

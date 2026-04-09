@@ -3,10 +3,29 @@ import 'package:hive/hive.dart';
 class IqamaHiveHelper {
   static const String _boxName = 'iqama_box';
   static const String _minutesKey = 'iqama_minutes';
+  static Future<Box>? _openingBox;
 
   /// افتح الـ Box
   static Future<Box> _openBox() async {
-    return await Hive.openBox(_boxName);
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box(_boxName);
+    }
+
+    final inFlight = _openingBox;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = Hive.openBox(_boxName);
+    _openingBox = future;
+
+    try {
+      return await future;
+    } finally {
+      if (identical(_openingBox, future)) {
+        _openingBox = null;
+      }
+    }
   }
 
   /// قراءة دقائق الإقامة لكل الصلوات

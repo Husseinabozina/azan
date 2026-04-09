@@ -4,10 +4,8 @@ import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/dhikr_hive_helper.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/models/diker.dart';
-import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
-import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/dhikr_from_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -26,7 +24,7 @@ Future<void> showEditMosqueNameDialog(
   final controller = TextEditingController(text: initialName ?? '');
   final sizing = DialogConfig.getSizing(context);
 
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) {
@@ -47,14 +45,14 @@ Future<void> showEditMosqueNameDialog(
             DialogButtonRow(
               leftButton: DialogButton(
                 text: LocaleKeys.common_cancel.tr(),
-                backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                textColor: AppTheme.cancelButtonTextColor,
+                backgroundColor: DialogPalette.secondaryButtonBackground,
+                textColor: DialogPalette.secondaryButtonText,
                 onPressed: () => Navigator.of(context).pop(),
               ),
               rightButton: DialogButton(
                 text: LocaleKeys.common_ok.tr(),
-                backgroundColor: AppTheme.primaryButtonBackground,
-                textColor: AppTheme.primaryButtonTextColor,
+                backgroundColor: DialogPalette.primaryButtonBackground,
+                textColor: DialogPalette.primaryButtonText,
                 onPressed: () {
                   final text = controller.text.trim();
                   if (text.isNotEmpty) {
@@ -80,7 +78,7 @@ Future<void> showEditNotificationMessageDialog(
   final controller = TextEditingController(text: initialText ?? '');
   final sizing = DialogConfig.getSizing(context);
 
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) {
@@ -101,14 +99,14 @@ Future<void> showEditNotificationMessageDialog(
             DialogButtonRow(
               leftButton: DialogButton(
                 text: LocaleKeys.common_cancel.tr(),
-                backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                textColor: AppTheme.cancelButtonTextColor,
+                backgroundColor: DialogPalette.secondaryButtonBackground,
+                textColor: DialogPalette.secondaryButtonText,
                 onPressed: () => Navigator.of(context).pop(),
               ),
               rightButton: DialogButton(
                 text: LocaleKeys.common_ok.tr(),
-                backgroundColor: AppTheme.primaryButtonBackground,
-                textColor: AppTheme.primaryButtonTextColor,
+                backgroundColor: DialogPalette.primaryButtonBackground,
+                textColor: DialogPalette.primaryButtonText,
                 onPressed: () {
                   final text = controller.text.trim();
                   if (text.isNotEmpty) {
@@ -126,39 +124,12 @@ Future<void> showEditNotificationMessageDialog(
 }
 
 Future<void> showAddDhikrDialog2(BuildContext context) async {
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: true,
     builder: (context) {
-      return Dialog(
-        backgroundColor: Colors.transparent,
-        // insetPadding: sizing.dialogInset,
-        child: Container(
-          padding: EdgeInsets.only(top: 12.h),
-          decoration: BoxDecoration(
-            color: AppTheme.dialogBackgroundColor,
-            borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.8),
-              width: 2.w,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.35),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Container(),
-          //  GestureDetector(
-          //   // behavior: HitTestBehavior.translucent,
-          //   // onTap: () => FocusScope.of(
-          //   //   context,
-          //   // ).unfocus(), // يقفل الكيبورد من غير ما يقفل الديالوج
-          //   child: child,
-          // ),
-        ),
+      return const UniversalDialogShell(
+        child: SizedBox.shrink(),
       );
     },
   );
@@ -171,7 +142,7 @@ Future<void> showAddDhikrDialog(
 }) async {
   final sizing = DialogConfig.getSizing(context);
 
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: true,
     builder: (context) {
@@ -212,7 +183,7 @@ Future<bool?> showDeleteDhikrDialog(
 }) async {
   final sizing = DialogConfig.getSizing(context);
 
-  return showDialog<bool>(
+  return showAppDialog<bool>(
     context: context,
     barrierDismissible: true,
     builder: (context) {
@@ -241,8 +212,8 @@ Future<bool?> showDeleteDhikrDialog(
             DialogButtonRow(
               leftButton: DialogButton(
                 text: LocaleKeys.common_cancel.tr(),
-                backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                textColor: AppTheme.cancelButtonTextColor,
+                backgroundColor: DialogPalette.secondaryButtonBackground,
+                textColor: DialogPalette.secondaryButtonText,
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               rightButton: DialogButton(
@@ -272,7 +243,7 @@ Future<void> showEditDhikrDialog(
   final controller = TextEditingController(text: initialText);
   final sizing = DialogConfig.getSizing(context);
 
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) {
@@ -331,14 +302,14 @@ Future<void> showEditDhikrDialog(
             DialogButtonRow(
               leftButton: DialogButton(
                 text: LocaleKeys.common_cancel.tr(),
-                backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                textColor: AppTheme.cancelButtonTextColor,
+                backgroundColor: DialogPalette.secondaryButtonBackground,
+                textColor: DialogPalette.secondaryButtonText,
                 onPressed: () => Navigator.of(context).pop(),
               ),
               rightButton: DialogButton(
                 text: LocaleKeys.common_ok.tr(),
-                backgroundColor: AppTheme.primaryButtonBackground,
-                textColor: AppTheme.primaryButtonTextColor,
+                backgroundColor: DialogPalette.primaryButtonBackground,
+                textColor: DialogPalette.primaryButtonText,
                 onPressed: () {
                   final text = controller.text.trim();
                   if (text.isNotEmpty) {
@@ -364,7 +335,7 @@ Future<void> showChangeLanguageDialog(
   String selectedLang = currentLanguageCode;
   final sizing = DialogConfig.getSizing(context);
 
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) {
@@ -389,7 +360,7 @@ Future<void> showChangeLanguageDialog(
                     ),
                     decoration: BoxDecoration(
                       color: selectedLang == 'ar'
-                          ? Colors.white.withOpacity(0.12)
+                          ? Colors.white.withValues(alpha: 0.12)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(
                         sizing.borderRadius * 0.7,
@@ -401,7 +372,7 @@ Future<void> showChangeLanguageDialog(
                           selectedLang == 'ar'
                               ? Icons.radio_button_checked
                               : Icons.radio_button_off,
-                          color: AppTheme.dialogTitleColor,
+                          color: DialogPalette.titleTextColor,
                           size: sizing.bodyFontSize * 1.5,
                         ),
                         SizedBox(width: sizing.screenWidth * 0.025),
@@ -432,7 +403,7 @@ Future<void> showChangeLanguageDialog(
                     ),
                     decoration: BoxDecoration(
                       color: selectedLang == 'en'
-                          ? Colors.white.withOpacity(0.12)
+                          ? Colors.white.withValues(alpha: 0.12)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(
                         sizing.borderRadius * 0.7,
@@ -444,7 +415,7 @@ Future<void> showChangeLanguageDialog(
                           selectedLang == 'en'
                               ? Icons.radio_button_checked
                               : Icons.radio_button_off,
-                          color: AppTheme.dialogTitleColor,
+                          color: DialogPalette.titleTextColor,
                           size: sizing.bodyFontSize * 1.5,
                         ),
                         SizedBox(width: sizing.screenWidth * 0.025),
@@ -475,7 +446,7 @@ Future<void> showChangeLanguageDialog(
                     ),
                     decoration: BoxDecoration(
                       color: selectedLang == 'bn'
-                          ? Colors.white.withOpacity(0.12)
+                          ? Colors.white.withValues(alpha: 0.12)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(
                         sizing.borderRadius * 0.7,
@@ -487,7 +458,7 @@ Future<void> showChangeLanguageDialog(
                           selectedLang == 'bn'
                               ? Icons.radio_button_checked
                               : Icons.radio_button_off,
-                          color: AppTheme.dialogTitleColor,
+                          color: DialogPalette.titleTextColor,
                           size: sizing.bodyFontSize * 1.5,
                         ),
                         SizedBox(width: sizing.screenWidth * 0.025),
@@ -509,14 +480,14 @@ Future<void> showChangeLanguageDialog(
                 DialogButtonRow(
                   leftButton: DialogButton(
                     text: LocaleKeys.common_cancel.tr(),
-                    backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                    textColor: AppTheme.cancelButtonTextColor,
+                    backgroundColor: DialogPalette.secondaryButtonBackground,
+                    textColor: DialogPalette.secondaryButtonText,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   rightButton: DialogButton(
                     text: LocaleKeys.common_ok.tr(),
-                    backgroundColor: AppTheme.primaryButtonBackground,
-                    textColor: AppTheme.primaryButtonTextColor,
+                    backgroundColor: DialogPalette.primaryButtonBackground,
+                    textColor: DialogPalette.primaryButtonText,
                     onPressed: () {
                       onConfirm(selectedLang);
                       Navigator.of(context).pop();
@@ -539,7 +510,7 @@ Future<void> showChangeBackgroundDialog(
   required String currentBackground,
   required ValueChanged<String> onConfirm,
 }) async {
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: true,
     builder: (context) {
@@ -614,8 +585,8 @@ class _BackgroundPickerContentState extends State<_BackgroundPickerContent> {
                     borderRadius: BorderRadius.circular(sizing.borderRadius),
                     border: Border.all(
                       color: isSelected
-                          ? AppTheme.dialogTitleColor
-                          : Colors.white.withOpacity(0.3),
+                          ? DialogPalette.titleTextColor
+                          : Colors.white.withValues(alpha: 0.3),
                       width: isSelected ? 3 : 1,
                     ),
                   ),
@@ -636,14 +607,14 @@ class _BackgroundPickerContentState extends State<_BackgroundPickerContent> {
         DialogButtonRow(
           leftButton: DialogButton(
             text: LocaleKeys.common_cancel.tr(),
-            backgroundColor: AppTheme.cancelButtonBackgroundColor,
-            textColor: AppTheme.cancelButtonTextColor,
+            backgroundColor: DialogPalette.secondaryButtonBackground,
+            textColor: DialogPalette.secondaryButtonText,
             onPressed: () => Navigator.of(context).pop(),
           ),
           rightButton: DialogButton(
             text: LocaleKeys.common_save.tr(),
-            backgroundColor: AppTheme.primaryButtonBackground,
-            textColor: AppTheme.primaryTextColor,
+            backgroundColor: DialogPalette.primaryButtonBackground,
+            textColor: DialogPalette.primaryButtonText,
             onPressed: () {
               widget.onConfirm(_selectedBackground);
               Navigator.of(context).pop();
@@ -665,7 +636,7 @@ Future<void> showAddEidDialog(
   required void Function(TimeOfDay time) onConfirm,
   required void Function() onCancel,
 }) {
-  return showDialog<void>(
+  return showAppDialog<void>(
     context: context,
     builder: (context) => _AddEidDialog(onConfirm: onConfirm, title: title),
   );
@@ -701,7 +672,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
             style: TextStyle(
               fontSize: sizing.titleFontSize,
               fontWeight: FontWeight.bold,
-              color: AppTheme.accentColor,
+              color: DialogPalette.titleTextColor,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -777,7 +748,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                       hintText: LocaleKeys.time.tr(),
                       suffixIcon: Icon(
                         Icons.access_time,
-                        color: AppTheme.primaryTextColor,
+                        color: DialogPalette.iconColor,
                         size: sizing.bodyFontSize * 1.8,
                       ),
                       filled: true,
@@ -811,7 +782,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                     height: sizing.buttonSize.height,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentColor,
+                        backgroundColor: DialogPalette.primaryButtonBackground,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             sizing.borderRadius * 0.8,
@@ -829,7 +800,7 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                         style: TextStyle(
                           fontSize: sizing.bodyFontSize * 1.2,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.secondaryTextColor,
+                          color: DialogPalette.primaryButtonText,
                         ),
                       ),
                     ),
@@ -851,7 +822,7 @@ Future<void> showEditDhikrDialog2(
 }) async {
   final sizing = DialogConfig.getSizing(context);
 
-  await showDialog(
+  await showAppDialog(
     context: context,
     barrierDismissible: true,
     builder: (ctx) {
@@ -1011,7 +982,7 @@ class _ImprovedDhikrEditFormWidgetState
               style: TextStyle(
                 fontSize: sizing.bodyFontSize * 1.2,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.secondaryTextColor,
+                color: DialogPalette.bodyTextColor,
               ),
             ),
 
@@ -1076,7 +1047,7 @@ class _ImprovedDhikrEditFormWidgetState
               LocaleKeys.schedule_type_label.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: AppTheme.secondaryTextColor,
+                color: DialogPalette.bodyTextColor,
                 fontSize: sizing.bodyFontSize * 1.05,
               ),
             ),
@@ -1157,7 +1128,7 @@ class _ImprovedDhikrEditFormWidgetState
                 LocaleKeys.schedule_select_days_label.tr(),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.secondaryTextColor,
+                  color: DialogPalette.bodyTextColor,
                   fontSize: sizing.bodyFontSize,
                 ),
               ),
@@ -1199,7 +1170,7 @@ class _ImprovedDhikrEditFormWidgetState
                   ElevatedButton(
                     onPressed: _pickDate,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryButtonBackground,
+                      backgroundColor: DialogPalette.primaryButtonBackground,
                       padding: EdgeInsets.symmetric(
                         horizontal: sizing.screenWidth * 0.03,
                         vertical: sizing.screenHeight * 0.01,
@@ -1209,7 +1180,7 @@ class _ImprovedDhikrEditFormWidgetState
                       LocaleKeys.schedule_select_date_label.tr(),
                       style: TextStyle(
                         fontSize: sizing.bodyFontSize,
-                        color: AppTheme.primaryButtonTextColor,
+                        color: DialogPalette.primaryButtonText,
                       ),
                     ),
                   ),
@@ -1219,7 +1190,7 @@ class _ImprovedDhikrEditFormWidgetState
                       '${_selectedDate!.year}/${_selectedDate!.month}/${_selectedDate!.day}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryTextColor,
+                        color: DialogPalette.primaryButtonText,
                         fontSize: sizing.bodyFontSize,
                       ),
                     ),
@@ -1262,7 +1233,7 @@ class _ImprovedDhikrEditFormWidgetState
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
-                      backgroundColor: AppTheme.primaryButtonBackground,
+                      backgroundColor: DialogPalette.primaryButtonBackground,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           sizing.borderRadius * 0.8,

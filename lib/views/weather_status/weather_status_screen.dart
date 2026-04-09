@@ -1,5 +1,6 @@
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
@@ -49,173 +50,80 @@ class _WeatherStatusScreenState extends State<WeatherStatusScreen> {
   Future<void> _showGpsDialog() async {
     final latController = TextEditingController(text: _manualLat ?? '');
     final lngController = TextEditingController(text: _manualLng ?? '');
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final sizing = DialogConfig.getSizing(context);
 
-    await showDialog(
+    await showAppDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.symmetric(
-            horizontal: isLandscape ? 60.w : 20.w,
-            vertical: isLandscape ? 35.h : 40.h,
-          ),
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: isLandscape ? 550 : double.infinity,
-              maxHeight: isLandscape ? 450.h : 500.h,
-            ),
-            padding: EdgeInsets.all(24.w),
-            decoration: BoxDecoration(
-              color: AppTheme.dialogBackgroundColor,
-              borderRadius: BorderRadius.circular(18.r),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 1.5.w,
+      builder: (dialogContext) {
+        return UniversalDialogShell(
+          customMaxWidth: sizing.isLandscape ? 550 : sizing.dialogWidth,
+          customMaxHeight: sizing.isLandscape ? 450.h : 500.h,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DialogTitle(LocaleKeys.enter_gps_coordinates.tr()),
+              SizedBox(height: sizing.verticalGap * 0.8),
+              DialogTextField(
+                controller: latController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                label: LocaleKeys.latitude.tr(),
+                hint: '24.7136',
               ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  LocaleKeys.enter_gps_coordinates.tr(),
-                  style: TextStyle(
-                    fontSize: isLandscape ? 22.sp : 20.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.dialogTitleColor,
-                  ),
+              SizedBox(height: sizing.verticalGap * 0.55),
+              DialogTextField(
+                controller: lngController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                SizedBox(height: 18.h),
-                SizedBox(
-                  height: 56.h,
-                  child: TextField(
-                    controller: latController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    style: TextStyle(fontSize: 18.sp),
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.latitude.tr(),
-                      hintText: '24.7136',
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 12.h,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                  ),
+                label: LocaleKeys.longitude.tr(),
+                hint: '46.6753',
+              ),
+              SizedBox(height: sizing.verticalGap),
+              DialogButtonRow(
+                leftButton: DialogButton(
+                  text: LocaleKeys.common_cancel.tr(),
+                  variant: DialogButtonVariant.secondary,
+                  onPressed: () => Navigator.pop(dialogContext),
                 ),
-                SizedBox(height: 14.h),
-                SizedBox(
-                  height: 56.h,
-                  child: TextField(
-                    controller: lngController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    style: TextStyle(fontSize: 18.sp),
-                    decoration: InputDecoration(
-                      labelText: LocaleKeys.longitude.tr(),
-                      hintText: '46.6753',
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 12.h,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                  ),
+                rightButton: DialogButton(
+                  text: LocaleKeys.common_ok.tr(),
+                  onPressed: () {
+                    final lat = latController.text.trim();
+                    final lng = lngController.text.trim();
+                    if (lat.isEmpty || lng.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(LocaleKeys.please_fill_all_fields.tr()),
+                        ),
+                      );
+                      return;
+                    }
+                    if (double.tryParse(lat) == null ||
+                        double.tryParse(lng) == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(LocaleKeys.invalid_coordinates.tr()),
+                        ),
+                      );
+                      return;
+                    }
+                    setState(() {
+                      _manualLat = lat;
+                      _manualLng = lng;
+                      _weatherSource = 1;
+                    });
+                    _saveSettings();
+                    Navigator.pop(dialogContext);
+                  },
                 ),
-                SizedBox(height: 24.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildButton(
-                      text: LocaleKeys.common_cancel.tr(),
-                      color: AppTheme.cancelButtonBackgroundColor,
-                      textColor: AppTheme.cancelButtonTextColor,
-                      onTap: () => Navigator.pop(context),
-                    ),
-                    SizedBox(width: 14.w),
-                    _buildButton(
-                      text: LocaleKeys.common_ok.tr(),
-                      color: AppTheme.primaryButtonBackground,
-                      textColor: AppTheme.primaryButtonTextColor,
-                      onTap: () {
-                        final lat = latController.text.trim();
-                        final lng = lngController.text.trim();
-                        if (lat.isEmpty || lng.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                LocaleKeys.please_fill_all_fields.tr(),
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        if (double.tryParse(lat) == null ||
-                            double.tryParse(lng) == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                LocaleKeys.invalid_coordinates.tr(),
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        setState(() {
-                          _manualLat = lat;
-                          _manualLng = lng;
-                          _weatherSource = 1;
-                        });
-                        _saveSettings();
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildButton({
-    required String text,
-    required Color color,
-    required Color textColor,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-      ),
     );
   }
 

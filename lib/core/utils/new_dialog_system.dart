@@ -1,120 +1,11 @@
-import 'package:azan/core/theme/app_theme.dart';
-import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/mqscale.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:flutter/material.dart';
 
-/// ============================================================================
-/// 🎨 NEW RESPONSIVE DIALOG SYSTEM
-/// نظام Dialogs جديد متجاوب تماماً مع landscape و portrait
-/// ============================================================================
-
-/// 📐 Dialog Configuration
 class NewDialogConfig {
-  /// الحصول على الـ sizing المناسب
-  static NewDialogSizing getSizing(BuildContext context) {
-    final mq = MediaQuery.of(context);
-    final size = mq.size;
-    final isLandscape = size.width > size.height;
-
-    return NewDialogSizing(
-      isLandscape: isLandscape,
-      screenWidth: size.width,
-      screenHeight: size.height,
-    );
+  static DialogSizing getSizing(BuildContext context) {
+    return DialogConfig.getSizing(context);
   }
 }
-
-/// 📏 Dialog Sizing
-class NewDialogSizing {
-  final bool isLandscape;
-  final double screenWidth;
-  final double screenHeight;
-
-  NewDialogSizing({
-    required this.isLandscape,
-    required this.screenWidth,
-    required this.screenHeight,
-  });
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // 📐 Dimensions
-  // ════════════════════════════════════════════════════════════════════════════
-
-  /// عرض الـ dialog
-  double get dialogWidth {
-    if (isLandscape) {
-      return screenWidth * 0.55; // 55% في landscape
-    } else {
-      return screenWidth * 0.85; // 85% في portrait
-    }
-  }
-
-  /// أقصى ارتفاع للـ dialog
-  double get dialogMaxHeight {
-    if (isLandscape) {
-      return screenHeight * 0.80;
-    } else {
-      return screenHeight * 0.65;
-    }
-  }
-
-  /// padding الداخلي
-  EdgeInsets get dialogPadding {
-    return EdgeInsets.symmetric(
-      horizontal: isLandscape ? screenWidth * 0.03 : screenWidth * 0.05,
-      vertical: screenHeight * 0.02,
-    );
-  }
-
-  /// inset من حواف الشاشة
-  EdgeInsets get dialogInset {
-    return EdgeInsets.symmetric(
-      horizontal: isLandscape ? screenWidth * 0.10 : screenWidth * 0.08,
-      vertical: isLandscape ? screenHeight * 0.08 : screenHeight * 0.10,
-    );
-  }
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // 📝 Font Sizes
-  // ════════════════════════════════════════════════════════════════════════════
-
-  double get titleFontSize => isLandscape ? 22.sp : 18.sp;
-  double get subtitleFontSize => isLandscape ? 18.sp : 15.sp;
-  double get bodyFontSize => isLandscape ? 16.sp : 14.sp;
-  double get captionFontSize => isLandscape ? 13.sp : 12.sp;
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // 🔘 Button Sizes
-  // ════════════════════════════════════════════════════════════════════════════
-
-  Size get buttonSize {
-    if (isLandscape) {
-      return Size(screenWidth * 0.12, screenHeight * 0.08);
-    } else {
-      return Size(screenWidth * 0.20, screenHeight * 0.055);
-    }
-  }
-
-  double get buttonRadius => isLandscape ? 14.r : 12.r;
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // 📏 Spacing
-  // ════════════════════════════════════════════════════════════════════════════
-
-  double get verticalGap => isLandscape ? screenHeight * 0.025 : screenHeight * 0.03;
-  double get horizontalGap => isLandscape ? screenWidth * 0.02 : screenWidth * 0.03;
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // 🎨 Border Radius
-  // ════════════════════════════════════════════════════════════════════════════
-
-  double get borderRadius => isLandscape ? 20.r : 18.r;
-  double get cardBorderRadius => isLandscape ? 16.r : 14.r;
-}
-
-/// ============================================================================
-/// 🎪 UNIVERSAL DIALOG SHELL - Shell موحد
-/// ============================================================================
 
 class NewUniversalDialogShell extends StatelessWidget {
   final Widget child;
@@ -132,57 +23,15 @@ class NewUniversalDialogShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: sizing.dialogInset,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final effectiveMaxWidth = maxWidth ?? sizing.dialogWidth;
-          final effectiveMaxHeight = maxHeight ?? sizing.dialogMaxHeight;
-
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: effectiveMaxWidth,
-              maxHeight: effectiveMaxHeight,
-            ),
-            child: Container(
-              padding: sizing.dialogPadding,
-              decoration: BoxDecoration(
-                color: AppTheme.dialogBackgroundColor,
-                borderRadius: BorderRadius.circular(sizing.borderRadius),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 1.5.w,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: scrollable
-                  ? SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: child,
-                    )
-                  : child,
-            ),
-          );
-        },
-      ),
+    return UniversalDialogShell(
+      customMaxWidth: maxWidth,
+      customMaxHeight: maxHeight,
+      forceMaxHeight: maxHeight != null || scrollable,
+      child: scrollable ? SingleChildScrollView(child: child) : child,
     );
   }
 }
 
-/// ============================================================================
-/// 📋 DIALOG COMPONENTS - مكونات جاهزة
-/// ============================================================================
-
-/// 🏷️ Dialog Title
 class NewDialogTitle extends StatelessWidget {
   final String text;
   final IconData? icon;
@@ -197,73 +46,25 @@ class NewDialogTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (icon != null) ...[
-          Icon(
-            icon,
-            size: sizing.titleFontSize * 1.3,
-            color: iconColor ?? AppTheme.accentColor,
-          ),
-          SizedBox(width: sizing.horizontalGap),
-        ],
-        Expanded(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: sizing.titleFontSize,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.dialogTitleColor,
-                fontFamily: CacheHelper.getTextsFontFamily(),
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-      ],
-    );
+    return DialogTitle(text, icon: icon, iconColor: iconColor);
   }
 }
 
-/// 📝 Dialog Subtitle
 class NewDialogSubtitle extends StatelessWidget {
   final String text;
 
-  const NewDialogSubtitle({
-    super.key,
-    required this.text,
-  });
+  const NewDialogSubtitle({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: sizing.subtitleFontSize,
-          fontWeight: FontWeight.w500,
-          color: AppTheme.secondaryTextColor,
-          fontFamily: CacheHelper.getTextsFontFamily(),
-        ),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
+    return DialogBodyText(
+      text,
+      color: DialogPalette.mutedTextColor,
+      fontWeight: FontWeight.w600,
     );
   }
 }
 
-/// 📄 Dialog Content Card
 class NewDialogContentCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -278,28 +79,14 @@ class NewDialogContentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    return Container(
-      padding: padding ??
-          EdgeInsets.symmetric(
-            horizontal: sizing.screenWidth * 0.02,
-            vertical: sizing.verticalGap * 0.8,
-          ),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(sizing.cardBorderRadius),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-          width: 1.w,
-        ),
-      ),
+    return DialogContentCard(
+      padding: padding,
+      backgroundColor: backgroundColor,
       child: child,
     );
   }
 }
 
-/// 🔘 Dialog Button
 class NewDialogButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
@@ -320,63 +107,19 @@ class NewDialogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    final effectiveBgColor = backgroundColor ??
-        (isDestructive ? const Color(0xFFE57373) : AppTheme.primaryButtonBackground);
-    final effectiveTextColor = textColor ??
-        (isDestructive ? Colors.white : AppTheme.primaryButtonTextColor);
-
-    return SizedBox(
-      width: sizing.buttonSize.width,
-      height: sizing.buttonSize.height,
-      child: TextButton(
-        style: TextButton.styleFrom(
-          backgroundColor: effectiveBgColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(sizing.buttonRadius),
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: sizing.screenWidth * 0.02,
-            vertical: sizing.screenHeight * 0.01,
-          ),
-        ),
-        onPressed: onPressed,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: sizing.bodyFontSize * 1.2,
-                color: effectiveTextColor,
-              ),
-              SizedBox(width: sizing.horizontalGap * 0.5),
-            ],
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    color: effectiveTextColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: sizing.bodyFontSize,
-                    fontFamily: CacheHelper.getTextsFontFamily(),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return DialogButton(
+      text: text,
+      onPressed: onPressed,
+      backgroundColor: backgroundColor,
+      textColor: textColor,
+      icon: icon,
+      variant: isDestructive
+          ? DialogButtonVariant.destructive
+          : DialogButtonVariant.primary,
     );
   }
 }
 
-/// ↔️ Dialog Button Row
 class NewDialogButtonRow extends StatelessWidget {
   final List<Widget> children;
   final MainAxisAlignment mainAxisAlignment;
@@ -389,20 +132,10 @@ class NewDialogButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    return Wrap(
-      spacing: sizing.horizontalGap,
-      runSpacing: sizing.verticalGap * 0.5,
-      alignment: WrapAlignment.center,
-      children: children.map((child) {
-        return child;
-      }).toList(),
-    );
+    return DialogButtonRow(children: children, mainAxisAlignment: mainAxisAlignment);
   }
 }
 
-/// 📝 Dialog TextField
 class NewDialogTextField extends StatelessWidget {
   final TextEditingController controller;
   final String? labelText;
@@ -427,78 +160,19 @@ class NewDialogTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    return TextField(
+    return DialogTextField(
       controller: controller,
-      obscureText: isPassword,
+      label: labelText,
+      hint: hintText,
       maxLines: maxLines,
       keyboardType: keyboardType,
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: sizing.bodyFontSize,
-        fontFamily: CacheHelper.getTextsFontFamily(),
-      ),
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-        labelStyle: TextStyle(
-          color: Colors.grey.shade600,
-          fontSize: sizing.bodyFontSize * 0.9,
-        ),
-        hintStyle: TextStyle(
-          color: Colors.grey.shade400,
-          fontSize: sizing.bodyFontSize * 0.9,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: sizing.screenWidth * 0.03,
-          vertical: sizing.screenHeight * 0.015,
-        ),
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: Colors.grey.shade600)
-            : null,
-        suffixIcon: suffixWidget,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-          borderSide: BorderSide(
-            color: Colors.grey.shade300,
-            width: 1,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-          borderSide: BorderSide(
-            color: AppTheme.accentColor,
-            width: 2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: 1,
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: 2,
-          ),
-        ),
-      ),
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixWidget,
+      obscureText: isPassword,
     );
   }
 }
 
-/// 📋 Dialog List Item
 class NewDialogListItem extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -519,95 +193,17 @@ class NewDialogListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
-    return InkWell(
+    return DialogSelectableTile(
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(sizing.cardBorderRadius * 0.8),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: sizing.screenWidth * 0.025,
-          vertical: sizing.verticalGap * 0.6,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withOpacity(0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(sizing.cardBorderRadius * 0.8),
-        ),
-        child: Row(
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: sizing.bodyFontSize * 1.3,
-                color: isSelected
-                    ? AppTheme.accentColor
-                    : AppTheme.secondaryTextColor,
-              ),
-              SizedBox(width: sizing.horizontalGap),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: sizing.bodyFontSize,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected
-                            ? AppTheme.accentColor
-                            : AppTheme.primaryTextColor,
-                        fontFamily: CacheHelper.getTextsFontFamily(),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (subtitle != null) ...[
-                    SizedBox(height: sizing.verticalGap * 0.3),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        subtitle!,
-                        style: TextStyle(
-                          fontSize: sizing.captionFontSize,
-                          color: AppTheme.secondaryTextColor,
-                          fontFamily: CacheHelper.getTextsFontFamily(),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (trailing != null) ...[
-              SizedBox(width: sizing.horizontalGap),
-              trailing!,
-            ],
-            if (isSelected) ...[
-              SizedBox(width: sizing.horizontalGap * 0.5),
-              Icon(
-                Icons.check_circle,
-                size: sizing.bodyFontSize * 1.2,
-                color: AppTheme.accentColor,
-              ),
-            ],
-          ],
-        ),
-      ),
+      isSelected: isSelected,
+      trailing: trailing,
     );
   }
 }
 
-/// 🎯 Dialog Divider
 class NewDialogDivider extends StatelessWidget {
   final double? height;
   final Color? color;
@@ -622,21 +218,15 @@ class NewDialogDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizing = NewDialogConfig.getSizing(context);
-
+    final sizing = DialogConfig.getSizing(context);
     return Divider(
       height: height ?? sizing.verticalGap,
-      color: color ?? Colors.white.withOpacity(0.15),
+      color: color ?? DialogPalette.dividerColor,
       thickness: thickness ?? 1,
     );
   }
 }
 
-/// ============================================================================
-/// 🎪 PRE-BUILT DIALOGS - Dialogs جاهزة للاستخدام
-/// ============================================================================
-
-/// ✅ Simple Alert Dialog
 Future<void> showNewAlertDialog({
   required BuildContext context,
   required String title,
@@ -648,49 +238,36 @@ Future<void> showNewAlertDialog({
   IconData? icon,
   bool barrierDismissible = true,
 }) async {
-  await showDialog(
+  final sizing = NewDialogConfig.getSizing(context);
+
+  await showAppDialog<void>(
     context: context,
     barrierDismissible: barrierDismissible,
-    builder: (context) {
+    builder: (dialogContext) {
       return NewUniversalDialogShell(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            NewDialogTitle(
-              text: title,
-              icon: icon,
-              iconColor: icon != null ? AppTheme.accentColor : null,
-            ),
-            SizedBox(height: NewDialogConfig.getSizing(context).verticalGap * 0.8),
-            NewDialogContentCard(
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: NewDialogConfig.getSizing(context).bodyFontSize,
-                  color: AppTheme.primaryTextColor,
-                  fontFamily: CacheHelper.getTextsFontFamily(),
-                  height: 1.6,
-                ),
-              ),
-            ),
-            SizedBox(height: NewDialogConfig.getSizing(context).verticalGap),
+            NewDialogTitle(text: title, icon: icon),
+            SizedBox(height: sizing.verticalGap * 0.8),
+            NewDialogContentCard(child: DialogBodyText(message)),
+            SizedBox(height: sizing.verticalGap),
             NewDialogButtonRow(
               children: [
                 if (cancelText != null && onCancel != null)
                   NewDialogButton(
                     text: cancelText,
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(dialogContext);
                       onCancel();
                     },
-                    backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                    textColor: AppTheme.cancelButtonTextColor,
+                    backgroundColor: DialogPalette.secondaryButtonBackground,
+                    textColor: DialogPalette.secondaryButtonText,
                   ),
                 NewDialogButton(
                   text: confirmText ?? 'موافق',
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pop(dialogContext);
                     onConfirm?.call();
                   },
                 ),
@@ -703,7 +280,6 @@ Future<void> showNewAlertDialog({
   );
 }
 
-/// ⚠️ Confirmation Dialog
 Future<bool?> showNewConfirmDialog({
   required BuildContext context,
   required String title,
@@ -712,47 +288,33 @@ Future<bool?> showNewConfirmDialog({
   String? cancelText,
   IconData? icon,
   Color? iconColor,
-}) async {
-  return showDialog<bool>(
+}) {
+  final sizing = NewDialogConfig.getSizing(context);
+
+  return showAppDialog<bool>(
     context: context,
-    barrierDismissible: true,
-    builder: (context) {
+    builder: (dialogContext) {
       return NewUniversalDialogShell(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            NewDialogTitle(
-              text: title,
-              icon: icon,
-              iconColor: iconColor ?? AppTheme.accentColor,
-            ),
-            SizedBox(height: NewDialogConfig.getSizing(context).verticalGap * 0.8),
+            NewDialogTitle(text: title, icon: icon, iconColor: iconColor),
+            SizedBox(height: sizing.verticalGap * 0.8),
             NewDialogContentCard(
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: NewDialogConfig.getSizing(context).bodyFontSize,
-                  color: AppTheme.primaryTextColor,
-                  fontFamily: CacheHelper.getTextsFontFamily(),
-                  height: 1.6,
-                ),
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: DialogBodyText(message, maxLines: 5),
             ),
-            SizedBox(height: NewDialogConfig.getSizing(context).verticalGap),
+            SizedBox(height: sizing.verticalGap),
             NewDialogButtonRow(
               children: [
                 NewDialogButton(
                   text: cancelText ?? 'إلغاء',
-                  onPressed: () => Navigator.pop(context, false),
-                  backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                  textColor: AppTheme.cancelButtonTextColor,
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  backgroundColor: DialogPalette.secondaryButtonBackground,
+                  textColor: DialogPalette.secondaryButtonText,
                 ),
                 NewDialogButton(
                   text: confirmText ?? 'تأكيد',
-                  onPressed: () => Navigator.pop(context, true),
+                  onPressed: () => Navigator.pop(dialogContext, true),
                   isDestructive: true,
                 ),
               ],
@@ -764,7 +326,6 @@ Future<bool?> showNewConfirmDialog({
   );
 }
 
-/// 📝 Input Dialog
 Future<String?> showNewInputDialog({
   required BuildContext context,
   required String title,
@@ -772,23 +333,19 @@ Future<String?> showNewInputDialog({
   String? initialValue,
   int maxLines = 1,
   IconData? icon,
-}) async {
+}) {
   final controller = TextEditingController(text: initialValue ?? '');
   final sizing = NewDialogConfig.getSizing(context);
 
-  return showDialog<String>(
+  return showAppDialog<String>(
     context: context,
-    barrierDismissible: true,
-    builder: (context) {
+    builder: (dialogContext) {
       return NewUniversalDialogShell(
         scrollable: true,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            NewDialogTitle(
-              text: title,
-              icon: icon,
-            ),
+            NewDialogTitle(text: title, icon: icon),
             SizedBox(height: sizing.verticalGap),
             NewDialogTextField(
               controller: controller,
@@ -800,16 +357,16 @@ Future<String?> showNewInputDialog({
               children: [
                 NewDialogButton(
                   text: 'إلغاء',
-                  onPressed: () => Navigator.pop(context),
-                  backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                  textColor: AppTheme.cancelButtonTextColor,
+                  onPressed: () => Navigator.pop(dialogContext),
+                  backgroundColor: DialogPalette.secondaryButtonBackground,
+                  textColor: DialogPalette.secondaryButtonText,
                 ),
                 NewDialogButton(
                   text: 'موافق',
                   onPressed: () {
                     final text = controller.text.trim();
                     if (text.isNotEmpty) {
-                      Navigator.pop(context, text);
+                      Navigator.pop(dialogContext, text);
                     }
                   },
                 ),
@@ -822,22 +379,20 @@ Future<String?> showNewInputDialog({
   );
 }
 
-/// 📋 Single Choice Dialog
 Future<T?> showNewSingleChoiceDialog<T>({
   required BuildContext context,
   required String title,
   required List<DialogChoiceItem<T>> items,
   T? initialValue,
-}) async {
-  T? selectedValue = initialValue;
+}) {
   final sizing = NewDialogConfig.getSizing(context);
+  T? selectedValue = initialValue;
 
-  return showDialog<T>(
+  return showAppDialog<T>(
     context: context,
-    barrierDismissible: true,
-    builder: (context) {
+    builder: (dialogContext) {
       return StatefulBuilder(
-        builder: (context, setState) {
+        builder: (dialogContext, setState) {
           return NewUniversalDialogShell(
             scrollable: true,
             child: Column(
@@ -849,15 +404,15 @@ Future<T?> showNewSingleChoiceDialog<T>({
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: items.map((item) {
-                      final isSelected = selectedValue == item.value;
-                      return NewDialogListItem(
-                        title: item.title,
-                        subtitle: item.subtitle,
-                        icon: item.icon,
-                        isSelected: isSelected,
-                        onTap: () {
-                          setState(() => selectedValue = item.value);
-                        },
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: NewDialogListItem(
+                          title: item.title,
+                          subtitle: item.subtitle,
+                          icon: item.icon,
+                          isSelected: selectedValue == item.value,
+                          onTap: () => setState(() => selectedValue = item.value),
+                        ),
                       );
                     }).toList(),
                   ),
@@ -867,15 +422,15 @@ Future<T?> showNewSingleChoiceDialog<T>({
                   children: [
                     NewDialogButton(
                       text: 'إلغاء',
-                      onPressed: () => Navigator.pop(context),
-                      backgroundColor: AppTheme.cancelButtonBackgroundColor,
-                      textColor: AppTheme.cancelButtonTextColor,
+                      onPressed: () => Navigator.pop(dialogContext),
+                      backgroundColor: DialogPalette.secondaryButtonBackground,
+                      textColor: DialogPalette.secondaryButtonText,
                     ),
                     NewDialogButton(
                       text: 'موافق',
                       onPressed: () {
                         if (selectedValue != null) {
-                          Navigator.pop(context, selectedValue);
+                          Navigator.pop(dialogContext, selectedValue);
                         }
                       },
                     ),
@@ -890,7 +445,6 @@ Future<T?> showNewSingleChoiceDialog<T>({
   );
 }
 
-/// 🎁 Dialog Choice Item
 class DialogChoiceItem<T> {
   final T value;
   final String title;

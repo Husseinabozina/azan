@@ -1,17 +1,7 @@
-import 'dart:async';
-
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
-import 'package:azan/views/home/components/azkar_view.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:azan/views/home/components/azkar_view.dart'; // AzkarType
-import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
-import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/views/home/components/azkar_view.dart'; // AzkarType
-import 'package:flutter/foundation.dart'; // ValueNotifier
 
 // =====================================================
 //  Time helper
@@ -40,7 +30,7 @@ class AzkarTimeHelper {
     final adhan = _adhanTime(prayerId);
 
     final iqama = adhan!.add(Duration(minutes: _iqamaOffsetMinutes(prayerId)));
-    final azkarTime = iqama.add(_prayerHideDuration(prayerId));
+    iqama.add(_prayerHideDuration(prayerId));
   }
 
   static int _iqamaOffsetMinutes(int prayerId) {
