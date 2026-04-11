@@ -62,6 +62,7 @@ dependencies:
   shared_preferences: ^2.5.3
   timezone: ^0.9.4
   url_launcher: ^6.3.2
+  virtual_keyboard_multi_language: ^1.1.2
 dev_dependencies:
   build_runner: ^2.10.4
   flutter_gen_runner: ^5.12.0

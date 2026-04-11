@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:virtual_keyboard_multi_language/virtual_keyboard_multi_language.dart';
 
 ThemeData buildAppDialogTheme(BuildContext context) {
   final baseTheme = Theme.of(context);
@@ -393,6 +394,851 @@ class DialogContentCard extends StatelessWidget {
   }
 }
 
+class _VirtualKeyboardCoordinator extends ChangeNotifier {
+  String? _activeFieldId;
+
+  bool isActive(String fieldId) => _activeFieldId == fieldId;
+
+  void activate(String fieldId) {
+    if (_activeFieldId == fieldId) {
+      return;
+    }
+    _activeFieldId = fieldId;
+    notifyListeners();
+  }
+
+  void deactivate(String fieldId) {
+    if (_activeFieldId != fieldId) {
+      return;
+    }
+    _activeFieldId = null;
+    notifyListeners();
+  }
+
+  void hideAll() {
+    if (_activeFieldId == null) {
+      return;
+    }
+    _activeFieldId = null;
+    notifyListeners();
+  }
+}
+
+final _virtualKeyboardCoordinator = _VirtualKeyboardCoordinator();
+
+enum _VirtualKeyboardFieldKind { text, numeric }
+
+class VirtualKeyboardFieldTheme {
+  const VirtualKeyboardFieldTheme({
+    required this.fillColor,
+    required this.borderColor,
+    required this.activeBorderColor,
+    required this.errorBorderColor,
+    required this.textColor,
+    required this.hintColor,
+    required this.labelColor,
+    required this.keyboardTextColor,
+    required this.keyboardBackgroundColor,
+    required this.keyboardBorderColor,
+    required this.keyboardShadow,
+  });
+
+  final Color fillColor;
+  final Color borderColor;
+  final Color activeBorderColor;
+  final Color errorBorderColor;
+  final Color textColor;
+  final Color hintColor;
+  final Color labelColor;
+  final Color keyboardTextColor;
+  final Color keyboardBackgroundColor;
+  final Color keyboardBorderColor;
+  final List<BoxShadow> keyboardShadow;
+}
+
+class VirtualTextField extends StatelessWidget {
+  const VirtualTextField({
+    super.key,
+    required this.controller,
+    this.labelText,
+    this.hintText,
+    this.validator,
+    this.onChanged,
+    this.maxLines = 1,
+    this.textAlign = TextAlign.right,
+    this.textDirection = TextDirection.rtl,
+    this.prefix,
+    this.suffix,
+    this.contentPadding,
+    this.minFieldHeight,
+    this.borderRadius,
+    this.textStyle,
+    this.labelStyle,
+    this.errorStyle,
+    this.theme = const VirtualKeyboardFieldTheme(
+      fillColor: DialogPalette.inputFillColor,
+      borderColor: DialogPalette.inputBorderColor,
+      activeBorderColor: DialogPalette.inputFocusedBorderColor,
+      errorBorderColor: Colors.red,
+      textColor: DialogPalette.inputTextColor,
+      hintColor: DialogPalette.inputHintColor,
+      labelColor: DialogPalette.inputHintColor,
+      keyboardTextColor: DialogPalette.inputTextColor,
+      keyboardBackgroundColor: Colors.white,
+      keyboardBorderColor: Color(0x66D4A64A),
+      keyboardShadow: [
+        BoxShadow(
+          color: Color(0x14000000),
+          blurRadius: 16,
+          offset: Offset(0, 6),
+        ),
+      ],
+    ),
+    this.obscureText = false,
+  });
+
+  final TextEditingController controller;
+  final String? labelText;
+  final String? hintText;
+  final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
+  final int maxLines;
+  final TextAlign textAlign;
+  final TextDirection textDirection;
+  final Widget? prefix;
+  final Widget? suffix;
+  final EdgeInsetsGeometry? contentPadding;
+  final double? minFieldHeight;
+  final double? borderRadius;
+  final TextStyle? textStyle;
+  final TextStyle? labelStyle;
+  final TextStyle? errorStyle;
+  final VirtualKeyboardFieldTheme theme;
+  final bool obscureText;
+
+  @override
+  Widget build(BuildContext context) {
+    return _VirtualKeyboardEditableField(
+      controller: controller,
+      labelText: labelText,
+      hintText: hintText,
+      validator: validator,
+      onChanged: onChanged,
+      maxLines: maxLines,
+      textAlign: textAlign,
+      textDirection: textDirection,
+      prefix: prefix,
+      suffix: suffix,
+      contentPadding: contentPadding,
+      minFieldHeight: minFieldHeight,
+      borderRadius: borderRadius,
+      textStyle: textStyle,
+      labelStyle: labelStyle,
+      errorStyle: errorStyle,
+      theme: theme,
+      kind: _VirtualKeyboardFieldKind.text,
+      obscureText: obscureText,
+    );
+  }
+}
+
+class VirtualSearchField extends StatelessWidget {
+  const VirtualSearchField({
+    super.key,
+    required this.controller,
+    required this.hintText,
+    this.onChanged,
+    this.textAlign = TextAlign.right,
+    this.contentPadding,
+    this.borderRadius,
+    this.textStyle,
+    this.theme = const VirtualKeyboardFieldTheme(
+      fillColor: DialogPalette.inputFillColor,
+      borderColor: DialogPalette.inputBorderColor,
+      activeBorderColor: DialogPalette.inputFocusedBorderColor,
+      errorBorderColor: Colors.red,
+      textColor: DialogPalette.inputTextColor,
+      hintColor: DialogPalette.inputHintColor,
+      labelColor: DialogPalette.inputHintColor,
+      keyboardTextColor: DialogPalette.inputTextColor,
+      keyboardBackgroundColor: Colors.white,
+      keyboardBorderColor: Color(0x66D4A64A),
+      keyboardShadow: [
+        BoxShadow(
+          color: Color(0x14000000),
+          blurRadius: 16,
+          offset: Offset(0, 6),
+        ),
+      ],
+    ),
+  });
+
+  final TextEditingController controller;
+  final String hintText;
+  final ValueChanged<String>? onChanged;
+  final TextAlign textAlign;
+  final EdgeInsetsGeometry? contentPadding;
+  final double? borderRadius;
+  final TextStyle? textStyle;
+  final VirtualKeyboardFieldTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final sizing = DialogConfig.getSizing(context);
+    return _VirtualKeyboardEditableField(
+      controller: controller,
+      hintText: hintText,
+      onChanged: onChanged,
+      textAlign: textAlign,
+      textDirection: TextDirection.rtl,
+      prefix: const Icon(Icons.search_rounded),
+      contentPadding:
+          contentPadding ??
+          EdgeInsets.symmetric(
+            horizontal: sizing.screenWidth * 0.03,
+            vertical: sizing.screenHeight * 0.014,
+          ),
+      minFieldHeight: sizing.textFieldHeight,
+      borderRadius: borderRadius,
+      textStyle: textStyle,
+      theme: theme,
+      kind: _VirtualKeyboardFieldKind.text,
+    );
+  }
+}
+
+class VirtualNumericField extends StatelessWidget {
+  const VirtualNumericField({
+    super.key,
+    required this.controller,
+    this.labelText,
+    this.hintText,
+    this.validator,
+    this.onChanged,
+    this.textAlign = TextAlign.left,
+    this.textDirection = TextDirection.ltr,
+    this.prefix,
+    this.suffix,
+    this.contentPadding,
+    this.minFieldHeight,
+    this.borderRadius,
+    this.textStyle,
+    this.labelStyle,
+    this.errorStyle,
+    this.allowNegative = false,
+    this.theme = const VirtualKeyboardFieldTheme(
+      fillColor: DialogPalette.inputFillColor,
+      borderColor: DialogPalette.inputBorderColor,
+      activeBorderColor: DialogPalette.inputFocusedBorderColor,
+      errorBorderColor: Colors.red,
+      textColor: DialogPalette.inputTextColor,
+      hintColor: DialogPalette.inputHintColor,
+      labelColor: DialogPalette.inputHintColor,
+      keyboardTextColor: DialogPalette.inputTextColor,
+      keyboardBackgroundColor: Colors.white,
+      keyboardBorderColor: Color(0x66D4A64A),
+      keyboardShadow: [
+        BoxShadow(
+          color: Color(0x14000000),
+          blurRadius: 16,
+          offset: Offset(0, 6),
+        ),
+      ],
+    ),
+  });
+
+  final TextEditingController controller;
+  final String? labelText;
+  final String? hintText;
+  final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
+  final TextAlign textAlign;
+  final TextDirection textDirection;
+  final Widget? prefix;
+  final Widget? suffix;
+  final EdgeInsetsGeometry? contentPadding;
+  final double? minFieldHeight;
+  final double? borderRadius;
+  final TextStyle? textStyle;
+  final TextStyle? labelStyle;
+  final TextStyle? errorStyle;
+  final bool allowNegative;
+  final VirtualKeyboardFieldTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return _VirtualKeyboardEditableField(
+      controller: controller,
+      labelText: labelText,
+      hintText: hintText,
+      validator: validator,
+      onChanged: onChanged,
+      maxLines: 1,
+      textAlign: textAlign,
+      textDirection: textDirection,
+      prefix: prefix,
+      suffix: suffix,
+      contentPadding: contentPadding,
+      minFieldHeight: minFieldHeight,
+      borderRadius: borderRadius,
+      textStyle: textStyle,
+      labelStyle: labelStyle,
+      errorStyle: errorStyle,
+      theme: theme,
+      kind: _VirtualKeyboardFieldKind.numeric,
+      allowNegative: allowNegative,
+    );
+  }
+}
+
+class VirtualReadOnlyLauncherField extends StatelessWidget {
+  const VirtualReadOnlyLauncherField({
+    super.key,
+    required this.controller,
+    required this.onTap,
+    this.labelText,
+    this.hintText,
+    this.textAlign = TextAlign.right,
+    this.textDirection = TextDirection.rtl,
+    this.prefix,
+    this.suffix,
+    this.contentPadding,
+    this.minFieldHeight,
+    this.borderRadius,
+    this.textStyle,
+    this.labelStyle,
+    this.theme = const VirtualKeyboardFieldTheme(
+      fillColor: DialogPalette.inputFillColor,
+      borderColor: DialogPalette.inputBorderColor,
+      activeBorderColor: DialogPalette.inputFocusedBorderColor,
+      errorBorderColor: Colors.red,
+      textColor: DialogPalette.inputTextColor,
+      hintColor: DialogPalette.inputHintColor,
+      labelColor: DialogPalette.inputHintColor,
+      keyboardTextColor: DialogPalette.inputTextColor,
+      keyboardBackgroundColor: Colors.white,
+      keyboardBorderColor: Color(0x66D4A64A),
+      keyboardShadow: [
+        BoxShadow(
+          color: Color(0x14000000),
+          blurRadius: 16,
+          offset: Offset(0, 6),
+        ),
+      ],
+    ),
+  });
+
+  final TextEditingController controller;
+  final VoidCallback onTap;
+  final String? labelText;
+  final String? hintText;
+  final TextAlign textAlign;
+  final TextDirection textDirection;
+  final Widget? prefix;
+  final Widget? suffix;
+  final EdgeInsetsGeometry? contentPadding;
+  final double? minFieldHeight;
+  final double? borderRadius;
+  final TextStyle? textStyle;
+  final TextStyle? labelStyle;
+  final VirtualKeyboardFieldTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final sizing = DialogConfig.getSizing(context);
+    final effectiveBorderRadius = borderRadius ?? sizing.borderRadius * 0.7;
+    final effectiveContentPadding =
+        contentPadding ??
+        EdgeInsets.symmetric(
+          horizontal: sizing.screenWidth * 0.035,
+          vertical: sizing.screenHeight * 0.016,
+        );
+    final effectiveTextStyle =
+        textStyle ??
+        TextStyle(color: theme.textColor, fontSize: sizing.bodyFontSize);
+    final effectiveLabelStyle =
+        labelStyle ??
+        TextStyle(
+          color: theme.labelColor,
+          fontSize: sizing.bodyFontSize * 0.9,
+          fontWeight: FontWeight.w600,
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (labelText != null && labelText!.trim().isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: sizing.verticalGap * 0.28,
+              right: sizing.screenWidth * 0.01,
+              left: sizing.screenWidth * 0.01,
+            ),
+            child: Text(labelText!, style: effectiveLabelStyle),
+          ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            _virtualKeyboardCoordinator.hideAll();
+            onTap();
+          },
+          child: Container(
+            width: double.infinity,
+            constraints: BoxConstraints(
+              minHeight: minFieldHeight ?? sizing.textFieldHeight,
+            ),
+            padding: effectiveContentPadding,
+            decoration: BoxDecoration(
+              color: theme.fillColor,
+              borderRadius: BorderRadius.circular(effectiveBorderRadius),
+              border: Border.all(color: theme.borderColor),
+            ),
+            child: Row(
+              children: [
+                if (prefix != null) ...[
+                  prefix!,
+                  SizedBox(width: sizing.screenWidth * 0.02),
+                ],
+                Expanded(
+                  child: Text(
+                    controller.text.trim().isEmpty
+                        ? (hintText ?? '')
+                        : controller.text,
+                    textAlign: textAlign,
+                    textDirection: textDirection,
+                    style: effectiveTextStyle.copyWith(
+                      color: controller.text.trim().isEmpty
+                          ? theme.hintColor
+                          : effectiveTextStyle.color,
+                    ),
+                  ),
+                ),
+                if (suffix != null) ...[
+                  SizedBox(width: sizing.screenWidth * 0.02),
+                  suffix!,
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VirtualKeyboardEditableField extends StatefulWidget {
+  const _VirtualKeyboardEditableField({
+    required this.controller,
+    required this.kind,
+    this.labelText,
+    this.hintText,
+    this.validator,
+    this.onChanged,
+    this.maxLines = 1,
+    this.textAlign = TextAlign.right,
+    this.textDirection = TextDirection.rtl,
+    this.prefix,
+    this.suffix,
+    this.contentPadding,
+    this.minFieldHeight,
+    this.borderRadius,
+    this.textStyle,
+    this.labelStyle,
+    this.errorStyle,
+    required this.theme,
+    this.allowNegative = false,
+    this.obscureText = false,
+  });
+
+  final TextEditingController controller;
+  final _VirtualKeyboardFieldKind kind;
+  final String? labelText;
+  final String? hintText;
+  final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
+  final int maxLines;
+  final TextAlign textAlign;
+  final TextDirection textDirection;
+  final Widget? prefix;
+  final Widget? suffix;
+  final EdgeInsetsGeometry? contentPadding;
+  final double? minFieldHeight;
+  final double? borderRadius;
+  final TextStyle? textStyle;
+  final TextStyle? labelStyle;
+  final TextStyle? errorStyle;
+  final VirtualKeyboardFieldTheme theme;
+  final bool allowNegative;
+  final bool obscureText;
+
+  @override
+  State<_VirtualKeyboardEditableField> createState() =>
+      _VirtualKeyboardEditableFieldState();
+}
+
+class _VirtualKeyboardEditableFieldState
+    extends State<_VirtualKeyboardEditableField> {
+  final _fieldKey = GlobalKey<FormFieldState<String>>();
+  late final String _fieldId;
+
+  bool get _isKeyboardVisible => _virtualKeyboardCoordinator.isActive(_fieldId);
+
+  @override
+  void initState() {
+    super.initState();
+    _fieldId = '${identityHashCode(this)}';
+    widget.controller.addListener(_handleExternalTextChange);
+    _virtualKeyboardCoordinator.addListener(_handleCoordinatorChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _VirtualKeyboardEditableField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller == widget.controller) {
+      return;
+    }
+    oldWidget.controller.removeListener(_handleExternalTextChange);
+    widget.controller.addListener(_handleExternalTextChange);
+    _syncFieldValue(triggerChange: false);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_handleExternalTextChange);
+    _virtualKeyboardCoordinator.removeListener(_handleCoordinatorChanged);
+    _virtualKeyboardCoordinator.deactivate(_fieldId);
+    super.dispose();
+  }
+
+  void _handleCoordinatorChanged() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
+  }
+
+  void _handleExternalTextChange() {
+    _syncFieldValue(triggerChange: false);
+  }
+
+  void _showKeyboard() {
+    widget.controller.selection = TextSelection.collapsed(
+      offset: widget.controller.text.length,
+    );
+    _syncFieldValue(triggerChange: false);
+    _virtualKeyboardCoordinator.activate(_fieldId);
+  }
+
+  void _hideKeyboard() {
+    _syncFieldValue(triggerChange: false);
+    _virtualKeyboardCoordinator.deactivate(_fieldId);
+  }
+
+  void _syncFieldValue({required bool triggerChange}) {
+    if (widget.kind == _VirtualKeyboardFieldKind.numeric) {
+      _normalizeNumericText();
+    }
+    final value = widget.controller.text;
+    _fieldKey.currentState?.didChange(value);
+    if (triggerChange) {
+      widget.onChanged?.call(value);
+    }
+  }
+
+  void _normalizeNumericText() {
+    final original = widget.controller.text;
+    final isNegative = widget.allowNegative && original.startsWith('-');
+    var sanitized = original.replaceAll(RegExp(r'[^0-9\.\-]'), '');
+    sanitized = sanitized.replaceAll('-', '');
+
+    final firstDotIndex = sanitized.indexOf('.');
+    if (firstDotIndex != -1) {
+      final beforeDot = sanitized.substring(0, firstDotIndex + 1);
+      final afterDot = sanitized
+          .substring(firstDotIndex + 1)
+          .replaceAll('.', '');
+      sanitized = '$beforeDot$afterDot';
+    }
+
+    if (widget.allowNegative && isNegative) {
+      sanitized = sanitized.isEmpty ? '-' : '-$sanitized';
+    }
+
+    if (sanitized == original) {
+      return;
+    }
+
+    widget.controller.value = widget.controller.value.copyWith(
+      text: sanitized,
+      selection: TextSelection.collapsed(offset: sanitized.length),
+      composing: TextRange.empty,
+    );
+  }
+
+  void _toggleNegativeSign() {
+    if (widget.kind != _VirtualKeyboardFieldKind.numeric ||
+        !widget.allowNegative) {
+      return;
+    }
+    final current = widget.controller.text;
+    final next = current.startsWith('-')
+        ? current.substring(1)
+        : (current.isEmpty ? '-' : '-$current');
+    widget.controller.value = widget.controller.value.copyWith(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+      composing: TextRange.empty,
+    );
+    _syncFieldValue(triggerChange: true);
+  }
+
+  String _displayValue(String value) {
+    if (!widget.obscureText) {
+      return value;
+    }
+    return List.filled(value.length, '•').join();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sizing = DialogConfig.getSizing(context);
+    final effectiveBorderRadius =
+        widget.borderRadius ?? sizing.borderRadius * 0.7;
+    final effectiveContentPadding =
+        widget.contentPadding ??
+        EdgeInsets.symmetric(
+          horizontal: sizing.screenWidth * 0.035,
+          vertical: widget.maxLines == 1
+              ? sizing.textFieldHeight * 0.3
+              : sizing.screenHeight * 0.016,
+        );
+    final effectiveTextStyle =
+        widget.textStyle ??
+        TextStyle(color: widget.theme.textColor, fontSize: sizing.bodyFontSize);
+    final effectiveLabelStyle =
+        widget.labelStyle ??
+        TextStyle(
+          color: widget.theme.labelColor,
+          fontSize: sizing.bodyFontSize * 0.9,
+          fontWeight: FontWeight.w600,
+        );
+    final effectiveErrorStyle =
+        widget.errorStyle ??
+        TextStyle(
+          color: Colors.red.shade700,
+          fontSize: sizing.bodyFontSize * 0.82,
+          fontWeight: FontWeight.w600,
+        );
+    final keyboardHeight = sizing.isLandscape
+        ? (widget.kind == _VirtualKeyboardFieldKind.numeric ? 220.0 : 230.0)
+        : (widget.kind == _VirtualKeyboardFieldKind.numeric ? 240.0 : 260.0);
+
+    return FormField<String>(
+      key: _fieldKey,
+      initialValue: widget.controller.text,
+      validator: widget.validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      builder: (field) {
+        final showHint = widget.controller.text.trim().isEmpty;
+        final borderColor = field.hasError
+            ? widget.theme.errorBorderColor
+            : (_isKeyboardVisible
+                  ? widget.theme.activeBorderColor
+                  : widget.theme.borderColor);
+        final borderWidth = field.hasError || _isKeyboardVisible ? 2.0 : 1.2;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (widget.labelText != null && widget.labelText!.trim().isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: sizing.verticalGap * 0.28,
+                  right: sizing.screenWidth * 0.01,
+                  left: sizing.screenWidth * 0.01,
+                ),
+                child: Text(widget.labelText!, style: effectiveLabelStyle),
+              ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _showKeyboard,
+              child: Container(
+                width: double.infinity,
+                constraints: BoxConstraints(
+                  minHeight:
+                      widget.minFieldHeight ??
+                      math.max(
+                        sizing.bodyFontSize * widget.maxLines * 1.2,
+                        sizing.textFieldHeight,
+                      ),
+                ),
+                padding: effectiveContentPadding,
+                decoration: BoxDecoration(
+                  color: widget.theme.fillColor,
+                  borderRadius: BorderRadius.circular(effectiveBorderRadius),
+                  border: Border.all(color: borderColor, width: borderWidth),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.prefix != null) ...[
+                      Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          end: sizing.screenWidth * 0.02,
+                          top: 2,
+                        ),
+                        child: widget.prefix,
+                      ),
+                    ],
+                    Expanded(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight:
+                              sizing.bodyFontSize *
+                              math.max(widget.maxLines, 1) *
+                              1.15,
+                        ),
+                        child: Text(
+                          showHint
+                              ? (widget.hintText ?? '')
+                              : _displayValue(widget.controller.text),
+                          textAlign: widget.textAlign,
+                          textDirection: widget.textDirection,
+                          maxLines: widget.maxLines,
+                          overflow: TextOverflow.ellipsis,
+                          style: effectiveTextStyle.copyWith(
+                            color: showHint
+                                ? widget.theme.hintColor
+                                : effectiveTextStyle.color,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: sizing.screenWidth * 0.02),
+                    if (widget.suffix != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: widget.suffix,
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          _isKeyboardVisible
+                              ? Icons.keyboard_hide_rounded
+                              : Icons.keyboard_rounded,
+                          color: widget.theme.hintColor,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (field.hasError)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: sizing.verticalGap * 0.22,
+                  right: sizing.screenWidth * 0.015,
+                  left: sizing.screenWidth * 0.015,
+                ),
+                child: Text(
+                  field.errorText!,
+                  style: effectiveErrorStyle,
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: _isKeyboardVisible
+                  ? Padding(
+                      key: ValueKey('virtual-keyboard-$_fieldId'),
+                      padding: EdgeInsets.only(top: sizing.verticalGap * 0.55),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: widget.theme.keyboardBackgroundColor,
+                          borderRadius: BorderRadius.circular(
+                            effectiveBorderRadius,
+                          ),
+                          border: Border.all(
+                            color: widget.theme.keyboardBorderColor,
+                            width: 1.2,
+                          ),
+                          boxShadow: widget.theme.keyboardShadow,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: EdgeInsetsDirectional.only(
+                                start: sizing.screenWidth * 0.02,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  if (widget.kind ==
+                                          _VirtualKeyboardFieldKind.numeric &&
+                                      widget.allowNegative)
+                                    TextButton.icon(
+                                      onPressed: _toggleNegativeSign,
+                                      icon: const Icon(
+                                        Icons.exposure_neg_1_rounded,
+                                      ),
+                                      label: const Text('-'),
+                                    )
+                                  else
+                                    const SizedBox.shrink(),
+                                  IconButton(
+                                    onPressed: _hideKeyboard,
+                                    icon: Icon(
+                                      Icons.keyboard_hide_rounded,
+                                      color: widget.theme.hintColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                effectiveBorderRadius,
+                              ),
+                              child: VirtualKeyboard(
+                                height: keyboardHeight,
+                                textController: widget.controller,
+                                type:
+                                    widget.kind ==
+                                        _VirtualKeyboardFieldKind.numeric
+                                    ? VirtualKeyboardType.Numeric
+                                    : VirtualKeyboardType.Alphanumeric,
+                                defaultLayouts: const [
+                                  VirtualKeyboardDefaultLayouts.Arabic,
+                                  VirtualKeyboardDefaultLayouts.English,
+                                ],
+                                textColor: widget.theme.keyboardTextColor,
+                                fontSize: sizing.bodyFontSize * 0.85,
+                                postKeyPress: (_) {
+                                  _syncFieldValue(triggerChange: true);
+                                  if (!mounted) {
+                                    return;
+                                  }
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class DialogTextField extends StatelessWidget {
   const DialogTextField({
     super.key,
@@ -421,53 +1267,56 @@ class DialogTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final sizing = DialogConfig.getSizing(context);
     final fixedHeight = maxLines == 1 ? sizing.textFieldHeight : null;
+    final prefix = prefixIcon == null ? null : Icon(prefixIcon);
+    final allowNegative = keyboardType?.signed ?? false;
+    final isNumeric = keyboardType?.index == TextInputType.number.index;
 
-    return SizedBox(
-      height: fixedHeight,
-      child: TextField(
+    if (isNumeric) {
+      return VirtualNumericField(
         controller: controller,
+        labelText: label,
+        hintText: hint,
         textAlign: textAlign,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        obscureText: obscureText,
-        style: TextStyle(
+        textDirection: TextDirection.ltr,
+        prefix: prefix,
+        suffix: suffixIcon,
+        allowNegative: allowNegative,
+        minFieldHeight: fixedHeight,
+        borderRadius: sizing.borderRadius * 0.7,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: sizing.screenWidth * 0.035,
+          vertical: maxLines == 1
+              ? sizing.textFieldHeight * 0.3
+              : sizing.screenHeight * 0.016,
+        ),
+        textStyle: TextStyle(
           color: DialogPalette.inputTextColor,
           fontSize: sizing.bodyFontSize,
         ),
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: prefixIcon == null ? null : Icon(prefixIcon),
-          suffixIcon: suffixIcon,
-          filled: true,
-          fillColor: DialogPalette.inputFillColor,
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: sizing.screenWidth * 0.035,
-            vertical: maxLines == 1
-                ? sizing.textFieldHeight * 0.3
-                : sizing.screenHeight * 0.016,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-            borderSide: const BorderSide(
-              color: DialogPalette.inputBorderColor,
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(sizing.borderRadius * 0.7),
-            borderSide: const BorderSide(
-              color: DialogPalette.inputFocusedBorderColor,
-              width: 2,
-            ),
-          ),
-        ),
+      );
+    }
+
+    return VirtualTextField(
+      controller: controller,
+      labelText: label,
+      hintText: hint,
+      maxLines: maxLines,
+      textAlign: textAlign,
+      prefix: prefix,
+      suffix: suffixIcon,
+      minFieldHeight: fixedHeight,
+      borderRadius: sizing.borderRadius * 0.7,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: sizing.screenWidth * 0.035,
+        vertical: maxLines == 1
+            ? sizing.textFieldHeight * 0.3
+            : sizing.screenHeight * 0.016,
       ),
+      textStyle: TextStyle(
+        color: DialogPalette.inputTextColor,
+        fontSize: sizing.bodyFontSize,
+      ),
+      obscureText: obscureText,
     );
   }
 }
@@ -488,41 +1337,19 @@ class DialogSearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     final sizing = DialogConfig.getSizing(context);
 
-    return TextField(
+    return VirtualSearchField(
       controller: controller,
+      hintText: hint,
       onChanged: onChanged,
       textAlign: TextAlign.right,
-      style: TextStyle(
+      textStyle: TextStyle(
         color: DialogPalette.inputTextColor,
         fontSize: sizing.bodyFontSize,
       ),
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: const Icon(Icons.search_rounded),
-        filled: true,
-        fillColor: DialogPalette.inputFillColor,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: sizing.screenWidth * 0.03,
-          vertical: sizing.screenHeight * 0.014,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.9),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.9),
-          borderSide: const BorderSide(
-            color: DialogPalette.inputBorderColor,
-            width: 1,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(sizing.borderRadius * 0.9),
-          borderSide: const BorderSide(
-            color: DialogPalette.inputFocusedBorderColor,
-            width: 2,
-          ),
-        ),
+      borderRadius: sizing.borderRadius * 0.9,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: sizing.screenWidth * 0.03,
+        vertical: sizing.screenHeight * 0.014,
       ),
     );
   }

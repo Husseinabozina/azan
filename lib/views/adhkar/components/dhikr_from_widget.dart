@@ -1,20 +1,17 @@
-import 'dart:ui';
 import 'package:azan/core/components/horizontal_space.dart';
-import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/adhkar/components/dhikr_virtual_keyboard_field.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart' as widgets;
 
 class ImprovedDhikrFormWidget extends StatefulWidget {
   final void Function(String text, DhikrSchedule? schedule) onSubmit;
 
-  const ImprovedDhikrFormWidget({Key? key, required this.onSubmit})
-    : super(key: key);
+  const ImprovedDhikrFormWidget({super.key, required this.onSubmit});
 
   @override
   State<ImprovedDhikrFormWidget> createState() =>
@@ -103,49 +100,12 @@ class _ImprovedDhikrFormWidgetState extends State<ImprovedDhikrFormWidget> {
               SizedBox(height: sizing.verticalGap * 0.8),
 
               // TextField للنص
-              TextFormField(
+              DhikrVirtualKeyboardField(
                 controller: _textController,
-                maxLines: 3,
-                textDirection: widgets.TextDirection.rtl,
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: sizing.bodyFontSize,
-                ),
-                selectionWidthStyle: BoxWidthStyle.max,
-                selectionHeightStyle: BoxHeightStyle.max,
-                decoration: InputDecoration(
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  alignLabelWithHint: true,
-                  hintText: LocaleKeys.dhikr_add_new_title.tr(),
-                  hintStyle: TextStyle(color: Colors.grey.shade500),
-                  filled: true,
-                  fillColor: Colors.white,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(sizing.borderRadius),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade400,
-                      width: 1.5,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(sizing.borderRadius),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFF4C66A),
-                      width: 2,
-                    ),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(sizing.borderRadius),
-                    borderSide: const BorderSide(color: Colors.red, width: 1.5),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(sizing.borderRadius),
-                    borderSide: const BorderSide(color: Colors.red, width: 2),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: sizing.screenWidth * 0.04,
-                    vertical: sizing.screenHeight * 0.015,
-                  ),
+                hintText: LocaleKeys.dhikr_add_new_title.tr(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: sizing.screenWidth * 0.04,
+                  vertical: sizing.screenHeight * 0.015,
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
@@ -169,7 +129,7 @@ class _ImprovedDhikrFormWidgetState extends State<ImprovedDhikrFormWidget> {
               // Dropdown للنوع
               DropdownButtonFormField<DhikrScheduleType>(
                 iconSize: sizing.bodyFontSize * 2,
-                value: _selectedType,
+                initialValue: _selectedType,
                 isExpanded: true,
                 icon: const Icon(
                   Icons.arrow_drop_down_rounded,

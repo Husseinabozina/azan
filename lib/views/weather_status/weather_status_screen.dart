@@ -67,8 +67,10 @@ class _WeatherStatusScreenState extends State<WeatherStatusScreen> {
               DialogTextField(
                 controller: latController,
                 keyboardType: const TextInputType.numberWithOptions(
+                  signed: true,
                   decimal: true,
                 ),
+                textAlign: TextAlign.left,
                 label: LocaleKeys.latitude.tr(),
                 hint: '24.7136',
               ),
@@ -76,8 +78,10 @@ class _WeatherStatusScreenState extends State<WeatherStatusScreen> {
               DialogTextField(
                 controller: lngController,
                 keyboardType: const TextInputType.numberWithOptions(
+                  signed: true,
                   decimal: true,
                 ),
+                textAlign: TextAlign.left,
                 label: LocaleKeys.longitude.tr(),
                 hint: '46.6753',
               ),

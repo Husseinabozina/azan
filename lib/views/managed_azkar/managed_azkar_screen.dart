@@ -624,39 +624,44 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextFormField(
+          VirtualTextField(
             controller: _textController,
-            minLines: 4,
             maxLines: 8,
+            minFieldHeight: sizing.bodyFontSize * 5.2,
+            labelText: LocaleKeys.dhikr_text_label.tr(),
             textAlign: TextAlign.right,
-            style: TextStyle(
+            textStyle: TextStyle(
               color: Colors.black87,
               fontSize: sizing.bodyFontSize,
             ),
-            decoration: InputDecoration(
-              labelText: LocaleKeys.dhikr_text_label.tr(),
-              alignLabelWithHint: true,
-              filled: true,
+            borderRadius: sizing.borderRadius,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: sizing.screenWidth * 0.04,
+              vertical: sizing.screenHeight * 0.015,
+            ),
+            labelStyle: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: sizing.bodyFontSize * 0.92,
+              fontWeight: FontWeight.w600,
+            ),
+            theme: VirtualKeyboardFieldTheme(
               fillColor: Colors.white,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(sizing.borderRadius),
-                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(sizing.borderRadius),
-                borderSide: const BorderSide(
-                  color: Color(0xFFF4C66A),
-                  width: 2,
+              borderColor: Colors.grey.shade400,
+              activeBorderColor: const Color(0xFFF4C66A),
+              errorBorderColor: Colors.red,
+              textColor: Colors.black87,
+              hintColor: Colors.grey.shade600,
+              labelColor: Colors.grey.shade700,
+              keyboardTextColor: Colors.black87,
+              keyboardBackgroundColor: Colors.white,
+              keyboardBorderColor: const Color(0x66F4C66A),
+              keyboardShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 16,
+                  offset: Offset(0, 6),
                 ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(sizing.borderRadius),
-                borderSide: const BorderSide(color: Colors.red, width: 1.5),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(sizing.borderRadius),
-                borderSide: const BorderSide(color: Colors.red, width: 2),
-              ),
+              ],
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {

@@ -14,6 +14,75 @@ import 'package:flutter/widgets.dart';
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/VR-0.jpg
+  AssetGenImage get vr0 => const AssetGenImage('assets/images/VR-0.jpg');
+
+  /// File path: assets/images/VR-1.jpg
+  AssetGenImage get vr1 => const AssetGenImage('assets/images/VR-1.jpg');
+
+  /// File path: assets/images/VR-10.jpg
+  AssetGenImage get vr10 => const AssetGenImage('assets/images/VR-10.jpg');
+
+  /// File path: assets/images/VR-11.jpg
+  AssetGenImage get vr11 => const AssetGenImage('assets/images/VR-11.jpg');
+
+  /// File path: assets/images/VR-12.jpg
+  AssetGenImage get vr12 => const AssetGenImage('assets/images/VR-12.jpg');
+
+  /// File path: assets/images/VR-13.jpg
+  AssetGenImage get vr13 => const AssetGenImage('assets/images/VR-13.jpg');
+
+  /// File path: assets/images/VR-14.jpg
+  AssetGenImage get vr14 => const AssetGenImage('assets/images/VR-14.jpg');
+
+  /// File path: assets/images/VR-15.jpg
+  AssetGenImage get vr15 => const AssetGenImage('assets/images/VR-15.jpg');
+
+  /// File path: assets/images/VR-16.jpg
+  AssetGenImage get vr16 => const AssetGenImage('assets/images/VR-16.jpg');
+
+  /// File path: assets/images/VR-17.jpg
+  AssetGenImage get vr17 => const AssetGenImage('assets/images/VR-17.jpg');
+
+  /// File path: assets/images/VR-18.jpg
+  AssetGenImage get vr18 => const AssetGenImage('assets/images/VR-18.jpg');
+
+  /// File path: assets/images/VR-19.jpg
+  AssetGenImage get vr19 => const AssetGenImage('assets/images/VR-19.jpg');
+
+  /// File path: assets/images/VR-2.jpg
+  AssetGenImage get vr2 => const AssetGenImage('assets/images/VR-2.jpg');
+
+  /// File path: assets/images/VR-3.jpg
+  AssetGenImage get vr3 => const AssetGenImage('assets/images/VR-3.jpg');
+
+  /// File path: assets/images/VR-4.jpg
+  AssetGenImage get vr4 => const AssetGenImage('assets/images/VR-4.jpg');
+
+  /// File path: assets/images/VR-5.jpg
+  AssetGenImage get vr5 => const AssetGenImage('assets/images/VR-5.jpg');
+
+  /// File path: assets/images/VR-6.jpg
+  AssetGenImage get vr6 => const AssetGenImage('assets/images/VR-6.jpg');
+
+  /// File path: assets/images/VR-7.jpg
+  AssetGenImage get vr7 => const AssetGenImage('assets/images/VR-7.jpg');
+
+  /// File path: assets/images/VR-8.jpg
+  AssetGenImage get vr8 => const AssetGenImage('assets/images/VR-8.jpg');
+
+  /// File path: assets/images/VR-9.jpg
+  AssetGenImage get vr9 => const AssetGenImage('assets/images/VR-9.jpg');
+
+  /// File path: assets/images/WhatsApp Image 2026-03-05 at 20.32.30.jpeg
+  AssetGenImage get whatsAppImage20260305At203230 => const AssetGenImage(
+    'assets/images/WhatsApp Image 2026-03-05 at 20.32.30.jpeg',
+  );
+
+  /// File path: assets/images/app_icon.png
+  AssetGenImage get appIcon =>
+      const AssetGenImage('assets/images/app_icon.png');
+
   /// File path: assets/images/awesome_2.png
   AssetGenImage get awesome2 =>
       const AssetGenImage('assets/images/awesome_2.png');
@@ -304,6 +373,28 @@ class $AssetsImagesGen {
 
   /// List of all assets
   List<AssetGenImage> get values => [
+    vr0,
+    vr1,
+    vr10,
+    vr11,
+    vr12,
+    vr13,
+    vr14,
+    vr15,
+    vr16,
+    vr17,
+    vr18,
+    vr19,
+    vr2,
+    vr3,
+    vr4,
+    vr5,
+    vr6,
+    vr7,
+    vr8,
+    vr9,
+    whatsAppImage20260305At203230,
+    appIcon,
     awesome2,
     awesomeBackground,
     background2,
@@ -439,11 +530,14 @@ class $AssetsTranslationsGen {
   /// File path: assets/translations/ar.json
   String get ar => 'assets/translations/ar.json';
 
+  /// File path: assets/translations/bn.json
+  String get bn => 'assets/translations/bn.json';
+
   /// File path: assets/translations/en.json
   String get en => 'assets/translations/en.json';
 
   /// List of all assets
-  List<String> get values => [ar, en];
+  List<String> get values => [ar, bn, en];
 }
 
 class Assets {

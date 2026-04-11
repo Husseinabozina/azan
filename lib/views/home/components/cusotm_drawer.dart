@@ -286,20 +286,31 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 AppNavigator.push(context, WeatherStatusScreen());
               },
             ),
-            if (isLargeScreen(kind))
-              _DrawerEntry(
-                title: '${LocaleKeys.change_to.tr()} $targetLabel',
-                onTap: () {
-                  // Navigator.pop(context);
+            // if (isLargeScreen(kind))
+            _DrawerEntry(
+              title: '${LocaleKeys.change_to.tr()} $targetLabel',
+              onTap: () {
+                // Navigator.pop(context);
 
-                  final cubit = context.read<UiRotationCubit>();
-                  if (cubit.isLandscape()) {
-                    cubit.changeIsLandscape(false);
-                  } else {
-                    cubit.changeIsLandscape(true);
-                  }
-                },
-              ),
+                final cubit = context.read<UiRotationCubit>();
+                if (cubit.isLandscape()) {
+                  cubit.changeIsLandscape(false);
+                } else {
+                  cubit.changeIsLandscape(true);
+                }
+              },
+            ),
+            //                          if (isLandscape) {
+            //   SystemChrome.setPreferredOrientations([
+            //     DeviceOrientation.landscapeLeft,
+            //     DeviceOrientation.landscapeRight,
+            //   ]);
+            // } else {
+            //   SystemChrome.setPreferredOrientations([
+            //     DeviceOrientation.portraitUp,
+            //     // DeviceOrientation.portraitDown,  // لو عاوز upside-down كمان
+            //   ]);
+            // }
           ];
 
           // Entry إضافي للغة (شكل خاص)

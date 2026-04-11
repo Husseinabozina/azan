@@ -171,7 +171,6 @@ class _DisplayBoardSettingsScreenState
     );
   }
 
-
   Future<void> _toggleBoardMode() async {
     final now = DateTime.now();
     final currentMode = _effectiveDisplayMode(now);
@@ -805,7 +804,8 @@ class _DisplayBoardSettingsScreenState
                               if (title.isEmpty && body.isEmpty) {
                                 return;
                               }
-                              if (schedule != null && !schedule!.isValidWindow) {
+                              if (schedule != null &&
+                                  !schedule!.isValidWindow) {
                                 return;
                               }
 
@@ -1527,10 +1527,7 @@ class _PerBoardScheduleSection extends StatelessWidget {
                   ],
                 ),
               ),
-              Switch.adaptive(
-                value: enabled,
-                onChanged: onEnabledChanged,
-              ),
+              Switch.adaptive(value: enabled, onChanged: onEnabledChanged),
             ],
           ),
           SizedBox(height: 12.h),
@@ -2362,37 +2359,41 @@ class _EditorField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return VirtualTextField(
       controller: controller,
       maxLines: maxLines,
-      style: TextStyle(
+      labelText: label,
+      minFieldHeight: maxLines == 1 ? 58.h : (maxLines * 34.h),
+      borderRadius: 18.r,
+      contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      textStyle: TextStyle(
         color: AppTheme.dialogBodyTextColor,
         fontSize: 18.sp,
         fontWeight: FontWeight.w600,
       ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: AppTheme.dialogBodyTextColor.withValues(alpha: 0.78),
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w700,
-        ),
-        floatingLabelStyle: TextStyle(
-          color: AppTheme.accentColor,
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w700,
-        ),
-        filled: true,
+      labelStyle: TextStyle(
+        color: AppTheme.dialogBodyTextColor.withValues(alpha: 0.78),
+        fontSize: 16.sp,
+        fontWeight: FontWeight.w700,
+      ),
+      theme: VirtualKeyboardFieldTheme(
         fillColor: Colors.white.withValues(alpha: 0.05),
-        contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18.r),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18.r),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-        ),
+        borderColor: Colors.white.withValues(alpha: 0.08),
+        activeBorderColor: AppTheme.accentColor,
+        errorBorderColor: Colors.redAccent,
+        textColor: AppTheme.dialogBodyTextColor,
+        hintColor: AppTheme.dialogMutedTextColor,
+        labelColor: AppTheme.dialogBodyTextColor.withValues(alpha: 0.78),
+        keyboardTextColor: AppTheme.dialogBodyTextColor,
+        keyboardBackgroundColor: const Color(0xFF0F1720),
+        keyboardBorderColor: Colors.white.withValues(alpha: 0.08),
+        keyboardShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
     );
   }

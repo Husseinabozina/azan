@@ -8,6 +8,7 @@ import 'package:azan/core/utils/azkar_scheduling_enums.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/adhkar/components/dhikr_from_widget.dart';
+import 'package:azan/views/adhkar/components/dhikr_virtual_keyboard_field.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -128,9 +129,7 @@ Future<void> showAddDhikrDialog2(BuildContext context) async {
     context: context,
     barrierDismissible: true,
     builder: (context) {
-      return const UniversalDialogShell(
-        child: SizedBox.shrink(),
-      );
+      return const UniversalDialogShell(child: SizedBox.shrink());
     },
   );
 }
@@ -259,39 +258,25 @@ Future<void> showEditDhikrDialog(
               fit: FlexFit.loose,
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: TextField(
+                child: VirtualTextField(
                   controller: controller,
+                  labelText: LocaleKeys.dhikr_text_label.tr(),
                   textAlign: TextAlign.right,
                   maxLines: sizing.isLandscape ? 3 : 4,
-                  style: TextStyle(
+                  minFieldHeight: sizing.bodyFontSize * 4.8,
+                  borderRadius: sizing.borderRadius,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: sizing.screenWidth * 0.035,
+                    vertical: sizing.screenHeight * 0.015,
+                  ),
+                  textStyle: TextStyle(
                     color: Colors.black,
                     fontSize: sizing.bodyFontSize * 1.05,
                   ),
-                  decoration: InputDecoration(
-                    alignLabelWithHint: true,
-                    labelText: LocaleKeys.dhikr_text_label.tr(),
-                    labelStyle: const TextStyle(color: Colors.grey),
-                    filled: true,
-                    fillColor: Colors.white,
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: sizing.screenWidth * 0.035,
-                      vertical: sizing.screenHeight * 0.015,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(sizing.borderRadius),
-                      borderSide: const BorderSide(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(sizing.borderRadius),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFF4C66A),
-                        width: 1.5,
-                      ),
-                    ),
+                  labelStyle: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontSize: sizing.bodyFontSize * 0.92,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -737,33 +722,8 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                   // VerticalSpace(height: sizing.verticalGap * 0.5),
 
                   // Time field
-                  TextField(
+                  VirtualReadOnlyLauncherField(
                     controller: timeController,
-                    readOnly: true,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: sizing.bodyFontSize,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: LocaleKeys.time.tr(),
-                      suffixIcon: Icon(
-                        Icons.access_time,
-                        color: DialogPalette.iconColor,
-                        size: sizing.bodyFontSize * 1.8,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: sizing.screenWidth * 0.035,
-                        vertical: sizing.screenHeight * 0.030,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          sizing.borderRadius,
-                        ),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
                     onTap: () async {
                       time = await showUniversalTimePicker(context);
                       if (time != null) {
@@ -772,6 +732,40 @@ class _AddEidDialogState extends State<_AddEidDialog> {
                         );
                       }
                     },
+                    hintText: LocaleKeys.time.tr(),
+                    minFieldHeight: sizing.textFieldHeight,
+                    textStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: sizing.bodyFontSize,
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: sizing.screenWidth * 0.035,
+                      vertical: sizing.screenHeight * 0.030,
+                    ),
+                    suffix: Icon(
+                      Icons.access_time,
+                      color: DialogPalette.iconColor,
+                      size: sizing.bodyFontSize * 1.8,
+                    ),
+                    theme: const VirtualKeyboardFieldTheme(
+                      fillColor: Colors.white,
+                      borderColor: Color(0xFFD7DEE6),
+                      activeBorderColor: DialogPalette.inputFocusedBorderColor,
+                      errorBorderColor: Colors.red,
+                      textColor: Colors.black,
+                      hintColor: DialogPalette.inputHintColor,
+                      labelColor: DialogPalette.inputHintColor,
+                      keyboardTextColor: DialogPalette.inputTextColor,
+                      keyboardBackgroundColor: Colors.white,
+                      keyboardBorderColor: Color(0x66D4A64A),
+                      keyboardShadow: [
+                        BoxShadow(
+                          color: Color(0x14000000),
+                          blurRadius: 16,
+                          offset: Offset(0, 6),
+                        ),
+                      ],
+                    ),
                   ),
 
                   VerticalSpace(height: sizing.verticalGap * 0.6),
@@ -857,6 +851,9 @@ Future<void> showEditDhikrDialog2(
                       AppCubit().assignAdhkar();
                     }
 
+                    if (!ctx.mounted) {
+                      return;
+                    }
                     Navigator.of(ctx).pop();
                   },
                 ),
@@ -989,49 +986,13 @@ class _ImprovedDhikrEditFormWidgetState
             SizedBox(height: sizing.verticalGap * 0.8),
 
             // ✅ TextField للنص (prefilled)
-            TextFormField(
+            DhikrVirtualKeyboardField(
               controller: _textController,
               maxLines: sizing.isLandscape ? 3 : 4,
-              // textDirection: widgets.TextDirection.rtl,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: sizing.bodyFontSize,
-              ),
-              decoration: InputDecoration(
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-                alignLabelWithHint: true,
-                // labelText: LocaleKeys.dhikr_text_label.tr(),
-                hintText: LocaleKeys.dhikr_text_label.tr(),
-                hintStyle: TextStyle(color: Colors.grey.shade500),
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(sizing.borderRadius),
-                  borderSide: BorderSide(
-                    color: Colors.grey.shade400,
-                    width: 1.5,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(sizing.borderRadius),
-                  borderSide: const BorderSide(
-                    color: Color(0xFFF4C66A),
-                    width: 2,
-                  ),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(sizing.borderRadius),
-                  borderSide: const BorderSide(color: Colors.red, width: 1.5),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(sizing.borderRadius),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: sizing.screenWidth * 0.015,
-                  vertical: sizing.screenHeight * 0.015,
-                ),
+              hintText: LocaleKeys.dhikr_text_label.tr(),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: sizing.screenWidth * 0.015,
+                vertical: sizing.screenHeight * 0.015,
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
@@ -1055,7 +1016,7 @@ class _ImprovedDhikrEditFormWidgetState
             // ✅ Dropdown للنوع (prefilled)
             DropdownButtonFormField<DhikrScheduleType>(
               iconSize: sizing.bodyFontSize * 2,
-              value: _selectedType,
+              initialValue: _selectedType,
               isExpanded: true,
               icon: const Icon(
                 Icons.arrow_drop_down_rounded,
