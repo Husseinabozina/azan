@@ -1,6 +1,5 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart' show AppCubit;
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -109,7 +108,6 @@ class TemperatureBadge extends StatelessWidget {
 
     // ✅ خُد القيم من الكيوبت
     final tempC = context.watch<AppCubit>().todayMaxTemp;
-    final weatherCode = context.watch<AppCubit>().todayWeatherCode;
 
     // ✅ الأيقونة بناءً على الكود
     final r = weatherIconForCode(tempC, isDay: day);
@@ -141,6 +139,7 @@ class TemperatureBadge extends StatelessWidget {
               fontSize: textPx,
               fontWeight: FontWeight.bold,
               color: AppTheme.secondaryTextColor,
+              height: 1.0,
             ),
           ),
         ],

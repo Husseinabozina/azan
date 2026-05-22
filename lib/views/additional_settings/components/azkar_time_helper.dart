@@ -1,4 +1,5 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/core/helpers/managed_azkar_hive_helper.dart';
 import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:flutter/foundation.dart';
@@ -14,6 +15,13 @@ class AzkarTimeHelper {
   static const int asrId = 4;
   static const int maghribId = 5;
   static const int ishaId = 6;
+  static const List<int> azkarPrayerIds = [
+    fajrId,
+    dhuhrId,
+    asrId,
+    maghribId,
+    ishaId,
+  ];
 
   static DateTime? _adhanTime(int id) => AppCubit().adjustedPrayerTimeById(id);
   static DateTime? _startAfterPrayerThenAfterAfterPrayerAzkar(int prayerId) {
@@ -80,39 +88,27 @@ class AzkarTimeHelper {
   static AzkarWindow? _morningWindow(DateTime n) {
     if (!CacheHelper.getMorningAzkarEnabled()) return null;
 
-    final start = _startAfterPrayerThenAfterAfterPrayerAzkar(fajrId);
-    if (start == null) return null;
-
-    final end = start.add(
-      Duration(minutes: CacheHelper.getMorningAzkarWindowMinutes()),
+    return _windowForManagedSet(
+      n,
+      type: AzkarType.morning,
+      windowMinutes: CacheHelper.getMorningAzkarWindowMinutes(),
     );
-
-    if (!n.isBefore(start) && n.isBefore(end)) {
-      return AzkarWindow(type: AzkarType.morning, start: start, end: end);
-    }
-    return null;
   }
 
   static AzkarWindow? _eveningWindow(DateTime n) {
     if (!CacheHelper.getEveningAzkarEnabled()) return null;
 
-    final start = _startAfterPrayerThenAfterAfterPrayerAzkar(maghribId);
-    if (start == null) return null;
-
-    final end = start.add(
-      Duration(minutes: CacheHelper.getEveningAzkarWindowMinutes()),
+    return _windowForManagedSet(
+      n,
+      type: AzkarType.evening,
+      windowMinutes: CacheHelper.getEveningAzkarWindowMinutes(),
     );
-
-    if (!n.isBefore(start) && n.isBefore(end)) {
-      return AzkarWindow(type: AzkarType.evening, start: start, end: end);
-    }
-    return null;
   }
 
   static AzkarWindow? _afterPrayerWindow(DateTime n) {
     if (!CacheHelper.getAfterPrayerAzkarEnabled()) return null;
 
-    for (final id in const [fajrId, dhuhrId, asrId, maghribId, ishaId]) {
+    for (final id in azkarPrayerIds) {
       final w = _afterPrayerWindowForId(n, id);
       if (w != null) return w;
     }
@@ -120,9 +116,56 @@ class AzkarTimeHelper {
   }
 
   static int? boolTest() {
-    for (final id in const [fajrId, dhuhrId, asrId, maghribId, ishaId]) {
+    for (final id in azkarPrayerIds) {
       return id;
     }
+    return null;
+  }
+
+  static AzkarWindow? _windowForManagedSet(
+    DateTime n, {
+    required AzkarType type,
+    required int windowMinutes,
+  }) {
+    for (final id in azkarPrayerIds) {
+      if (!ManagedAzkarHiveHelper.hasActiveEntriesForTypeAndPrayerSync(
+        type,
+        id,
+      )) {
+        continue;
+      }
+
+      final w = _windowForManagedSetAndPrayer(
+        n,
+        type: type,
+        prayerId: id,
+        windowMinutes: windowMinutes,
+      );
+      if (w != null) return w;
+    }
+
+    return null;
+  }
+
+  static AzkarWindow? _windowForManagedSetAndPrayer(
+    DateTime n, {
+    required AzkarType type,
+    required int prayerId,
+    required int windowMinutes,
+  }) {
+    final start = _startAfterPrayerThenAfterAfterPrayerAzkar(prayerId);
+    if (start == null) return null;
+
+    final end = start.add(Duration(minutes: windowMinutes));
+    if (!n.isBefore(start) && n.isBefore(end)) {
+      return AzkarWindow(
+        type: type,
+        start: start,
+        end: end,
+        prayerId: prayerId,
+      );
+    }
+
     return null;
   }
 
@@ -167,7 +210,7 @@ class AzkarWindow {
   final AzkarType type;
   final DateTime start;
   final DateTime end;
-  final int? prayerId; // للأذكار بعد الصلاة
+  final int? prayerId; // الصلاة التي فتحت نافذة الأذكار الحالية
 
   const AzkarWindow({
     required this.type,

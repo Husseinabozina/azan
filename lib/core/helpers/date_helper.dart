@@ -4,6 +4,18 @@ import 'package:azan/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+class GregorianLikeHijriDateParts {
+  const GregorianLikeHijriDateParts({
+    required this.day,
+    required this.monthName,
+    required this.year,
+  });
+
+  final String day;
+  final String monthName;
+  final String year;
+}
+
 class DateHelper {
   static const List<String> _western = [
     '0',
@@ -167,6 +179,35 @@ class DateHelper {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     return today.weekday == 5;
+  }
+
+  static GregorianLikeHijriDateParts gregorianLikeHijriParts({
+    DateTime? date,
+    bool padDay = false,
+  }) {
+    final targetDate = date ?? DateTime.now();
+    final lang = CacheHelper.getLang().trim().isEmpty
+        ? 'en'
+        : CacheHelper.getLang();
+    final rawDay = padDay
+        ? targetDate.day.toString().padLeft(2, '0')
+        : targetDate.day.toString();
+    final rawYear = targetDate.year.toString();
+
+    return GregorianLikeHijriDateParts(
+      day: LocalizationHelper.isArAndArNumberEnable()
+          ? toArabicDigits(rawDay)
+          : toWesternDigits(rawDay),
+      monthName: DateFormat('MMMM', lang).format(targetDate),
+      year: LocalizationHelper.isArAndArNumberEnable()
+          ? toArabicDigits(rawYear)
+          : toWesternDigits(rawYear),
+    );
+  }
+
+  static String formatGregorianDateLikeHijri({DateTime? date}) {
+    final parts = gregorianLikeHijriParts(date: date);
+    return '${parts.day} ${parts.monthName} ${parts.year}';
   }
 
   static String displayHHmmNoPeriod(String timeStr, BuildContext context) {

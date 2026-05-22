@@ -40,6 +40,78 @@ void main() {
       expect(resolved.entries.first.reference, 'آية الكرسى - البقرة 255');
     });
 
+    test('morning loader filters manually selected prayer windows', () async {
+      const customText = 'ذكر صباح يظهر بعد الظهر للاختبار';
+      await ManagedAzkarHiveHelper.addEntry(
+        type: AzkarType.morning,
+        text: customText,
+        applicablePrayerIds: const [3],
+      );
+
+      final fajrResolved = await loadAzkarSet(AzkarType.morning, prayerId: 1);
+      final dhuhrResolved = await loadAzkarSet(AzkarType.morning, prayerId: 3);
+
+      expect(
+        fajrResolved.entries.any((entry) => entry.text == customText),
+        isFalse,
+      );
+      expect(
+        dhuhrResolved.entries.any((entry) => entry.text == customText),
+        isTrue,
+      );
+    });
+
+    test('evening loader filters manually selected prayer windows', () async {
+      const customText = 'ذكر مساء يظهر بعد العصر للاختبار';
+      await ManagedAzkarHiveHelper.addEntry(
+        type: AzkarType.evening,
+        text: customText,
+        applicablePrayerIds: const [4],
+      );
+
+      final maghribResolved = await loadAzkarSet(
+        AzkarType.evening,
+        prayerId: 5,
+      );
+      final asrResolved = await loadAzkarSet(AzkarType.evening, prayerId: 4);
+
+      expect(
+        maghribResolved.entries.any((entry) => entry.text == customText),
+        isFalse,
+      );
+      expect(
+        asrResolved.entries.any((entry) => entry.text == customText),
+        isTrue,
+      );
+    });
+
+    test('loader returns manual order after prayer filtering', () async {
+      const firstText = 'ذكر صباح مرتب أول';
+      const secondText = 'ذكر صباح مرتب ثاني';
+      final first = await ManagedAzkarHiveHelper.addEntry(
+        type: AzkarType.morning,
+        text: firstText,
+        applicablePrayerIds: const [3],
+      );
+      final second = await ManagedAzkarHiveHelper.addEntry(
+        type: AzkarType.morning,
+        text: secondText,
+        applicablePrayerIds: const [3],
+      );
+
+      await ManagedAzkarHiveHelper.moveEntryWithinType(
+        type: AzkarType.morning,
+        entryId: second.id,
+        delta: -1,
+      );
+
+      final resolved = await loadAzkarSet(AzkarType.morning, prayerId: 3);
+      expect(resolved.entries.map((entry) => entry.text), [
+        second.text,
+        first.text,
+      ]);
+    });
+
     test('after-prayer loader keeps fajr-specific entries for fajr', () async {
       final resolved = await loadAzkarSet(AzkarType.afterPrayer, prayerId: 1);
 
@@ -81,6 +153,15 @@ void main() {
         final resolved = await loadAzkarSet(AzkarType.afterPrayer, prayerId: 3);
 
         expect(resolved.entries.length, 6);
+        expect(
+          resolved.entries[0].description,
+          'الاستغفار والتسبيح بعد الصلاة',
+        );
+        expect(resolved.entries[4].description, 'آية الكرسي بعد كل صلاة');
+        expect(
+          resolved.entries[5].description,
+          'المعوذات بعد كل صلاة، وتكرر بعد الفجر والمغرب ثلاث مرات',
+        );
         expect(
           resolved.entries.any(
             (entry) => entry.description == 'بعد صلاة المغرب والصبح',

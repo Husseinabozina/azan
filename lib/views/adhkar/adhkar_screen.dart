@@ -457,7 +457,7 @@ class _AdhkarList extends StatelessWidget {
       separatorBuilder: (_, __) => SizedBox(height: 10.h),
       itemBuilder: (context, index) {
         final dhikr = adhkar[index];
-        return DhikrTile(dhikr: dhikr);
+        return DhikrTile(dhikr: dhikr, index: index);
       },
     );
   }

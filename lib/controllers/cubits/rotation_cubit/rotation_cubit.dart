@@ -1,24 +1,59 @@
-import 'package:azan/controllers/cubits/appcubit/app_state.dart';
-import 'package:azan/controllers/cubits/rotation_cubit/rotation_state.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// qt:
-/// 0 => Landscape UI
-/// 1 => Portrait UI
+/// The state is the number of clockwise quarter turns applied to the large
+/// screen UI: 0, 1, 2, 3. Mobile keeps following the physical sensor.
 
-class UiRotationCubit extends Cubit<bool> {
+class UiRotationCubit extends Cubit<int> {
   // singleton
   static final UiRotationCubit _instance = UiRotationCubit._internal();
   factory UiRotationCubit() => _instance;
-  UiRotationCubit._internal() : super(CacheHelper.getIsLandscape());
+  UiRotationCubit._internal() : super(CacheHelper.getUiRotationQuarterTurns());
 
-  void changeIsLandscape(bool v) {
-    CacheHelper.setIsLandscape(v);
-    emit(v);
+  bool _deviceIsLandscape = false;
+  bool _isMobile = false;
+
+  int get quarterTurns => _normalizeQuarterTurns(state);
+
+  void syncDeviceOrientation({
+    required bool deviceIsLandscape,
+    required bool isMobile,
+  }) {
+    _deviceIsLandscape = deviceIsLandscape;
+    _isMobile = isMobile;
   }
 
-  bool isLandscape() => state;
+  void rotateClockwise() {
+    setQuarterTurns(quarterTurns + 1);
+  }
+
+  void setQuarterTurns(int value) {
+    final normalized = _normalizeQuarterTurns(value);
+    CacheHelper.setUiRotationQuarterTurns(normalized);
+    emit(normalized);
+  }
+
+  void changeIsLandscape(bool v) {
+    final nextQuarterTurns = v == _deviceIsLandscape ? 0 : 1;
+    CacheHelper.setIsLandscape(v);
+    setQuarterTurns(_isMobile ? 0 : nextQuarterTurns);
+  }
+
+  bool isLandscape() {
+    if (_isMobile) {
+      return _deviceIsLandscape;
+    }
+    return isLandscapeForDevice(_deviceIsLandscape);
+  }
+
+  bool isLandscapeForDevice(bool deviceIsLandscape) {
+    return quarterTurns.isOdd ? !deviceIsLandscape : deviceIsLandscape;
+  }
+
+  static int _normalizeQuarterTurns(int value) {
+    final normalized = value % 4;
+    return normalized < 0 ? normalized + 4 : normalized;
+  }
 }
 
 // class UiRotationCubit extends Cubit<UiRotationState> {

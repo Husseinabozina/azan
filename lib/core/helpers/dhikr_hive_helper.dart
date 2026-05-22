@@ -125,6 +125,17 @@ class DhikrHiveHelper {
     await _writeAllToBox(box, current);
   }
 
+  static Future<void> setActive(int id, bool active) async {
+    final box = await _openBox();
+    final current = _readAllFromBox(box);
+
+    final index = current.indexWhere((d) => d.id == id);
+    if (index == -1) return;
+
+    current[index] = current[index].copyWith(active: active);
+    await _writeAllToBox(box, current);
+  }
+
   /// ✅ حذف ذكر
   static Future<void> deleteDhikr(int id) async {
     final box = await _openBox();

@@ -25,8 +25,8 @@ import 'package:azan/views/home/components/black_screen_info_overlay.dart';
 import 'package:azan/views/home/components/clock_and_left_time_widget.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
-import 'package:azan/views/home/components/iqama_focus_section.dart';
 import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
+import 'package:azan/views/home/components/landscape_iqama_countdown_panel.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
@@ -136,17 +136,25 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     unawaited(cubit.assignSlides());
     unawaited(cubit.assignDisplayAnnouncements());
 
-    // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
+    _syncWeatherLifecycle();
+
+    _refreshMinuteFutures();
+  }
+
+  void _syncWeatherLifecycle({
+    bool onHomeOpen = false,
+    bool forceRefresh = false,
+  }) {
+    final city = cubit.getCity()?.nameEn ?? '';
     unawaited(
-      cubit.maybeRefreshWeather(
+      cubit.syncWeatherLifecycle(
         country: 'Saudi Arabia',
         city: city,
         hasInternet: () => cubit.hasInternet,
-        onHomeOpen: true, // ✅ أهم سطر
+        onHomeOpen: onHomeOpen,
+        forceRefresh: forceRefresh,
       ),
     );
-
-    _refreshMinuteFutures();
   }
 
   void _refreshMinuteFutures() {
@@ -208,6 +216,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     // ✅ التايمر الثاني، يبقى كما هو
     _minuteTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted) return;
+      _syncWeatherLifecycle();
       setState(() => _refreshMinuteFutures());
     });
   }
@@ -236,14 +245,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     // unawaited(_assignHijriDate());
     // final city = cubit.getCity()?.nameEn ?? '';
 
-    unawaited(
-      cubit.maybeRefreshWeather(
-        country: 'Saudi Arabia',
-        city: city,
-        hasInternet: () => cubit.hasInternet,
-        onHomeOpen: true, // ✅ أهم سطر
-      ),
-    );
+    _syncWeatherLifecycle(onHomeOpen: true);
 
     cubit.startWeatherAutoSync(
       country: 'Saudi Arabia',
@@ -264,21 +266,6 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
     return LocalizationHelper.isArAndArNumberEnable()
         ? DateHelper.toArabicDigits(raw)
         : DateHelper.toWesternDigits(raw);
-  }
-
-  List<IqamaPrayerSummaryData> _iqamaPrayerItems(BuildContext context) {
-    final prayers = List<prayerModel.Prayer>.from(cubit.prayers(context))
-      ..sort((a, b) => a.id.compareTo(b.id));
-
-    return prayers.where((p) => p.id >= 1 && p.id <= 6).map((p) {
-      final baseTimeStr = CacheHelper.getUse24HoursFormat()
-          ? (p.time24 ?? p.time)
-          : (p.time ?? p.time24);
-      final adhanTime = baseTimeStr != null
-          ? DateHelper.displayHHmmNoPeriod(baseTimeStr, context)
-          : '--:--';
-      return IqamaPrayerSummaryData(prayerName: p.title, adhanTime: adhanTime);
-    }).toList();
   }
 
   late final AzkarOverlayController _azkarOverlay;
@@ -451,6 +438,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
   bool get _isFitrDayHijri => _isTodayHijri(day: 1, month: 10);
   bool get _isAdhaDayHijri => _isTodayHijri(day: 10, month: 12);
 
+  // ignore: unused_element
   Future<void> _openAzkarTimingSettings() async {
     bool morningEnabled = CacheHelper.getMorningAzkarEnabled();
     bool eveningEnabled = CacheHelper.getEveningAzkarEnabled();
@@ -582,8 +570,12 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                       rightButton: DialogButton(
                         text: 'حفظ',
                         onPressed: () async {
-                          await CacheHelper.setMorningAzkarEnabled(morningEnabled);
-                          await CacheHelper.setEveningAzkarEnabled(eveningEnabled);
+                          await CacheHelper.setMorningAzkarEnabled(
+                            morningEnabled,
+                          );
+                          await CacheHelper.setEveningAzkarEnabled(
+                            eveningEnabled,
+                          );
                           await CacheHelper.setMorningAzkarWindowMinutes(
                             morningMinutes,
                           );
@@ -836,7 +828,6 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                         // Use the smaller scale to avoid overflow
                         final double scale = scaleW < scaleH ? scaleW : scaleH;
                         final double azkarH = height * 0.1;
-                        final double footerH = height * 0.050;
                         return Column(
                           children: [
                             SizedBox(
@@ -858,27 +849,79 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                               padding: EdgeInsets.symmetric(
                                 horizontal: width * 0.01,
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: ClockAndLeftTimeWidget(
-                                      nextPrayerFuture: _nextPrayerFuture,
-                                      width: width,
-                                      letfTimeText: "",
-                                      isIqamaActive:
-                                          cubit.isBetweenAdhanAndIqama,
-                                      onHijriTap: () async {
-                                        await CacheHelper.stepHijriOffsetCycle();
-                                        await AppCubit.get(
-                                          context,
-                                        ).getTodayHijriDate(context);
-                                        if (!mounted) return;
-                                        setState(() {});
-                                      },
-                                    ),
-                                  ),
-                                ],
+                              child: LayoutBuilder(
+                                builder: (context, clockConstraints) {
+                                  final maxClockWidth =
+                                      clockConstraints.maxWidth;
+                                  final remainingToIqama = cubit
+                                      .remainingToIqama();
+                                  final showIqamaSideCountdown =
+                                      cubit.isBetweenAdhanAndIqama &&
+                                      remainingToIqama != null &&
+                                      remainingToIqama.inSeconds > 0;
+                                  final showNextPrayerSideCountdown =
+                                      !cubit.isBetweenAdhanAndIqama;
+                                  final showSideCountdown =
+                                      (showIqamaSideCountdown ||
+                                          showNextPrayerSideCountdown) &&
+                                      maxClockWidth >= 520 &&
+                                      clockConstraints.maxHeight >= 96;
+                                  final countdownPanelWidth = showSideCountdown
+                                      ? (maxClockWidth * 0.22)
+                                            .clamp(132.0, 220.0)
+                                            .toDouble()
+                                      : 0.0;
+                                  final countdownGap = showSideCountdown
+                                      ? (maxClockWidth * 0.010)
+                                            .clamp(6.0, 12.0)
+                                            .toDouble()
+                                      : 0.0;
+
+                                  return Row(
+                                    children: [
+                                      Expanded(
+                                        child: ClockAndLeftTimeWidget(
+                                          nextPrayerFuture: _nextPrayerFuture,
+                                          width:
+                                              maxClockWidth -
+                                              countdownPanelWidth -
+                                              countdownGap,
+                                          letfTimeText: "",
+                                          isIqamaActive: false,
+                                          showNextPrayerCountdown: false,
+                                          onHijriTap: () async {
+                                            await CacheHelper.stepHijriOffsetCycle();
+                                            await AppCubit.get(
+                                              context,
+                                            ).getTodayHijriDate(context);
+                                            if (!mounted) return;
+                                            setState(() {});
+                                          },
+                                        ),
+                                      ),
+                                      if (showSideCountdown)
+                                        SizedBox(width: countdownGap),
+                                      if (showSideCountdown)
+                                        SizedBox(
+                                          width: countdownPanelWidth,
+                                          height: double.infinity,
+                                          child: showIqamaSideCountdown
+                                              ? LandscapeIqamaCountdownPanel(
+                                                  countdownText:
+                                                      _localizedDurationText(
+                                                        remainingToIqama,
+                                                      ),
+                                                  progress: cubit
+                                                      .iqamaProgress(),
+                                                )
+                                              : LandscapeNextPrayerCountdownPanel(
+                                                  nextPrayerFuture:
+                                                      _nextPrayerFuture,
+                                                ),
+                                        ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
 
@@ -899,71 +942,42 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                                   seconds:
                                       CacheHelper.getSlidesDisplaySeconds(),
                                 ),
-                                randomOrder: CacheHelper.getSlidesRandomOrder(),
+                                randomOrder: false,
                                 fontFamily: CacheHelper.getAzkarFontFamily(),
                                 textColor: AppTheme.primaryTextColor,
                               ),
                             Expanded(
-                              child: Builder(
-                                builder: (context) {
-                                  final remainingToIqama = cubit
-                                      .remainingToIqama();
-                                  final showIqamaFocus =
-                                      cubit.isBetweenAdhanAndIqama &&
-                                      remainingToIqama != null &&
-                                      remainingToIqama.inSeconds > 0;
-
-                                  if (showIqamaFocus) {
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: width * 0.06,
-                                      ),
-                                      child: IqamaFocusSection(
-                                        countdownText: _localizedDurationText(
-                                          remainingToIqama,
-                                        ),
-                                        progress: cubit.iqamaProgress(),
-                                        prayers: _iqamaPrayerItems(context),
-                                        isLandscape: true,
-                                      ),
-                                    );
-                                  }
-
-                                  return Column(
-                                    children: [
-                                      const Spacer(),
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: hPadding,
-                                        ),
-                                        child: Row(
-                                          children: List.generate(rows.length, (
-                                            index,
-                                          ) {
-                                            return Padding(
-                                              padding:
-                                                  EdgeInsetsDirectional.only(
-                                                    end:
-                                                        index != rows.length - 1
-                                                        ? itemSpacing
-                                                        : 0,
-                                                  ),
-                                              child: PrayerLandScapeItem(
-                                                row: rows[index],
-                                                width: itemWidth,
-                                                height: prayerRowH,
-                                                onBackgroundChanged: () {
-                                                  if (!mounted) return;
-                                                  setState(() {});
-                                                },
-                                              ),
-                                            );
-                                          }),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
+                              child: Column(
+                                children: [
+                                  const Spacer(),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: hPadding,
+                                    ),
+                                    child: Row(
+                                      children: List.generate(rows.length, (
+                                        index,
+                                      ) {
+                                        return Padding(
+                                          padding: EdgeInsetsDirectional.only(
+                                            end: index != rows.length - 1
+                                                ? itemSpacing
+                                                : 0,
+                                          ),
+                                          child: PrayerLandScapeItem(
+                                            row: rows[index],
+                                            width: itemWidth,
+                                            height: prayerRowH,
+                                            onBackgroundChanged: () {
+                                              if (!mounted) return;
+                                              setState(() {});
+                                            },
+                                          ),
+                                        );
+                                      }),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
 

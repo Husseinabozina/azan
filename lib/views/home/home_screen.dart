@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
           manualMode: CacheHelper.getHomeDisplayMode(),
           items: items,
         );
-        final isLand = context.watch<UiRotationCubit>().state;
+        final isLand = context.watch<UiRotationCubit>().isLandscape();
         if (mode == HomeDisplayMode.displayBoard) {
           return isLand
               ? const DisplayBoardLandscapeScreen()

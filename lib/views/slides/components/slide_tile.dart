@@ -8,9 +8,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class SlideTile extends StatefulWidget {
-  const SlideTile({super.key, required this.slide});
+  const SlideTile({super.key, required this.slide, required this.index});
 
   final Dhikr slide;
+  final int index;
 
   @override
   State<SlideTile> createState() => _SlideTileState();
@@ -20,6 +21,7 @@ class _SlideTileState extends State<SlideTile> {
   @override
   Widget build(BuildContext context) {
     final appCubit = AppCubit.get(context);
+    final orderLabel = '${widget.index + 1}';
 
     return Container(
       padding: EdgeInsets.all(12.r),
@@ -30,6 +32,8 @@ class _SlideTileState extends State<SlideTile> {
       ),
       child: Row(
         children: [
+          _OrderBadge(label: orderLabel),
+          SizedBox(width: 10.w),
           Expanded(
             child: Text(
               widget.slide.text,
@@ -44,6 +48,25 @@ class _SlideTileState extends State<SlideTile> {
             ),
           ),
           SizedBox(width: 10.w),
+          IconButton(
+            tooltip: widget.slide.active ? 'إخفاء السلايد' : 'إظهار السلايد',
+            onPressed: () async {
+              await SlideHiveHelper.setActive(
+                widget.slide.id,
+                !widget.slide.active,
+              );
+              await appCubit.assignSlides();
+            },
+            icon: Icon(
+              widget.slide.active
+                  ? Icons.visibility_rounded
+                  : Icons.visibility_off_rounded,
+              color: widget.slide.active
+                  ? AppTheme.accentColor
+                  : AppTheme.secondaryTextColor,
+              size: 22.r,
+            ),
+          ),
           IconButton(
             tooltip: 'dhikr_edit_title'.tr(),
             onPressed: () {
@@ -75,6 +98,34 @@ class _SlideTileState extends State<SlideTile> {
             color: AppTheme.accentColor,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _OrderBadge extends StatelessWidget {
+  const _OrderBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30.r,
+      height: 30.r,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryButtonBackground.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(999.r),
+        border: Border.all(color: AppTheme.accentColor.withOpacity(0.55)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppTheme.primaryTextColor,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

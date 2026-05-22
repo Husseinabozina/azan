@@ -9,12 +9,17 @@ class Dhikr {
   Dhikr({required this.text, this.schedule, int? id, this.active = true})
     : id = id ?? DateTime.now().millisecondsSinceEpoch;
 
-  Dhikr copyWith({String? text, int? id, DhikrSchedule? schedule}) {
+  Dhikr copyWith({
+    String? text,
+    int? id,
+    DhikrSchedule? schedule,
+    bool? active,
+  }) {
     return Dhikr(
       text: text ?? this.text,
       id: id ?? this.id,
       schedule: schedule ?? this.schedule,
-      active: this.active,
+      active: active ?? this.active,
     );
   }
 
@@ -36,7 +41,7 @@ class Dhikr {
               Map<String, dynamic>.from(map['schedule'] as Map),
             )
           : null,
-      active: map['active'] as bool,
+      active: map['active'] as bool? ?? true,
     );
   }
 

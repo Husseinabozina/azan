@@ -1,3 +1,5 @@
+import 'package:azan/core/helpers/date_helper.dart';
+import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/mqscale.dart';
@@ -26,6 +28,7 @@ class AzkarPresentationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLandscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
+    final progressLabel = _entryProgressLabel(entryIndex, totalEntries);
 
     return Material(
       color: Colors.black.withOpacity(0.94),
@@ -64,11 +67,13 @@ class AzkarPresentationView extends StatelessWidget {
                             title: resolvedSet.title,
                             entry: entry,
                             emptyMessage: emptyMessage,
+                            progressLabel: progressLabel,
                           )
                         : _PortraitPresentation(
                             title: resolvedSet.title,
                             entry: entry,
                             emptyMessage: emptyMessage,
+                            progressLabel: progressLabel,
                           ),
                   ),
                 ),
@@ -93,17 +98,23 @@ class _PortraitPresentation extends StatelessWidget {
     required this.title,
     required this.entry,
     required this.emptyMessage,
+    required this.progressLabel,
   });
 
   final String title;
   final ResolvedAzkarEntry? entry;
   final String emptyMessage;
+  final String? progressLabel;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _TitleBanner(title: title, isLandscape: false),
+        _TitleBanner(
+          title: title,
+          isLandscape: false,
+          progressLabel: progressLabel,
+        ),
         SizedBox(height: 14.h),
         Expanded(
           child: _ReadingPanel(
@@ -122,11 +133,13 @@ class _LandscapePresentation extends StatelessWidget {
     required this.title,
     required this.entry,
     required this.emptyMessage,
+    required this.progressLabel,
   });
 
   final String title;
   final ResolvedAzkarEntry? entry;
   final String emptyMessage;
+  final String? progressLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +147,10 @@ class _LandscapePresentation extends StatelessWidget {
       children: [
         SizedBox(
           width: 150.w,
-          child: _LandscapeTitleRail(title: title),
+          child: _LandscapeTitleRail(
+            title: title,
+            progressLabel: progressLabel,
+          ),
         ),
         SizedBox(width: 14.w),
         Expanded(
@@ -150,10 +166,15 @@ class _LandscapePresentation extends StatelessWidget {
 }
 
 class _TitleBanner extends StatelessWidget {
-  const _TitleBanner({required this.title, required this.isLandscape});
+  const _TitleBanner({
+    required this.title,
+    required this.isLandscape,
+    required this.progressLabel,
+  });
 
   final String title;
   final bool isLandscape;
+  final String? progressLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -171,14 +192,23 @@ class _TitleBanner extends StatelessWidget {
           horizontal: 18.w,
           vertical: isLandscape ? 12.h : 13.h,
         ),
-        child: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: isLandscape ? 20.sp : 24.sp,
-            fontWeight: FontWeight.w800,
-            color: AppTheme.primaryTextColor,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isLandscape ? 20.sp : 24.sp,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primaryTextColor,
+              ),
+            ),
+            if (progressLabel != null) ...[
+              SizedBox(height: 5.h),
+              _ProgressPill(label: progressLabel!),
+            ],
+          ],
         ),
       ),
     );
@@ -186,9 +216,10 @@ class _TitleBanner extends StatelessWidget {
 }
 
 class _LandscapeTitleRail extends StatelessWidget {
-  const _LandscapeTitleRail({required this.title});
+  const _LandscapeTitleRail({required this.title, required this.progressLabel});
 
   final String title;
+  final String? progressLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +258,10 @@ class _LandscapeTitleRail extends StatelessWidget {
                 ),
               ),
             ),
+            if (progressLabel != null) ...[
+              _ProgressPill(label: progressLabel!),
+              SizedBox(height: 10.h),
+            ],
             Container(
               width: 42.w,
               height: 2.h,
@@ -240,6 +275,50 @@ class _LandscapeTitleRail extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ProgressPill extends StatelessWidget {
+  const _ProgressPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryTextColor.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999.r),
+        border: Border.all(
+          color: AppTheme.primaryTextColor.withOpacity(0.24),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 3.h),
+        child: Text(
+          label,
+          textDirection: TextDirection.ltr,
+          style: TextStyle(
+            color: AppTheme.primaryTextColor,
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w800,
+            fontFamily: CacheHelper.getTimesFontFamily(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String? _entryProgressLabel(int? entryIndex, int? totalEntries) {
+  if (entryIndex == null || totalEntries == null || totalEntries <= 0) {
+    return null;
+  }
+
+  final raw = '${entryIndex + 1} / $totalEntries';
+  return LocalizationHelper.isArAndArNumberEnable()
+      ? DateHelper.toArabicDigits(raw)
+      : raw;
 }
 
 class _ReadingPanel extends StatelessWidget {

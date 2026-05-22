@@ -1,4 +1,5 @@
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
+import 'package:azan/core/utils/app_virtual_keyboard.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:flutter/material.dart';
@@ -82,37 +83,139 @@ void main() {
     },
   );
 
-  testWidgets('DialogTextField uses the fixed dialog input palette', (
-    tester,
-  ) async {
-    final controller = TextEditingController(text: 'value');
+  testWidgets(
+    'DialogTextField uses the fixed dialog input palette and keyboard shell',
+    (tester) async {
+      final controller = TextEditingController(text: 'value');
 
-    await tester.pumpWidget(
-      _DialogHarness(
-        theme: ThemeData.light(),
-        child: Scaffold(
-          body: DialogTextField(
-            controller: controller,
-            label: 'Label',
-            hint: 'Hint',
+      await tester.pumpWidget(
+        _DialogHarness(
+          theme: ThemeData.light(),
+          child: Scaffold(
+            body: DialogTextField(
+              controller: controller,
+              label: 'Label',
+              hint: 'Hint',
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    final field = tester.widget<TextField>(find.byType(TextField));
-    final decoration = field.decoration!;
-    final enabledBorder = decoration.enabledBorder! as OutlineInputBorder;
-    final focusedBorder = decoration.focusedBorder! as OutlineInputBorder;
+      final fieldSurface = tester.widget<Container>(
+        _dialogInputSurfaceFinder(),
+      );
+      final fieldDecoration = fieldSurface.decoration! as BoxDecoration;
+      final fieldBorder = fieldDecoration.border! as Border;
 
-    expect(field.style?.color, DialogPalette.inputTextColor);
-    expect(decoration.fillColor, DialogPalette.inputFillColor);
-    expect(enabledBorder.borderSide.color, DialogPalette.inputBorderColor);
-    expect(
-      focusedBorder.borderSide.color,
-      DialogPalette.inputFocusedBorderColor,
-    );
-  });
+      expect(find.text('Label'), findsOneWidget);
+      expect(find.text('value'), findsOneWidget);
+      expect(find.byIcon(Icons.keyboard_rounded), findsOneWidget);
+      expect(fieldDecoration.color, DialogPalette.inputFillColor);
+      expect(fieldBorder.top.color, DialogPalette.inputBorderColor);
+
+      await tester.tap(find.text('value'));
+      await tester.pumpAndSettle();
+
+      final keyboardShell = tester.widget<Container>(_keyboardShellFinder());
+      final keyboardDecoration = keyboardShell.decoration! as BoxDecoration;
+
+      expect(find.byType(AppVirtualKeyboard), findsOneWidget);
+      expect(find.byIcon(Icons.keyboard_hide_rounded), findsOneWidget);
+      expect(keyboardDecoration.color, Colors.white);
+      expect(keyboardDecoration.border?.top.color, const Color(0x66D4A64A));
+    },
+  );
+
+  testWidgets(
+    'AppVirtualKeyboard types, shifts, switches language, and backspaces',
+    (tester) async {
+      await CacheHelper.setLang('en');
+      final controller = TextEditingController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AppVirtualKeyboard(
+                controller: controller,
+                height: 260,
+                inputMode: AppKeyboardInputMode.text,
+                textColor: DialogPalette.inputTextColor,
+                backgroundColor: Colors.white,
+                borderColor: const Color(0x66D4A64A),
+                shadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('app-key-char-a')));
+      await tester.pump();
+      expect(controller.text, 'a');
+
+      await tester.tap(find.byKey(const ValueKey('app-key-shift')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('app-key-char-a')));
+      await tester.pump();
+      expect(controller.text, 'aA');
+
+      await tester.tap(find.byKey(const ValueKey('app-key-language')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('app-key-char-ض')));
+      await tester.pump();
+      expect(controller.text, 'aAض');
+
+      await tester.tap(find.byKey(const ValueKey('app-key-backspace')));
+      await tester.pump();
+      expect(controller.text, 'aA');
+    },
+  );
+
+  testWidgets(
+    'AppVirtualKeyboard inserts Arabic alternates from long press menu',
+    (tester) async {
+      await CacheHelper.setLang('ar');
+      final controller = TextEditingController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AppVirtualKeyboard(
+                controller: controller,
+                height: 260,
+                inputMode: AppKeyboardInputMode.text,
+                textColor: DialogPalette.inputTextColor,
+                backgroundColor: Colors.white,
+                borderColor: const Color(0x66D4A64A),
+                shadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.longPress(find.byKey(const ValueKey('app-key-char-ا')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(PopupMenuItem<String>, 'أ'));
+      await tester.pumpAndSettle();
+
+      expect(controller.text, 'أ');
+    },
+  );
 
   testWidgets('showUniversalTimePicker injects the shared picker palette', (
     tester,
@@ -259,4 +362,27 @@ Finder _dialogSurfaceFinder() {
     return decoration is BoxDecoration &&
         decoration.color == DialogPalette.backgroundColor;
   }, description: 'dialog surface');
+}
+
+Finder _dialogInputSurfaceFinder() {
+  return find.byWidgetPredicate((widget) {
+    if (widget is! Container) return false;
+    final decoration = widget.decoration;
+    return decoration is BoxDecoration &&
+        decoration.color == DialogPalette.inputFillColor &&
+        decoration.border is Border &&
+        (decoration.border! as Border).top.color ==
+            DialogPalette.inputBorderColor;
+  }, description: 'dialog input surface');
+}
+
+Finder _keyboardShellFinder() {
+  return find.byWidgetPredicate((widget) {
+    if (widget is! Container) return false;
+    final decoration = widget.decoration;
+    return decoration is BoxDecoration &&
+        decoration.color == Colors.white &&
+        decoration.border is Border &&
+        (decoration.border! as Border).top.color == const Color(0x66D4A64A);
+  }, description: 'keyboard shell');
 }

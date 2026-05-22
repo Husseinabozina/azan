@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/appbutton.dart';
@@ -43,7 +44,6 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
       _selectedType,
       activeOnly: false,
     );
-    entries.sort((a, b) => b.id.compareTo(a.id));
 
     if (!mounted) return;
     setState(() {
@@ -92,6 +92,27 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
         });
       },
     );
+  }
+
+  Future<void> _toggleEntryActive(ManagedAzkarEntry entry) async {
+    await ManagedAzkarHiveHelper.setActive(entry.id, !entry.active);
+    if (!mounted) return;
+    await _loadEntries();
+  }
+
+  Future<void> _reorderEntry(int oldIndex, int newIndex) async {
+    if (oldIndex < 0 || oldIndex >= _entries.length) return;
+
+    final targetIndex = oldIndex < newIndex ? newIndex - 1 : newIndex;
+    if (oldIndex == targetIndex) return;
+
+    await ManagedAzkarHiveHelper.moveEntryToTypeIndex(
+      type: _selectedType,
+      entryId: _entries[oldIndex].id,
+      targetIndex: targetIndex,
+    );
+    if (!mounted) return;
+    await _loadEntries();
   }
 
   void _selectType(AzkarType type) {
@@ -157,6 +178,8 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
                                     isLoading: _isLoading,
                                     onEdit: _showEditor,
                                     onDelete: _deleteEntry,
+                                    onToggleActive: _toggleEntryActive,
+                                    onReorder: _reorderEntry,
                                   ),
                                 ),
                               ),
@@ -170,6 +193,8 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
                             onAdd: _showEditor,
                             onEdit: _showEditor,
                             onDelete: _deleteEntry,
+                            onToggleActive: _toggleEntryActive,
+                            onReorder: _reorderEntry,
                           ),
                   ),
                 ],
@@ -223,6 +248,8 @@ class _PortraitLayout extends StatelessWidget {
     required this.onAdd,
     required this.onEdit,
     required this.onDelete,
+    required this.onToggleActive,
+    required this.onReorder,
   });
 
   final AzkarType selectedType;
@@ -232,6 +259,8 @@ class _PortraitLayout extends StatelessWidget {
   final Future<void> Function({ManagedAzkarEntry? entry}) onAdd;
   final Future<void> Function({ManagedAzkarEntry? entry}) onEdit;
   final Future<void> Function(ManagedAzkarEntry entry) onDelete;
+  final Future<void> Function(ManagedAzkarEntry entry) onToggleActive;
+  final Future<void> Function(int oldIndex, int newIndex) onReorder;
 
   @override
   Widget build(BuildContext context) {
@@ -252,6 +281,8 @@ class _PortraitLayout extends StatelessWidget {
               isLoading: isLoading,
               onEdit: onEdit,
               onDelete: onDelete,
+              onToggleActive: onToggleActive,
+              onReorder: onReorder,
             ),
           ),
         ],
@@ -352,6 +383,8 @@ class _ManagedAzkarList extends StatelessWidget {
     required this.isLoading,
     required this.onEdit,
     required this.onDelete,
+    required this.onToggleActive,
+    required this.onReorder,
   });
 
   final List<ManagedAzkarEntry> entries;
@@ -359,6 +392,8 @@ class _ManagedAzkarList extends StatelessWidget {
   final bool isLoading;
   final Future<void> Function({ManagedAzkarEntry? entry}) onEdit;
   final Future<void> Function(ManagedAzkarEntry entry) onDelete;
+  final Future<void> Function(ManagedAzkarEntry entry) onToggleActive;
+  final Future<void> Function(int oldIndex, int newIndex) onReorder;
 
   @override
   Widget build(BuildContext context) {
@@ -379,17 +414,32 @@ class _ManagedAzkarList extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
+    return ReorderableListView.builder(
       padding: EdgeInsets.zero,
       itemCount: entries.length,
-      separatorBuilder: (_, __) => SizedBox(height: 10.h),
+      buildDefaultDragHandles: false,
+      onReorder: (oldIndex, newIndex) {
+        unawaited(onReorder(oldIndex, newIndex));
+      },
       itemBuilder: (context, index) {
         final entry = entries[index];
-        return _ManagedAzkarTile(
-          key: ValueKey('managed-azkar-entry-${entry.id}'),
-          entry: entry,
-          onEdit: () => onEdit(entry: entry),
-          onDelete: () => onDelete(entry),
+        return Padding(
+          key: ValueKey('managed-azkar-entry-wrapper-${entry.id}'),
+          padding: EdgeInsets.only(
+            bottom: index == entries.length - 1 ? 0 : 10.h,
+          ),
+          child: _ManagedAzkarTile(
+            entry: entry,
+            index: index,
+            dragHandle: ReorderableDragStartListener(
+              key: ValueKey('managed-azkar-entry-drag-${entry.id}'),
+              index: index,
+              child: const _ManagedDragHandle(),
+            ),
+            onEdit: () => onEdit(entry: entry),
+            onDelete: () => onDelete(entry),
+            onToggleActive: () => onToggleActive(entry),
+          ),
         );
       },
     );
@@ -398,19 +448,26 @@ class _ManagedAzkarList extends StatelessWidget {
 
 class _ManagedAzkarTile extends StatelessWidget {
   const _ManagedAzkarTile({
-    super.key,
     required this.entry,
+    required this.index,
+    required this.dragHandle,
     required this.onEdit,
     required this.onDelete,
+    required this.onToggleActive,
   });
 
   final ManagedAzkarEntry entry;
+  final int index;
+  final Widget dragHandle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onToggleActive;
 
   @override
   Widget build(BuildContext context) {
     final prayerNames = _prayerNames(entry, context);
+    final orderLabel = '${index + 1}';
+    final displayText = _cleanDisplayText(entry.text);
 
     return Container(
       padding: EdgeInsets.all(12.r),
@@ -421,14 +478,17 @@ class _ManagedAzkarTile extends StatelessWidget {
       ),
       child: Row(
         children: [
+          _ManagedOrderBadge(label: orderLabel),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  entry.text,
+                  displayText,
                   key: ValueKey('managed-azkar-entry-text-${entry.id}'),
                   textAlign: TextAlign.right,
+                  textDirection: ui.TextDirection.rtl,
                   style: TextStyle(
                     color: AppTheme.primaryTextColor,
                     fontSize: 14.sp,
@@ -442,6 +502,7 @@ class _ManagedAzkarTile extends StatelessWidget {
                   Text(
                     prayerNames,
                     textAlign: TextAlign.right,
+                    textDirection: ui.TextDirection.rtl,
                     style: TextStyle(
                       color: AppTheme.secondaryTextColor,
                       fontSize: 12.sp,
@@ -453,32 +514,67 @@ class _ManagedAzkarTile extends StatelessWidget {
             ),
           ),
           SizedBox(width: 10.w),
-          IconButton(
-            key: ValueKey('managed-azkar-entry-edit-${entry.id}'),
-            tooltip: LocaleKeys.dhikr_edit_title.tr(),
-            onPressed: onEdit,
-            icon: Icon(Icons.edit, color: AppTheme.accentColor, size: 22.r),
-          ),
-          IconButton(
-            key: ValueKey('managed-azkar-entry-delete-${entry.id}'),
-            onPressed: onDelete,
-            icon: Icon(Icons.close, size: 25.r, color: AppTheme.accentColor),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 92.w),
+            child: Wrap(
+              spacing: 4.w,
+              runSpacing: 4.h,
+              alignment: WrapAlignment.end,
+              children: [
+                dragHandle,
+                _ManagedTileActionButton(
+                  key: ValueKey('managed-azkar-entry-visibility-${entry.id}'),
+                  tooltip: entry.active ? 'إخفاء الذكر' : 'إظهار الذكر',
+                  icon: entry.active
+                      ? Icons.visibility_rounded
+                      : Icons.visibility_off_rounded,
+                  color: entry.active
+                      ? AppTheme.accentColor
+                      : AppTheme.secondaryTextColor,
+                  onPressed: onToggleActive,
+                ),
+                _ManagedTileActionButton(
+                  key: ValueKey('managed-azkar-entry-edit-${entry.id}'),
+                  tooltip: LocaleKeys.dhikr_edit_title.tr(),
+                  icon: Icons.edit,
+                  onPressed: onEdit,
+                ),
+                _ManagedTileActionButton(
+                  key: ValueKey('managed-azkar-entry-delete-${entry.id}'),
+                  tooltip: LocaleKeys.delete.tr(),
+                  icon: Icons.close,
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
+  String _cleanDisplayText(String value) {
+    return value
+        .replaceAll(
+          RegExp('[\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]'),
+          '',
+        )
+        .trim();
+  }
+
   String? _prayerNames(ManagedAzkarEntry entry, BuildContext context) {
-    if (entry.setType != AzkarType.afterPrayer) return null;
     if (entry.applicablePrayerIds.isEmpty) {
-      return 'بعد كل الصلوات';
+      final defaultPrayerId = ManagedAzkarEntry.defaultPrayerIdForType(
+        entry.setType,
+      );
+      if (defaultPrayerId == null) return 'بعد كل الصلوات';
+      return 'الموعد الافتراضي: بعد صلاة ${_prayerNameForId(defaultPrayerId).tr()}';
     }
 
     final names = entry.applicablePrayerIds
         .map((id) => _prayerNameForId(id).tr())
         .toList(growable: false);
-    return 'الصلوات: ${names.join(' - ')}';
+    return 'يظهر بعد: ${names.join(' - ')}';
   }
 
   String _prayerNameForId(int prayerId) {
@@ -496,6 +592,100 @@ class _ManagedAzkarTile extends StatelessWidget {
       default:
         return LocaleKeys.prayer;
     }
+  }
+}
+
+class _ManagedTileActionButton extends StatelessWidget {
+  const _ManagedTileActionButton({
+    super.key,
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+    this.color,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 32.r,
+      height: 32.r,
+      child: IconButton(
+        tooltip: tooltip,
+        padding: EdgeInsets.zero,
+        constraints: BoxConstraints.tight(Size(32.r, 32.r)),
+        onPressed: onPressed,
+        icon: Icon(
+          icon,
+          size: 21.r,
+          color: onPressed == null
+              ? AppTheme.secondaryTextColor.withValues(alpha: 0.45)
+              : color ?? AppTheme.accentColor,
+        ),
+      ),
+    );
+  }
+}
+
+class _ManagedDragHandle extends StatelessWidget {
+  const _ManagedDragHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'اسحب لتغيير الترتيب',
+      child: SizedBox(
+        width: 32.r,
+        height: 32.r,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppTheme.accentColor.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: AppTheme.accentColor.withValues(alpha: 0.38),
+              width: 1.w,
+            ),
+          ),
+          child: Icon(
+            Icons.drag_indicator_rounded,
+            color: AppTheme.accentColor,
+            size: 22.r,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ManagedOrderBadge extends StatelessWidget {
+  const _ManagedOrderBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30.r,
+      height: 30.r,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryButtonBackground.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(999.r),
+        border: Border.all(color: AppTheme.accentColor.withOpacity(0.55)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppTheme.primaryTextColor,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
   }
 }
 
@@ -618,6 +808,9 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
   @override
   Widget build(BuildContext context) {
     final sizing = DialogConfig.getSizing(context);
+    final prayerHelpText = widget.type == AzkarType.afterPrayer
+        ? 'اترك الاختيارات فارغة إذا أردت إظهار الذكر بعد كل الصلوات.'
+        : 'اترك الاختيارات فارغة للحفاظ على الموعد الافتراضي لهذا القسم، أو اختر صلاة محددة ليظهر الذكر بعدها.';
 
     return Form(
       key: _formKey,
@@ -670,62 +863,61 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
               return null;
             },
           ),
-          if (widget.type == AzkarType.afterPrayer) ...[
-            SizedBox(height: sizing.verticalGap * 0.7),
-            Text(
-              'الصلوات المعنية',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.secondaryTextColor,
-                fontSize: sizing.bodyFontSize,
-              ),
+          SizedBox(height: sizing.verticalGap * 0.7),
+          Text(
+            'الصلوات المعنية',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppTheme.secondaryTextColor,
+              fontSize: sizing.bodyFontSize,
             ),
-            SizedBox(height: sizing.verticalGap * 0.25),
-            Text(
-              'اترك الاختيارات فارغة إذا أردت إظهار الذكر بعد كل الصلوات.',
-              style: TextStyle(
-                color: AppTheme.secondaryTextColor,
-                fontSize: sizing.bodyFontSize * 0.9,
-              ),
+          ),
+          SizedBox(height: sizing.verticalGap * 0.25),
+          Text(
+            prayerHelpText,
+            style: TextStyle(
+              color: AppTheme.secondaryTextColor,
+              fontSize: sizing.bodyFontSize * 0.9,
             ),
-            SizedBox(height: sizing.verticalGap * 0.35),
-            Wrap(
-              spacing: 10.w,
-              runSpacing: 10.h,
-              children: const <int>[1, 3, 4, 5, 6]
-                  .map((prayerId) {
-                    final selected = _selectedPrayerIds.contains(prayerId);
-                    return FilterChip(
-                      label: Text(_prayerTitle(prayerId).tr()),
-                      selected: selected,
-                      onSelected: (value) {
-                        setState(() {
-                          if (value) {
-                            _selectedPrayerIds.add(prayerId);
-                          } else {
-                            _selectedPrayerIds.remove(prayerId);
-                          }
-                        });
-                      },
-                      selectedColor: AppTheme.accentColor.withOpacity(0.2),
-                      checkmarkColor: AppTheme.primaryTextColor,
-                      backgroundColor: Colors.black.withOpacity(0.18),
-                      side: BorderSide(
-                        color: selected
-                            ? AppTheme.accentColor
-                            : Colors.white.withOpacity(0.16),
-                      ),
-                      labelStyle: TextStyle(
-                        color: selected
-                            ? AppTheme.primaryTextColor
-                            : AppTheme.secondaryTextColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    );
-                  })
-                  .toList(growable: false),
-            ),
-          ],
+          ),
+          SizedBox(height: sizing.verticalGap * 0.35),
+          Wrap(
+            spacing: 10.w,
+            runSpacing: 10.h,
+            children: const <int>[1, 3, 4, 5, 6]
+                .map((prayerId) {
+                  final selected = _selectedPrayerIds.contains(prayerId);
+                  return FilterChip(
+                    key: ValueKey('managed-azkar-prayer-$prayerId'),
+                    label: Text(_prayerTitle(prayerId).tr()),
+                    selected: selected,
+                    onSelected: (value) {
+                      setState(() {
+                        if (value) {
+                          _selectedPrayerIds.add(prayerId);
+                        } else {
+                          _selectedPrayerIds.remove(prayerId);
+                        }
+                      });
+                    },
+                    selectedColor: AppTheme.accentColor.withOpacity(0.2),
+                    checkmarkColor: AppTheme.primaryTextColor,
+                    backgroundColor: Colors.black.withOpacity(0.18),
+                    side: BorderSide(
+                      color: selected
+                          ? AppTheme.accentColor
+                          : Colors.white.withOpacity(0.16),
+                    ),
+                    labelStyle: TextStyle(
+                      color: selected
+                          ? AppTheme.primaryTextColor
+                          : AppTheme.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  );
+                })
+                .toList(growable: false),
+          ),
           SizedBox(height: sizing.verticalGap * 0.8),
           DialogButtonRow(
             leftButton: DialogButton(

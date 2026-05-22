@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/views/home/components/azkar_content.dart';
@@ -17,10 +16,9 @@ class AzkarView extends StatefulWidget {
 }
 
 class _AzkarViewState extends State<AzkarView> {
-  final _rng = math.Random();
-  final List<int> _bag = <int>[];
   Timer? _timer;
   int _loadVersion = 0;
+  final AzkarSequentialCursor _cursor = AzkarSequentialCursor();
 
   late ResolvedAzkarSet _resolvedSet;
   int? _currentIndex;
@@ -53,7 +51,8 @@ class _AzkarViewState extends State<AzkarView> {
 
   Future<void> _reloadResolvedSet() async {
     final loadVersion = ++_loadVersion;
-    _bag.clear();
+    _timer?.cancel();
+    _cursor.reset();
     _currentIndex = null;
     _isLoading = true;
     if (mounted) {
@@ -74,11 +73,12 @@ class _AzkarViewState extends State<AzkarView> {
 
   void _pickNextAndSchedule({bool first = false}) {
     if (_resolvedSet.entries.isEmpty) {
+      _timer?.cancel();
       setState(() => _currentIndex = null);
       return;
     }
 
-    final nextIndex = _pickNextRandomIndex();
+    final nextIndex = _pickNextSequentialIndex();
     if (first) {
       _currentIndex = nextIndex;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -96,12 +96,8 @@ class _AzkarViewState extends State<AzkarView> {
     });
   }
 
-  int _pickNextRandomIndex() {
-    if (_bag.isEmpty) {
-      _bag.addAll(List<int>.generate(_resolvedSet.entries.length, (i) => i));
-      _bag.shuffle(_rng);
-    }
-    return _bag.removeLast();
+  int _pickNextSequentialIndex() {
+    return _cursor.nextIndex(_resolvedSet.entries.length);
   }
 
   Duration _durationForText(String text) {
@@ -133,5 +129,23 @@ class _AzkarViewState extends State<AzkarView> {
       totalEntries: _resolvedSet.entries.length,
       emptyMessage: _isLoading ? 'جاري تحميل الأذكار...' : 'لا توجد أذكار',
     );
+  }
+}
+
+class AzkarSequentialCursor {
+  int _nextIndex = 0;
+
+  void reset() {
+    _nextIndex = 0;
+  }
+
+  int nextIndex(int totalEntries) {
+    if (totalEntries <= 0) {
+      throw ArgumentError.value(totalEntries, 'totalEntries');
+    }
+
+    final index = _nextIndex % totalEntries;
+    _nextIndex = (_nextIndex + 1) % totalEntries;
+    return index;
   }
 }

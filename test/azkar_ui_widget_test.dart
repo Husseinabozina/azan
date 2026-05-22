@@ -129,6 +129,19 @@ void main() {
     await tester.pump();
   });
 
+  test('AzkarSequentialCursor rotates through entries sequentially', () {
+    final cursor = AzkarSequentialCursor();
+
+    expect(cursor.nextIndex(3), 0);
+    expect(cursor.nextIndex(3), 1);
+    expect(cursor.nextIndex(3), 2);
+    expect(cursor.nextIndex(3), 0);
+
+    cursor.reset();
+    expect(cursor.nextIndex(2), 0);
+    expect(cursor.nextIndex(2), 1);
+  });
+
   test('managed morning azkar content reflects edited Hive text', () async {
     final firstMorning = (await ManagedAzkarHiveHelper.getEntriesForType(
       AzkarType.morning,

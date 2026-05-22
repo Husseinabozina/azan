@@ -134,9 +134,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class DhikrTile extends StatefulWidget {
-  const DhikrTile({super.key, required this.dhikr});
+  const DhikrTile({super.key, required this.dhikr, required this.index});
 
   final Dhikr dhikr;
+  final int index;
 
   @override
   State<DhikrTile> createState() => _DhikrTileState();
@@ -145,6 +146,8 @@ class DhikrTile extends StatefulWidget {
 class _DhikrTileState extends State<DhikrTile> {
   @override
   Widget build(BuildContext context) {
+    final orderLabel = '${widget.index + 1}';
+
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
@@ -154,6 +157,8 @@ class _DhikrTileState extends State<DhikrTile> {
       ),
       child: Row(
         children: [
+          _OrderBadge(label: orderLabel),
+          SizedBox(width: 10.w),
           // النص
           Expanded(
             child: Text(
@@ -172,6 +177,26 @@ class _DhikrTileState extends State<DhikrTile> {
           SizedBox(width: 10.w),
 
           // ✅ Edit button
+          IconButton(
+            tooltip: widget.dhikr.active ? 'إخفاء الذكر' : 'إظهار الذكر',
+            onPressed: () async {
+              final appCubit = AppCubit.get(context);
+              await DhikrHiveHelper.setActive(
+                widget.dhikr.id,
+                !widget.dhikr.active,
+              );
+              await appCubit.assignAdhkar();
+            },
+            icon: Icon(
+              widget.dhikr.active
+                  ? Icons.visibility_rounded
+                  : Icons.visibility_off_rounded,
+              color: widget.dhikr.active
+                  ? AppTheme.accentColor
+                  : AppTheme.secondaryTextColor,
+              size: 22.r,
+            ),
+          ),
           IconButton(
             tooltip: LocaleKeys.dhikr_edit_title.tr(),
             onPressed: () {
@@ -203,6 +228,34 @@ class _DhikrTileState extends State<DhikrTile> {
             color: AppTheme.accentColor,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _OrderBadge extends StatelessWidget {
+  const _OrderBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30.r,
+      height: 30.r,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryButtonBackground.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(999.r),
+        border: Border.all(color: AppTheme.accentColor.withOpacity(0.55)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppTheme.primaryTextColor,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

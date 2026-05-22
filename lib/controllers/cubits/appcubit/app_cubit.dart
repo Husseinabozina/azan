@@ -71,17 +71,16 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> handleDeviceTimeChanged(DeviceTimeChangeEvent event) async {
-    // مثال:
-    // 1) تحديث الوقت الحالي
-    // 2) إعادة حساب المواقيت
-    // 3) إعادة جدولة الإشعارات
-    // 4) تحديث التاريخ/الهجري لو عندك
-    print('Device time changed => $event');
-
-    // TODO: حط منطقك الحقيقي هنا
-    // await prayerService.recalculate();
-    // await notificationService.rescheduleAll();
-    // await azkarService.refresh();
+    _lastResolvedWeatherYmd = null;
+    final city = getCity()?.nameEn ?? '';
+    if (city.isNotEmpty) {
+      await syncWeatherLifecycle(
+        country: 'Saudi Arabia',
+        city: city,
+        hasInternet: () => hasInternet,
+        forceRefresh: true,
+      );
+    }
   }
 
   @override
@@ -127,6 +126,45 @@ class AppCubit extends Cubit<AppState> {
     );
   }
 
+  DateTime? _parseWeatherDayKey(String raw) {
+    try {
+      return DateTime.parse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  WeatherDay? _nearestWeatherDay(WeatherForecast f) {
+    if (f.days.isEmpty) return null;
+
+    final target = _parseWeatherDayKey(_cityTodayKey(f));
+    if (target == null) {
+      return f.days.first;
+    }
+
+    WeatherDay? best;
+    int? bestDistance;
+
+    for (final day in f.days) {
+      final parsed = _parseWeatherDayKey(day.date);
+      if (parsed == null) continue;
+
+      final distance = parsed.difference(target).inDays.abs();
+      if (best == null || bestDistance == null || distance < bestDistance) {
+        best = day;
+        bestDistance = distance;
+      }
+    }
+
+    return best ?? f.days.first;
+  }
+
+  WeatherDay? get displayWeather {
+    final f = weatherForecast;
+    if (f == null) return null;
+    return todayWeather ?? _nearestWeatherDay(f);
+  }
+
   WeatherDay? get tomorrowWeather {
     final f = weatherForecast;
     if (f == null) return null;
@@ -150,7 +188,7 @@ class AppCubit extends Cubit<AppState> {
           final map = jsonDecode(cached) as Map<String, dynamic>;
           final f = WeatherForecast.fromJson(map);
           weatherForecast = f;
-          maxTemp = todayWeather?.max; // ✅ أضف ده
+          maxTemp = displayWeather?.max;
           await CacheHelper.save(
             key: WeatherCacheKeys.forecastJson,
             value: jsonEncode(f.toJson()),
@@ -193,12 +231,54 @@ class AppCubit extends Cubit<AppState> {
   }
 
   String _weatherCityKey({required String country, required String city}) {
-    // لو عندك lat/lon في CacheHelper.getCity() يبقى أحسن
-    final c = getCity();
-    if (c != null) {
-      return '${c.lat!.toStringAsFixed(4)},${c.lon!.toStringAsFixed(4)}';
+    final autoCoords = _selectedAutoWeatherCoordinates();
+    if (autoCoords != null) {
+      return '${autoCoords.latitude.toStringAsFixed(4)},${autoCoords.longitude.toStringAsFixed(4)}';
     }
     return '$country|$city';
+  }
+
+  String _legacyWeatherCityKey({required String country, required String city}) {
+    return '$country|$city';
+  }
+
+  bool _cacheMatchesWeatherKey({
+    required Object? cachedKey,
+    required String resolvedKey,
+    required String country,
+    required String city,
+    required bool isManualWeatherSource,
+  }) {
+    if (cachedKey == resolvedKey) return true;
+
+    // Backward compatibility: old auto-weather caches used `country|city`
+    // before we switched to coordinate-based keys.
+    if (!isManualWeatherSource &&
+        cachedKey == _legacyWeatherCityKey(country: country, city: city)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  String _localYmd(DateTime date) {
+    return DateFormat('yyyy-MM-dd', 'en').format(date);
+  }
+
+  LatLng? _selectedAutoWeatherCoordinates() {
+    final selectedCity = getCity();
+    if (selectedCity?.lat != null && selectedCity?.lon != null) {
+      return LatLng(selectedCity!.lat!, selectedCity.lon!);
+    }
+    return CacheHelper.getCoordinates();
+  }
+
+  String _currentCityWeatherYmd({WeatherForecast? forecast}) {
+    final activeForecast = forecast ?? weatherForecast;
+    if (activeForecast != null) {
+      return _cityYmdByOffset(activeForecast.utcOffsetSeconds);
+    }
+    return _localYmd(DateTime.now());
   }
 
   String _cityYmdByOffset(int utcOffsetSeconds) {
@@ -215,10 +295,95 @@ class AppCubit extends Cubit<AppState> {
 
   bool _weatherInFlight = false;
   static const _weatherTtl = Duration(hours: 6);
+  static const _weatherRetryBackoff = Duration(minutes: 15);
+  String? _lastResolvedWeatherYmd;
+  DateTime? _lastWeatherRefreshAttemptAt;
 
   bool _isFresh(WeatherForecast f) {
     final fetched = DateTime.fromMillisecondsSinceEpoch(f.fetchedAtMs);
     return DateTime.now().difference(fetched) < _weatherTtl;
+  }
+
+  bool _syncResolvedWeatherSnapshot({bool emitIfChanged = false}) {
+    final resolvedYmd = _currentCityWeatherYmd();
+    final resolvedMax = displayWeather?.max;
+    final changed =
+        _lastResolvedWeatherYmd != resolvedYmd || maxTemp != resolvedMax;
+
+    _lastResolvedWeatherYmd = resolvedYmd;
+    maxTemp = resolvedMax;
+
+    if (changed && emitIfChanged) {
+      emit(AppChanged());
+    }
+    return changed;
+  }
+
+  bool _canAttemptWeatherRefreshNow({
+    required DateTime now,
+    bool forceRefresh = false,
+    bool onHomeOpen = false,
+  }) {
+    if (forceRefresh) return true;
+
+    final lastAttempt = _lastWeatherRefreshAttemptAt;
+    if (lastAttempt == null) return true;
+
+    final retryWindow = onHomeOpen ? _homeOpenThrottle : _weatherRetryBackoff;
+    return now.difference(lastAttempt) >= retryWindow;
+  }
+
+  Future<void> syncWeatherLifecycle({
+    required String country,
+    required String city,
+    required Future<bool> Function() hasInternet,
+    bool onHomeOpen = false,
+    bool forceRefresh = false,
+  }) async {
+    if (!CacheHelper.getWeatherEnabled()) return;
+
+    final activeForecast = weatherForecast;
+    final currentYmd = _currentCityWeatherYmd(forecast: activeForecast);
+    final hasTodayInForecast =
+        activeForecast != null && _forecastHasToday(activeForecast);
+    final dayChanged =
+        _lastResolvedWeatherYmd != null &&
+        _lastResolvedWeatherYmd != currentYmd;
+    final missingToday = activeForecast == null || !hasTodayInForecast;
+    final staleForecast =
+        activeForecast != null && !_isFresh(activeForecast);
+
+    _syncResolvedWeatherSnapshot(emitIfChanged: true);
+
+    final shouldRefresh =
+        onHomeOpen ||
+        forceRefresh ||
+        dayChanged ||
+        missingToday ||
+        staleForecast;
+    if (!shouldRefresh) return;
+
+    final now = DateTime.now();
+    final bypassBackoff = forceRefresh || dayChanged;
+    if (!_canAttemptWeatherRefreshNow(
+      now: now,
+      forceRefresh: bypassBackoff,
+      onHomeOpen: onHomeOpen,
+    )) {
+      return;
+    }
+
+    _lastWeatherRefreshAttemptAt = now;
+
+    await maybeRefreshWeather(
+      country: country,
+      city: city,
+      hasInternet: hasInternet,
+      force: forceRefresh || dayChanged || missingToday || staleForecast,
+      onHomeOpen: onHomeOpen,
+    );
+
+    _syncResolvedWeatherSnapshot(emitIfChanged: true);
   }
 
   Future<void> maybeRefreshWeather({
@@ -266,12 +431,18 @@ class AppCubit extends Cubit<AppState> {
       }
 
       final cachedCity = CacheHelper.get(key: WeatherCacheKeys.lastCityKey);
-      final cacheMatchesCity = (cachedCity == cacheKey);
+      final cacheMatchesCity = _cacheMatchesWeatherKey(
+        cachedKey: cachedCity,
+        resolvedKey: cacheKey,
+        country: country,
+        city: city,
+        isManualWeatherSource: isWeatherEnabled && weatherSource == 1,
+      );
 
       // 2) اعرض الكاش فورًا
       if (cachedForecast != null && cacheMatchesCity) {
         weatherForecast = cachedForecast;
-        maxTemp = todayWeather?.max;
+        maxTemp = displayWeather?.max;
         emit(AppChanged());
       }
 
@@ -339,20 +510,31 @@ class AppCubit extends Cubit<AppState> {
         }
       } else {
         // ✅ Auto mode (from city)
-        f = await weatherService.fetchMaxForecast(
-          city: city,
-          country: country,
-          days: OpenMeteoWeatherService.maxForecastDays,
-          morningHour: 8,
-          nightHour: 20,
-        );
+        final autoCoords = _selectedAutoWeatherCoordinates();
+        if (autoCoords != null) {
+          f = await weatherService.fetchMaxForecastByCoordinates(
+            latitude: autoCoords.latitude,
+            longitude: autoCoords.longitude,
+            days: OpenMeteoWeatherService.maxForecastDays,
+            morningHour: 8,
+            nightHour: 20,
+          );
+        } else {
+          f = await weatherService.fetchMaxForecast(
+            city: city,
+            country: country,
+            days: OpenMeteoWeatherService.maxForecastDays,
+            morningHour: 8,
+            nightHour: 20,
+          );
+        }
       }
 
       if (f != null) {
         _lastWeatherFetchAt = DateTime.now(); // ✅ سجل وقت آخر fetch
 
         weatherForecast = f;
-        maxTemp = todayWeather?.max;
+        maxTemp = displayWeather?.max;
 
         await CacheHelper.save(
           key: WeatherCacheKeys.forecastJson,
@@ -401,11 +583,10 @@ class AppCubit extends Cubit<AppState> {
 
       if (!connected) return;
 
-      await maybeRefreshWeather(
+      await syncWeatherLifecycle(
         country: country,
         city: city,
         hasInternet: hasInternet,
-        force: false,
       );
     });
   }
@@ -689,8 +870,8 @@ class AppCubit extends Cubit<AppState> {
     emit(AppChanged());
   }
 
-  double? get todayMaxTemp => todayWeather?.max;
-  int? get todayWeatherCode => todayWeather?.weatherCode;
+  double? get todayMaxTemp => displayWeather?.max;
+  int? get todayWeatherCode => displayWeather?.weatherCode;
   DateTime? _lastWeatherFetchAt;
   static const _homeOpenThrottle = Duration(seconds: 30);
 

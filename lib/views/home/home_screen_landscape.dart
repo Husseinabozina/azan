@@ -111,17 +111,25 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     unawaited(cubit.assignAdhkar());
     unawaited(cubit.assignSlides());
 
-    // ✅ الطقس: اعرض من الكاش فوراً لو موجود + هات من النت عند الحاجة فقط
+    _syncWeatherLifecycle();
+
+    _refreshMinuteFutures();
+  }
+
+  void _syncWeatherLifecycle({
+    bool onHomeOpen = false,
+    bool forceRefresh = false,
+  }) {
+    final city = cubit.getCity()?.nameEn ?? '';
     unawaited(
-      cubit.maybeRefreshWeather(
+      cubit.syncWeatherLifecycle(
         country: 'Saudi Arabia',
         city: city,
         hasInternet: () => cubit.hasInternet,
-        onHomeOpen: true, // ✅ أهم سطر
+        onHomeOpen: onHomeOpen,
+        forceRefresh: forceRefresh,
       ),
     );
-
-    _refreshMinuteFutures();
   }
 
   void _refreshMinuteFutures() {
@@ -166,6 +174,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     // ✅ التايمر الثاني، يبقى كما هو
     _minuteTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (!mounted) return;
+      _syncWeatherLifecycle();
       setState(() => _refreshMinuteFutures());
     });
   }
@@ -193,14 +202,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
     // unawaited(_assignHijriDate());
     // final city = cubit.getCity()?.nameEn ?? '';
 
-    unawaited(
-      cubit.maybeRefreshWeather(
-        country: 'Saudi Arabia',
-        city: city,
-        hasInternet: () => cubit.hasInternet,
-        onHomeOpen: true, // ✅ أهم سطر
-      ),
-    );
+    _syncWeatherLifecycle(onHomeOpen: true);
 
     cubit.startWeatherAutoSync(
       country: 'Saudi Arabia',
@@ -489,8 +491,12 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                       rightButton: DialogButton(
                         text: 'حفظ',
                         onPressed: () async {
-                          await CacheHelper.setMorningAzkarEnabled(morningEnabled);
-                          await CacheHelper.setEveningAzkarEnabled(eveningEnabled);
+                          await CacheHelper.setMorningAzkarEnabled(
+                            morningEnabled,
+                          );
+                          await CacheHelper.setEveningAzkarEnabled(
+                            eveningEnabled,
+                          );
                           await CacheHelper.setMorningAzkarWindowMinutes(
                             morningMinutes,
                           );
@@ -1211,7 +1217,7 @@ class _CenterClockFixed extends StatelessWidget {
                     interval: Duration(
                       seconds: CacheHelper.getSlidesDisplaySeconds(),
                     ),
-                    randomOrder: CacheHelper.getSlidesRandomOrder(),
+                    randomOrder: false,
                     fontFamily: CacheHelper.getAzkarFontFamily(),
                     textColor: AppTheme.primaryTextColor,
                   ),
@@ -1301,13 +1307,7 @@ class _InfoBlock extends StatelessWidget {
 
     final hijri = cubit.hijriDate ?? "--:--";
 
-    final greg = LocalizationHelper.isArAndArNumberEnable()
-        ? DateHelper.toArabicDigits(
-            DateFormat('dd/MM/yyyy').format(DateTime.now()),
-          )
-        : DateHelper.toWesternDigits(
-            DateFormat('dd/MM/yyyy').format(DateTime.now()),
-          );
+    final greg = DateHelper.formatGregorianDateLikeHijri();
 
     final temp = cubit.maxTemp?.toInt();
     final tempStr = temp == null

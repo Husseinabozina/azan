@@ -138,10 +138,10 @@ TextStyle legacyMosqueGregorianTextStyle() {
 TextStyle legacyMosqueCountdownTextStyle({required bool isUrgent}) {
   return TextStyle(
     fontFamily: CacheHelper.getTimesFontFamily(),
-    fontSize: 34.sp,
+    fontSize: 36.sp,
     fontWeight: FontWeight.bold,
     color: isUrgent ? Colors.red : AppTheme.secondaryTextColor,
-    height: 1.16,
+    height: 1.04,
   );
 }
 
@@ -455,22 +455,78 @@ class _LegacyMosqueDateColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (topWidget != null) topWidget!,
-          if (topWidget != null) SizedBox(height: 4.h),
-          AutoSizeText(
-            text,
-            maxLines: 1,
-            minFontSize: 12,
-            stepGranularity: 0.5,
-            textAlign: TextAlign.center,
-            style: style,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxHeight = constraints.maxHeight.isFinite && constraints.maxHeight > 0
+            ? constraints.maxHeight
+            : null;
+
+        if (maxHeight == null) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (topWidget != null) topWidget!,
+                if (topWidget != null) SizedBox(height: 4.h),
+                AutoSizeText(
+                  text,
+                  maxLines: 1,
+                  minFontSize: 12,
+                  stepGranularity: 0.5,
+                  textAlign: TextAlign.center,
+                  style: style,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final gapHeight = topWidget == null ? 0.0 : math.min(4.h, maxHeight * 0.05);
+        final reservedTextHeight = math.min(32.h, maxHeight * 0.42);
+        final topSlotHeight = topWidget == null
+            ? 0.0
+            : math.max(0.0, maxHeight - reservedTextHeight - gapHeight);
+        final textSlotHeight = math.max(
+          0.0,
+          maxHeight - topSlotHeight - gapHeight,
+        );
+
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (topWidget != null)
+                SizedBox(
+                  height: topSlotHeight,
+                  width: double.infinity,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: topWidget!,
+                    ),
+                  ),
+                ),
+              if (topWidget != null) SizedBox(height: gapHeight),
+              SizedBox(
+                height: textSlotHeight,
+                width: double.infinity,
+                child: Center(
+                  child: AutoSizeText(
+                    text,
+                    maxLines: 1,
+                    minFontSize: 12,
+                    stepGranularity: 0.5,
+                    textAlign: TextAlign.center,
+                    style: style,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

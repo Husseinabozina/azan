@@ -59,72 +59,76 @@ class _WeatherStatusScreenState extends State<WeatherStatusScreen> {
         return UniversalDialogShell(
           customMaxWidth: sizing.isLandscape ? 550 : sizing.dialogWidth,
           customMaxHeight: sizing.isLandscape ? 450.h : 500.h,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DialogTitle(LocaleKeys.enter_gps_coordinates.tr()),
-              SizedBox(height: sizing.verticalGap * 0.8),
-              DialogTextField(
-                controller: latController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  signed: true,
-                  decimal: true,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DialogTitle(LocaleKeys.enter_gps_coordinates.tr()),
+                SizedBox(height: sizing.verticalGap * 0.8),
+                DialogTextField(
+                  controller: latController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    signed: true,
+                    decimal: true,
+                  ),
+                  textAlign: TextAlign.left,
+                  label: LocaleKeys.latitude.tr(),
+                  hint: '24.7136',
                 ),
-                textAlign: TextAlign.left,
-                label: LocaleKeys.latitude.tr(),
-                hint: '24.7136',
-              ),
-              SizedBox(height: sizing.verticalGap * 0.55),
-              DialogTextField(
-                controller: lngController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  signed: true,
-                  decimal: true,
+                SizedBox(height: sizing.verticalGap * 0.55),
+                DialogTextField(
+                  controller: lngController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    signed: true,
+                    decimal: true,
+                  ),
+                  textAlign: TextAlign.left,
+                  label: LocaleKeys.longitude.tr(),
+                  hint: '46.6753',
                 ),
-                textAlign: TextAlign.left,
-                label: LocaleKeys.longitude.tr(),
-                hint: '46.6753',
-              ),
-              SizedBox(height: sizing.verticalGap),
-              DialogButtonRow(
-                leftButton: DialogButton(
-                  text: LocaleKeys.common_cancel.tr(),
-                  variant: DialogButtonVariant.secondary,
-                  onPressed: () => Navigator.pop(dialogContext),
+                SizedBox(height: sizing.verticalGap),
+                DialogButtonRow(
+                  leftButton: DialogButton(
+                    text: LocaleKeys.common_cancel.tr(),
+                    variant: DialogButtonVariant.secondary,
+                    onPressed: () => Navigator.pop(dialogContext),
+                  ),
+                  rightButton: DialogButton(
+                    text: LocaleKeys.common_ok.tr(),
+                    onPressed: () {
+                      final lat = latController.text.trim();
+                      final lng = lngController.text.trim();
+                      if (lat.isEmpty || lng.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              LocaleKeys.please_fill_all_fields.tr(),
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      if (double.tryParse(lat) == null ||
+                          double.tryParse(lng) == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(LocaleKeys.invalid_coordinates.tr()),
+                          ),
+                        );
+                        return;
+                      }
+                      setState(() {
+                        _manualLat = lat;
+                        _manualLng = lng;
+                        _weatherSource = 1;
+                      });
+                      _saveSettings();
+                      Navigator.pop(dialogContext);
+                    },
+                  ),
                 ),
-                rightButton: DialogButton(
-                  text: LocaleKeys.common_ok.tr(),
-                  onPressed: () {
-                    final lat = latController.text.trim();
-                    final lng = lngController.text.trim();
-                    if (lat.isEmpty || lng.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(LocaleKeys.please_fill_all_fields.tr()),
-                        ),
-                      );
-                      return;
-                    }
-                    if (double.tryParse(lat) == null ||
-                        double.tryParse(lng) == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(LocaleKeys.invalid_coordinates.tr()),
-                        ),
-                      );
-                      return;
-                    }
-                    setState(() {
-                      _manualLat = lat;
-                      _manualLng = lng;
-                      _weatherSource = 1;
-                    });
-                    _saveSettings();
-                    Navigator.pop(dialogContext);
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

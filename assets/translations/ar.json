@@ -31,6 +31,15 @@
   "reset": "إعادة ضبط",
   "reload": "إعادة تحميل",
   "contact_us": "تواصل",
+  "contact_us_intro_title": "أخي المستخدم",
+  "contact_us_intro_body": "ملاحظاتك وآراؤك محل اهتمامنا. إذا واجهتك مشكلة أو كان لديك اقتراح، اكتب رسالتك وسنفتحها مباشرة في تطبيق البريد لإرسالها إلى فريق الدعم.",
+  "contact_us_message_label": "اكتب رسالتك",
+  "contact_us_message_hint": "اكتب المشكلة أو الاقتراح أو أي ملاحظة تود إرسالها إلينا...",
+  "contact_us_send": "إرسال",
+  "contact_us_empty_error": "من فضلك اكتب رسالتك أولاً",
+  "contact_us_email_subject": "رسالة من تطبيق سجدة",
+  "contact_us_launch_error": "تعذر فتح تطبيق البريد على هذا الجهاز",
+  "contact_us_delivery_note": "سيتم فتح تطبيق البريد الافتراضي على جهازك مع تجهيز الرسالة تلقائيًا.",
   "edit_mosque_azkar": "تحرير إعلانات المسجد", 
   "change_fixed_zekr":"تغيير الذكر الثابت" ,
   "set_iqama_time":"ضبط وقت الإقامة"
@@ -229,7 +238,7 @@
   "default_app_logo":"الشعار الإفتراضي",
   "put_prayers_titles_in_center_in_landscape":"وضع أسماء الصلوات في المنتصف في العرض الأفقي"
   ,"put_prayers_titles_in_center_in_portrait":"وضع أسماء الصلوات في المنتصف في الوضع العمودي"
-,"enlarge_iqama_and_adhan_in_landscape":"تكبير الإقامة والائذان في وضع العرض الأفقي"
+,"enlarge_iqama_and_adhan_in_landscape":"تكبير الإقامة والأذان في وضع العرض الأفقي"
 ,"hide_iqamah_times": "ساعة المنزل- اخفاء أوقات الاقامة"
 ,"enlarge_remaining_time_counter": "تكبير عداد المتبقي للصلاة القادمة",
   "enable_hadith_before_iqama": "تفعيل عرض حديث الرسول ﷺ قبل الإقامة",

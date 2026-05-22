@@ -27,7 +27,6 @@ class SlidesScreen extends StatefulWidget {
 class _SlidesScreenState extends State<SlidesScreen> {
   late AppCubit cubit;
   late bool _slidesEnabled;
-  late bool _randomOrder;
   late int _slideDuration;
 
   @override
@@ -36,7 +35,6 @@ class _SlidesScreenState extends State<SlidesScreen> {
     cubit = AppCubit.get(context);
     cubit.assignSlides();
     _slidesEnabled = CacheHelper.getSlidesEnabled();
-    _randomOrder = CacheHelper.getSlidesRandomOrder();
     _slideDuration = CacheHelper.getSlidesDisplaySeconds();
   }
 
@@ -49,11 +47,6 @@ class _SlidesScreenState extends State<SlidesScreen> {
   void _setSlidesEnabled(bool enabled) {
     setState(() => _slidesEnabled = enabled);
     CacheHelper.setSlidesEnabled(enabled);
-  }
-
-  void _setRandomOrder(bool enabled) {
-    setState(() => _randomOrder = enabled);
-    CacheHelper.setSlidesRandomOrder(enabled);
   }
 
   void _setSlideDuration(int seconds) {
@@ -107,8 +100,6 @@ class _SlidesScreenState extends State<SlidesScreen> {
                                         child: _SlidesSettingsPanel(
                                           slidesEnabled: _slidesEnabled,
                                           onSlidesEnabled: _setSlidesEnabled,
-                                          randomOrder: _randomOrder,
-                                          onRandomOrder: _setRandomOrder,
                                           slideDuration: _slideDuration,
                                           onSlideDuration: _setSlideDuration,
                                           onAdd: () {
@@ -141,8 +132,6 @@ class _SlidesScreenState extends State<SlidesScreen> {
                                 slides: slides,
                                 slidesEnabled: _slidesEnabled,
                                 onSlidesEnabled: _setSlidesEnabled,
-                                randomOrder: _randomOrder,
-                                onRandomOrder: _setRandomOrder,
                                 slideDuration: _slideDuration,
                                 onSlideDuration: _setSlideDuration,
                                 onAdd: () {
@@ -200,8 +189,6 @@ class _SlidesPortraitLayout extends StatelessWidget {
     required this.slides,
     required this.slidesEnabled,
     required this.onSlidesEnabled,
-    required this.randomOrder,
-    required this.onRandomOrder,
     required this.slideDuration,
     required this.onSlideDuration,
     required this.onAdd,
@@ -210,8 +197,6 @@ class _SlidesPortraitLayout extends StatelessWidget {
   final List<dynamic> slides;
   final bool slidesEnabled;
   final ValueChanged<bool> onSlidesEnabled;
-  final bool randomOrder;
-  final ValueChanged<bool> onRandomOrder;
   final int slideDuration;
   final ValueChanged<int> onSlideDuration;
   final VoidCallback onAdd;
@@ -226,8 +211,6 @@ class _SlidesPortraitLayout extends StatelessWidget {
           _SlidesSettingsPanel(
             slidesEnabled: slidesEnabled,
             onSlidesEnabled: onSlidesEnabled,
-            randomOrder: randomOrder,
-            onRandomOrder: onRandomOrder,
             slideDuration: slideDuration,
             onSlideDuration: onSlideDuration,
             onAdd: onAdd,
@@ -244,8 +227,6 @@ class _SlidesSettingsPanel extends StatelessWidget {
   const _SlidesSettingsPanel({
     required this.slidesEnabled,
     required this.onSlidesEnabled,
-    required this.randomOrder,
-    required this.onRandomOrder,
     required this.slideDuration,
     required this.onSlideDuration,
     required this.onAdd,
@@ -253,8 +234,6 @@ class _SlidesSettingsPanel extends StatelessWidget {
 
   final bool slidesEnabled;
   final ValueChanged<bool> onSlidesEnabled;
-  final bool randomOrder;
-  final ValueChanged<bool> onRandomOrder;
   final int slideDuration;
   final ValueChanged<int> onSlideDuration;
   final VoidCallback onAdd;
@@ -292,28 +271,6 @@ class _SlidesSettingsPanel extends StatelessWidget {
             Expanded(
               child: Text(
                 'enable_slides'.tr(),
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: AppTheme.primaryTextColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 10.h),
-        Row(
-          children: [
-            CustomCheckbox(
-              size: 24.r,
-              activeColor: AppTheme.accentColor,
-              value: randomOrder,
-              onChanged: onRandomOrder,
-            ),
-            HorizontalSpace(width: 8.w),
-            Expanded(
-              child: Text(
-                'display_slides_randomly'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppTheme.primaryTextColor,
@@ -464,7 +421,7 @@ class _SlidesList extends StatelessWidget {
       separatorBuilder: (_, __) => SizedBox(height: 10.h),
       itemBuilder: (context, index) {
         final slide = slides[index];
-        return SlideTile(slide: slide);
+        return SlideTile(slide: slide, index: index);
       },
     );
   }

@@ -80,6 +80,7 @@ class CacheHelper {
   static const _add30MinutesToIshaaInRamdan = "_add30MinutesToIshaaInRamdan";
 
   static const _isLandscape = "_isLandScape";
+  static const _uiRotationQuarterTurns = "_uiRotationQuarterTurns";
   static const String _kBgMode = 'bg_mode';
   static const String _kBgThemeIndex = 'bg_theme_index';
   static const String _kBgPerPrayer = 'bg_per_prayer_map';
@@ -934,6 +935,24 @@ class CacheHelper {
 
   static removeIsLandscape() {
     sharedPreferences.remove(_isLandscape);
+  }
+
+  static Future<void> setUiRotationQuarterTurns(int value) async {
+    final normalized = value % 4;
+    await sharedPreferences.setInt(
+      _uiRotationQuarterTurns,
+      normalized < 0 ? normalized + 4 : normalized,
+    );
+  }
+
+  static int getUiRotationQuarterTurns() {
+    final value = sharedPreferences.getInt(_uiRotationQuarterTurns) ?? 0;
+    final normalized = value % 4;
+    return normalized < 0 ? normalized + 4 : normalized;
+  }
+
+  static Future<void> removeUiRotationQuarterTurns() async {
+    await sharedPreferences.remove(_uiRotationQuarterTurns);
   }
 
   // =========================

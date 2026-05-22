@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/core/helpers/date_helper.dart';
@@ -16,6 +17,45 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:jhijri/_src/_jHijri.dart';
 
+PrayerDisplayData _buildNextPrayerDisplayData(Prayer? p) {
+  final dt = p?.dateTime;
+
+  final durationStr = (dt == null)
+      ? "--:--"
+      : (LocalizationHelper.isArAndArNumberEnable()
+            ? DateHelper.toArabicDigits(
+                dt
+                    .difference(DateTime.now())
+                    .formatDuration(
+                      showSeconds: CacheHelper.getShowSecondsInNextPrayer(),
+                    ),
+              )
+            : dt
+                  .difference(DateTime.now())
+                  .formatDuration(
+                    showSeconds: CacheHelper.getShowSecondsInNextPrayer(),
+                  ));
+
+  final prayerTitle = p?.title ?? '';
+  final safeTitle = (LocalizationHelper.isArabic() && prayerTitle.isNotEmpty)
+      ? prayerTitle.substring(1)
+      : prayerTitle;
+  final leftForText = LocalizationHelper.isArabic()
+      ? '${LocaleKeys.left_for.tr()}$safeTitle'
+      : '${LocaleKeys.left_for.tr()} $safeTitle';
+
+  final isRed =
+      CacheHelper.getIsChangeCounterEnabled() &&
+      dt != null &&
+      dt.difference(DateTime.now()).inSeconds <= 90;
+
+  return PrayerDisplayData(
+    durationStr: durationStr,
+    leftForText: leftForText,
+    isRed: isRed,
+  );
+}
+
 class ClockAndLeftTimeWidget extends StatelessWidget {
   const ClockAndLeftTimeWidget({
     super.key,
@@ -23,6 +63,7 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
     required this.letfTimeText,
     required this.nextPrayerFuture,
     this.isIqamaActive = false,
+    this.showNextPrayerCountdown = false,
     this.onHijriTap,
   });
 
@@ -30,46 +71,8 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
   final String letfTimeText;
   final Future<Prayer?> nextPrayerFuture;
   final bool isIqamaActive;
+  final bool showNextPrayerCountdown;
   final VoidCallback? onHijriTap;
-
-  PrayerDisplayData _buildDisplayData(Prayer? p) {
-    final dt = p?.dateTime;
-
-    final durationStr = (dt == null)
-        ? "--:--"
-        : (LocalizationHelper.isArAndArNumberEnable()
-              ? DateHelper.toArabicDigits(
-                  dt
-                      .difference(DateTime.now())
-                      .formatDuration(
-                        showSeconds: CacheHelper.getShowSecondsInNextPrayer(),
-                      ),
-                )
-              : dt
-                    .difference(DateTime.now())
-                    .formatDuration(
-                      showSeconds: CacheHelper.getShowSecondsInNextPrayer(),
-                    ));
-
-    final prayerTitle = p?.title ?? '';
-    final safeTitle = (LocalizationHelper.isArabic() && prayerTitle.isNotEmpty)
-        ? prayerTitle.substring(1)
-        : prayerTitle;
-    final leftForText = LocalizationHelper.isArabic()
-        ? '${LocaleKeys.left_for.tr()}$safeTitle'
-        : '${LocaleKeys.left_for.tr()} $safeTitle';
-
-    final isRed =
-        CacheHelper.getIsChangeCounterEnabled() &&
-        dt != null &&
-        dt.difference(DateTime.now()).inSeconds <= 90;
-
-    return PrayerDisplayData(
-      durationStr: durationStr,
-      leftForText: leftForText,
-      isRed: isRed,
-    );
-  }
 
   String _withLocaleDigits(String value) {
     return LocalizationHelper.isArAndArNumberEnable()
@@ -78,14 +81,11 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
   }
 
   _DateSideData _gregorianData() {
-    final now = DateTime.now();
-    final lang = CacheHelper.getLang().trim().isEmpty
-        ? 'en'
-        : CacheHelper.getLang();
+    final parts = DateHelper.gregorianLikeHijriParts(padDay: true);
     return _DateSideData(
-      day: _withLocaleDigits(now.day.toString().padLeft(2, '0')),
-      lineOne: DateFormat('MMMM', lang).format(now),
-      lineTwo: _withLocaleDigits(now.year.toString()),
+      day: parts.day,
+      lineOne: parts.monthName,
+      lineTwo: parts.year,
     );
   }
 
@@ -234,8 +234,16 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
         final maxH = math.max(1.0, constraints.maxHeight);
 
         final subtitleText = letfTimeText.trim();
-        final showSubtitle = subtitleText.isNotEmpty && maxH >= 110;
-        final mainHeight = showSubtitle ? maxH * 0.83 : maxH;
+        final showCountdown =
+            showNextPrayerCountdown && !isIqamaActive && maxH >= 118;
+        final showSubtitle =
+            !showCountdown && subtitleText.isNotEmpty && maxH >= 110;
+        final footerHeight = showCountdown
+            ? (maxH * 0.28).clamp(42.0, 76.0).toDouble()
+            : 0.0;
+        final mainHeight = showCountdown
+            ? math.max(1.0, maxH - footerHeight - math.max(1, maxH * 0.018))
+            : (showSubtitle ? maxH * 0.83 : maxH);
 
         final double badgeHeight = (mainHeight * 0.42)
             .clamp(20.0, 170.0)
@@ -393,7 +401,7 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
               FutureBuilder<Prayer?>(
                 future: nextPrayerFuture,
                 builder: (context, snapshot) {
-                  final data = _buildDisplayData(snapshot.data);
+                  final data = _buildNextPrayerDisplayData(snapshot.data);
                   return SizedBox(
                     width: maxW * 0.75,
                     child: AutoSizeText(
@@ -414,9 +422,145 @@ class ClockAndLeftTimeWidget extends StatelessWidget {
                   );
                 },
               ),
+            if (showCountdown) SizedBox(height: math.max(1, maxH * 0.018)),
+            if (showCountdown)
+              SizedBox(
+                height: footerHeight,
+                width: maxW,
+                child: FutureBuilder<Prayer?>(
+                  future: nextPrayerFuture,
+                  builder: (context, snapshot) {
+                    final data = _buildNextPrayerDisplayData(snapshot.data);
+                    return _LandscapeNextPrayerCountdown(
+                      durationText: data.durationStr,
+                      leftForText: data.leftForText,
+                      isUrgent: data.isRed,
+                      maxWidth: maxW,
+                      maxHeight: footerHeight,
+                    );
+                  },
+                ),
+              ),
           ],
         );
       },
+    );
+  }
+}
+
+class LandscapeNextPrayerCountdownPanel extends StatelessWidget {
+  const LandscapeNextPrayerCountdownPanel({
+    super.key,
+    required this.nextPrayerFuture,
+  });
+
+  final Future<Prayer?> nextPrayerFuture;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW = math.max(1.0, constraints.maxWidth);
+        final maxH = math.max(1.0, constraints.maxHeight);
+
+        return FutureBuilder<Prayer?>(
+          future: nextPrayerFuture,
+          builder: (context, snapshot) {
+            final data = _buildNextPrayerDisplayData(snapshot.data);
+            return _LandscapeNextPrayerCountdown(
+              durationText: data.durationStr,
+              leftForText: data.leftForText,
+              isUrgent: data.isRed,
+              maxWidth: maxW,
+              maxHeight: maxH,
+              widthFactor: 0.94,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _LandscapeNextPrayerCountdown extends StatelessWidget {
+  const _LandscapeNextPrayerCountdown({
+    required this.durationText,
+    required this.leftForText,
+    required this.isUrgent,
+    required this.maxWidth,
+    required this.maxHeight,
+    this.widthFactor = 0.56,
+  });
+
+  final String durationText;
+  final String leftForText;
+  final bool isUrgent;
+  final double maxWidth;
+  final double maxHeight;
+  final double widthFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    final safeMaxHeight = math.max(1.0, maxHeight);
+    final countdownMinHeight = math.min(24.0, safeMaxHeight);
+    final countdownHeight = (safeMaxHeight * 0.66)
+        .clamp(countdownMinHeight, safeMaxHeight)
+        .toDouble();
+    final labelHeight = math.max(0.0, safeMaxHeight - countdownHeight);
+    final countdownFontSize = (safeMaxHeight * 0.72)
+        .clamp(26.0, 64.0)
+        .toDouble();
+    final labelFontSize = (safeMaxHeight * 0.24).clamp(10.0, 22.0).toDouble();
+    final textColor = isUrgent ? Colors.red : AppTheme.secondaryTextColor;
+
+    return Center(
+      child: SizedBox(
+        width: maxWidth * widthFactor,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: countdownHeight,
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                alignment: Alignment.center,
+                child: Text(
+                  durationText,
+                  textDirection: ui.TextDirection.ltr,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: textColor,
+                    fontFamily: CacheHelper.getTimesFontFamily(),
+                    fontSize: countdownFontSize,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: labelHeight,
+              width: double.infinity,
+              child: AutoSizeText(
+                leftForText,
+                maxLines: 1,
+                minFontSize: 8,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontFamily: CacheHelper.getTextsFontFamily(),
+                  fontSize: labelFontSize,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

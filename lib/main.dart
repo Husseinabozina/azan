@@ -64,11 +64,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     cubit = UiRotationCubit();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isLargeScreen(kind) && !CacheHelper.getFirstAppOpen()) {
-        cubit.changeIsLandscape(true);
-      }
-    });
 
     // widget ensure initialized
 
@@ -86,57 +81,29 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(create: (context) => AppCubit()..init()),
       ],
-      child: BlocConsumer<UiRotationCubit, bool>(
+      child: BlocConsumer<UiRotationCubit, int>(
         bloc: cubit,
         listener: (context, state) {},
         builder: (context, state) {
           final isMobile = !isLargeScreen(kind);
           final orientation = MediaQuery.of(context).orientation;
           final deviceIsLandscape = orientation == Orientation.landscape;
+          cubit.syncDeviceOrientation(
+            deviceIsLandscape: deviceIsLandscape,
+            isMobile: isMobile,
+          );
 
-          // ✅ على الموبايل: خلّي isLandscape = orientation الحقيقي
-          if (isMobile) {
-            if (state != deviceIsLandscape) {
-              // مهم: منع loop
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (cubit.state != deviceIsLandscape) {
-                  cubit.changeIsLandscape(deviceIsLandscape);
-                }
-              });
-            }
-          }
+          final quarter = isMobile ? 0 : cubit.quarterTurns;
+          final effectiveIsLandscape = isMobile
+              ? deviceIsLandscape
+              : cubit.isLandscapeForDevice(deviceIsLandscape);
 
-          int quarter = 0;
-          late Size designSize;
-
-          if (isMobile) {
-            // ✅ موبايل: مفيش Rotation وهمي نهائيًا
-            quarter = 0;
-
-            // اختار designSize حسب orientation الحقيقي
-            designSize = deviceIsLandscape
-                ? const Size(960, 540)
-                : const Size(393, 852);
-          } else {
-            // ✅ LargeScreen: النظام القديم بتاعك (state هو اللي بيحدد UI rotation)
-            // state هنا معناها: "isLandscape UI"
-            if (orientation == Orientation.portrait && !state) {
-              designSize = const Size(393, 852);
-              quarter = 0;
-            } else if (orientation == Orientation.portrait && state) {
-              designSize = const Size(960, 540);
-              quarter = 1;
-            } else if (orientation == Orientation.landscape && state) {
-              designSize = const Size(960, 540);
-              quarter = 0;
-            } else {
-              designSize = const Size(393, 852);
-              quarter = 1;
-            }
-          }
+          final designSize = effectiveIsLandscape
+              ? const Size(960, 540)
+              : const Size(393, 852);
 
           final app = MQScaleInit(
-            key: ValueKey('${designSize.width}x${designSize.height}'),
+            key: ValueKey('${designSize.width}x${designSize.height}-$quarter'),
             designSize: designSize,
             minTextAdapt: true,
             child: Builder(

@@ -44,9 +44,23 @@ class ManagedAzkarEntry {
   }
 
   bool appliesToPrayer(int? prayerId) {
-    if (setType != AzkarType.afterPrayer) return true;
-    if (applicablePrayerIds.isEmpty || prayerId == null) return true;
+    if (prayerId == null) return true;
+    if (applicablePrayerIds.isEmpty) {
+      final defaultPrayerId = defaultPrayerIdForType(setType);
+      return defaultPrayerId == null || defaultPrayerId == prayerId;
+    }
     return applicablePrayerIds.contains(prayerId);
+  }
+
+  static int? defaultPrayerIdForType(AzkarType type) {
+    switch (type) {
+      case AzkarType.morning:
+        return 1;
+      case AzkarType.evening:
+        return 5;
+      case AzkarType.afterPrayer:
+        return null;
+    }
   }
 
   Map<String, dynamic> toMap() {
@@ -79,13 +93,22 @@ class ManagedAzkarEntry {
     return ManagedAzkarEntry(
       id: map['id'] as int,
       setType: setType,
-      text: map['text'] as String? ?? '',
+      text: _readText(map['text'] as String?),
       reference: _readOptional(map['reference'] as String?),
       description: _readOptional(map['description'] as String?),
       count: _readOptional(map['count'] as String?),
       applicablePrayerIds: rawPrayerIds,
       active: map['active'] as bool? ?? true,
     );
+  }
+
+  static String _readText(String? value) {
+    return (value ?? '')
+        .replaceAll(
+          RegExp('[\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]'),
+          '',
+        )
+        .trim();
   }
 
   static String? _readOptional(String? value) {

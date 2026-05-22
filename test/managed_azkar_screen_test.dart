@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/helpers/managed_azkar_hive_helper.dart';
+import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/codegen_loader.g.dart';
@@ -71,17 +74,48 @@ void main() {
     );
   }
 
+  Future<void> pumpManagedScreenFrame(WidgetTester tester) async {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
+  }
+
   testWidgets('managed azkar screen supports switching sections', (
     tester,
   ) async {
+    final morningEntries = await ManagedAzkarHiveHelper.getEntriesForType(
+      AzkarType.morning,
+      activeOnly: false,
+    );
+    final firstMorning = morningEntries.first;
+
     await tester.pumpWidget(buildHarness(const ManagedAzkarScreen()));
-    await tester.pumpAndSettle();
+    await pumpManagedScreenFrame(tester);
 
     expect(
       find.byKey(const ValueKey('managed-azkar-type-morning')),
       findsOneWidget,
     );
     expect(find.text('أذكار الصباح'), findsWidgets);
+    expect(
+      find.byKey(ValueKey('managed-azkar-entry-drag-${firstMorning.id}')),
+      findsOneWidget,
+    );
+    expect(find.byType(ReorderableListView), findsOneWidget);
+    final firstTextFinder = find.byKey(
+      ValueKey('managed-azkar-entry-text-${firstMorning.id}'),
+    );
+    final firstText = tester.widget<Text>(firstTextFinder);
+    expect(firstText.textDirection, ui.TextDirection.rtl);
+    expect(
+      tester
+          .widget<Column>(
+            find
+                .ancestor(of: firstTextFinder, matching: find.byType(Column))
+                .first,
+          )
+          .crossAxisAlignment,
+      CrossAxisAlignment.stretch,
+    );
 
     tester
         .widget<ChoiceChip>(
@@ -89,7 +123,7 @@ void main() {
         )
         .onSelected
         ?.call(true);
-    await tester.pumpAndSettle();
+    await pumpManagedScreenFrame(tester);
     expect(find.text('أذكار المساء'), findsWidgets);
 
     tester
@@ -98,7 +132,51 @@ void main() {
         )
         .onSelected
         ?.call(true);
-    await tester.pumpAndSettle();
+    await pumpManagedScreenFrame(tester);
     expect(find.text('أذكار بعد الصلاة'), findsWidgets);
+  });
+
+  testWidgets('morning and evening editors expose prayer selector chips', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildHarness(const ManagedAzkarScreen()));
+    await pumpManagedScreenFrame(tester);
+
+    tester.widget<AppButton>(find.byType(AppButton).first).onPressed?.call();
+    await pumpManagedScreenFrame(tester);
+    expect(find.text('الصلوات المعنية'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('managed-azkar-prayer-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('managed-azkar-prayer-6')),
+      findsOneWidget,
+    );
+    Navigator.of(
+      tester.element(find.byType(ManagedAzkarScreen)),
+      rootNavigator: true,
+    ).pop();
+    await pumpManagedScreenFrame(tester);
+
+    tester
+        .widget<ChoiceChip>(
+          find.byKey(const ValueKey('managed-azkar-type-evening')),
+        )
+        .onSelected
+        ?.call(true);
+    await pumpManagedScreenFrame(tester);
+
+    tester.widget<AppButton>(find.byType(AppButton).first).onPressed?.call();
+    await pumpManagedScreenFrame(tester);
+    expect(find.text('الصلوات المعنية'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('managed-azkar-prayer-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('managed-azkar-prayer-6')),
+      findsOneWidget,
+    );
   });
 }

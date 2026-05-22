@@ -1,9 +1,9 @@
+import 'package:azan/core/utils/app_virtual_keyboard.dart';
 import 'dart:math' as math;
 
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:virtual_keyboard_multi_language/virtual_keyboard_multi_language.dart';
 
 ThemeData buildAppDialogTheme(BuildContext context) {
   final baseTheme = Theme.of(context);
@@ -975,28 +975,19 @@ class _VirtualKeyboardEditableFieldState
     );
   }
 
-  void _toggleNegativeSign() {
-    if (widget.kind != _VirtualKeyboardFieldKind.numeric ||
-        !widget.allowNegative) {
-      return;
-    }
-    final current = widget.controller.text;
-    final next = current.startsWith('-')
-        ? current.substring(1)
-        : (current.isEmpty ? '-' : '-$current');
-    widget.controller.value = widget.controller.value.copyWith(
-      text: next,
-      selection: TextSelection.collapsed(offset: next.length),
-      composing: TextRange.empty,
-    );
-    _syncFieldValue(triggerChange: true);
-  }
-
   String _displayValue(String value) {
     if (!widget.obscureText) {
       return value;
     }
     return List.filled(value.length, '•').join();
+  }
+
+  void _handleKeyboardValueChanged(String _) {
+    _syncFieldValue(triggerChange: true);
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
   }
 
   @override
@@ -1116,14 +1107,20 @@ class _VirtualKeyboardEditableFieldState
                       ),
                     ),
                     SizedBox(width: sizing.screenWidth * 0.02),
-                    if (widget.suffix != null)
+                    if (widget.suffix != null) ...[
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: widget.suffix,
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
+                      ),
+                      SizedBox(width: sizing.screenWidth * 0.02),
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _isKeyboardVisible
+                            ? _hideKeyboard
+                            : _showKeyboard,
                         child: Icon(
                           _isKeyboardVisible
                               ? Icons.keyboard_hide_rounded
@@ -1131,6 +1128,7 @@ class _VirtualKeyboardEditableFieldState
                           color: widget.theme.hintColor,
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -1166,67 +1164,31 @@ class _VirtualKeyboardEditableFieldState
                           ),
                           boxShadow: widget.theme.keyboardShadow,
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: EdgeInsetsDirectional.only(
-                                start: sizing.screenWidth * 0.02,
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  if (widget.kind ==
-                                          _VirtualKeyboardFieldKind.numeric &&
-                                      widget.allowNegative)
-                                    TextButton.icon(
-                                      onPressed: _toggleNegativeSign,
-                                      icon: const Icon(
-                                        Icons.exposure_neg_1_rounded,
-                                      ),
-                                      label: const Text('-'),
-                                    )
-                                  else
-                                    const SizedBox.shrink(),
-                                  IconButton(
-                                    onPressed: _hideKeyboard,
-                                    icon: Icon(
-                                      Icons.keyboard_hide_rounded,
-                                      color: widget.theme.hintColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                effectiveBorderRadius,
-                              ),
-                              child: VirtualKeyboard(
-                                height: keyboardHeight,
-                                textController: widget.controller,
-                                type:
-                                    widget.kind ==
-                                        _VirtualKeyboardFieldKind.numeric
-                                    ? VirtualKeyboardType.Numeric
-                                    : VirtualKeyboardType.Alphanumeric,
-                                defaultLayouts: const [
-                                  VirtualKeyboardDefaultLayouts.Arabic,
-                                  VirtualKeyboardDefaultLayouts.English,
-                                ],
-                                textColor: widget.theme.keyboardTextColor,
-                                fontSize: sizing.bodyFontSize * 0.85,
-                                postKeyPress: (_) {
-                                  _syncFieldValue(triggerChange: true);
-                                  if (!mounted) {
-                                    return;
-                                  }
-                                  setState(() {});
-                                },
-                              ),
-                            ),
-                          ],
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            effectiveBorderRadius,
+                          ),
+                          child: AppVirtualKeyboard(
+                            controller: widget.controller,
+                            height: keyboardHeight,
+                            inputMode:
+                                widget.kind == _VirtualKeyboardFieldKind.numeric
+                                ? AppKeyboardInputMode.numeric
+                                : AppKeyboardInputMode.text,
+                            allowNegative: widget.allowNegative,
+                            submitsOnEnter:
+                                widget.kind ==
+                                    _VirtualKeyboardFieldKind.numeric ||
+                                widget.maxLines <= 1 ||
+                                widget.obscureText,
+                            textColor: widget.theme.keyboardTextColor,
+                            backgroundColor:
+                                widget.theme.keyboardBackgroundColor,
+                            borderColor: widget.theme.keyboardBorderColor,
+                            shadow: widget.theme.keyboardShadow,
+                            onHideRequested: _hideKeyboard,
+                            onChanged: _handleKeyboardValueChanged,
+                          ),
                         ),
                       ),
                     )

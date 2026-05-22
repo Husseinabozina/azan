@@ -8,7 +8,6 @@ import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/gen/assets.gen.dart';
@@ -17,6 +16,7 @@ import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
 import 'package:azan/views/about_app/about_app_screen.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
+import 'package:azan/views/contact_us/contact_us_screen.dart';
 import 'package:azan/views/display_board/display_board_settings_screen.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/managed_azkar/managed_azkar_screen.dart';
@@ -65,13 +65,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
     await AppNavigator.pushAndRemoveUntil(widget.context, const HomeScreen());
   }
 
+  String _rotateScreenLabel() {
+    switch (LocalizationHelper.localCode()) {
+      case 'ar':
+        return 'تدوير الشاشة';
+      case 'bn':
+        return 'স্ক্রিন ঘোরান';
+      default:
+        return 'Rotate screen';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isLandscape = UiRotationCubit().isLandscape();
-
-    final String targetLabel = isLandscape
-        ? LocaleKeys.portrait.tr()
-        : LocaleKeys.landscape.tr();
+    final rotateScreenLabel = _rotateScreenLabel();
 
     return Drawer(
       shape: const RoundedRectangleBorder(),
@@ -275,6 +283,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
 
             _DrawerEntry(
+              title: LocaleKeys.contact_us.tr(),
+              onTap: () {
+                AppNavigator.push(context, const ContactUsScreen());
+              },
+            ),
+            _DrawerEntry(
               title: LocaleKeys.about_app.tr(),
               onTap: () {
                 AppNavigator.push(context, AboutAppScreen());
@@ -288,16 +302,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             // if (isLargeScreen(kind))
             _DrawerEntry(
-              title: '${LocaleKeys.change_to.tr()} $targetLabel',
+              title: rotateScreenLabel,
               onTap: () {
                 // Navigator.pop(context);
 
                 final cubit = context.read<UiRotationCubit>();
-                if (cubit.isLandscape()) {
-                  cubit.changeIsLandscape(false);
-                } else {
-                  cubit.changeIsLandscape(true);
-                }
+                cubit.rotateClockwise();
               },
             ),
             //                          if (isLandscape) {
@@ -343,10 +353,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
           // المساحة اللي هنحط فيها عناصر القائمة
           final double bodyH = constraints.maxHeight - headerH - footerH;
 
-          // في landscape: 2 أعمدة -> عدد الصفوف = ceil(count/2)
-          // +1 للـ language tile
           final int totalTiles = entries.length + 1;
-          final int columns = isLandscape ? 2 : 1;
+          final int columns = isLandscape ? 3 : 1;
           final int rows = (totalTiles / columns).ceil();
 
           // mainAxisExtent = ارتفاع كل Tile (بالظبط) عشان كلهم يدخلوا بدون scroll
@@ -355,9 +363,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           final double totalSpacing = gridSpacing * (rows - 1);
           double tileExtent = (bodyH - totalSpacing) / rows;
 
-          // حماية: لو طلع قليل جدًا، صغّر التايل
-          // (مع AutoSizeText هيفضل readable)
-          tileExtent = tileExtent.clamp(36.h, 74.h);
+          tileExtent = tileExtent.clamp(isLandscape ? 50.h : 36.h, 74.h);
 
           return Stack(
             children: [
@@ -414,6 +420,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                 r: r,
                                 entries: entries,
                                 languageTile: languageTile,
+                                crossAxisCount: columns,
                                 tileExtent: tileExtent,
                                 spacing: gridSpacing,
                               )
@@ -466,6 +473,7 @@ class _LandscapeNoScrollGrid extends StatelessWidget {
     required this.r,
     required this.entries,
     required this.languageTile,
+    required this.crossAxisCount,
     required this.tileExtent,
     required this.spacing,
   });
@@ -473,6 +481,7 @@ class _LandscapeNoScrollGrid extends StatelessWidget {
   final R r;
   final List<_DrawerEntry> entries;
   final Widget languageTile;
+  final int crossAxisCount;
   final double tileExtent;
   final double spacing;
 
@@ -498,7 +507,7 @@ class _LandscapeNoScrollGrid extends StatelessWidget {
       padding: EdgeInsets.zero,
       itemCount: items.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: crossAxisCount,
         mainAxisExtent: tileExtent, // ← ده سر "بدون overflow/scroll"
         crossAxisSpacing: 10.w,
         mainAxisSpacing: spacing,
@@ -534,7 +543,7 @@ class DrawerListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double vPad = denseLandscape ? 6.h : 10.h;
+    final double vPad = denseLandscape ? 4.h : 10.h;
 
     return Material(
       color: Colors.transparent,
@@ -593,10 +602,10 @@ class _DrawerTitleText extends StatelessWidget {
           softWrap: true,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: (denseLandscape ? 20 : 24).sp,
+            fontSize: (denseLandscape ? 19 : 24).sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryTextColor,
-            height: 1.2,
+            height: denseLandscape ? 1.12 : 1.2,
           ),
         );
       },

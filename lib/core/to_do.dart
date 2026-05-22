@@ -268,3 +268,127 @@
 //     );
 //   }
 // }
+
+
+
+
+
+
+
+
+
+// بص عندك الصفحة اللي بتتعرض في homescreenmobile الصفحة اللي متناسبة معتمدة علي الخلفيات الخصوصية اللي ليها خصوصية دي ؟عارفها ,,,,المشكلة فيه2
+
+// ════════ Exception caught by rendering library ═════════════════════════════════
+// The following assertion was thrown during layout:
+// A RenderFlex overflowed by 4.8 pixels on the bottom.
+
+// The relevant error-causing widget was:
+//     Column Column:file:///Users/husseinabozina/azan/lib/views/home/components/legacy_mosque_top_cluster.dart:459:14
+
+// : To inspect this widget in Flutter DevTools, visit: http://127.0.0.1:9101/#/inspector?uri=http%3A%2F%2F127.0.0.1%3A62426%2FPXx0mzC5ub8%3D%2F&inspectorRef=inspector-0
+
+// The overflowing RenderFlex has an orientation of Axis.vertical.
+// The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+// Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the RenderFlex to fit within the available space instead of being sized to their natural size.
+// This is considered an error condition because it indicates that there is content that cannot be seen. If the content is legitimately bigger than the available space, consider clipping it with a ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex, like a ListView.
+// The specific RenderFlex in question is: RenderFlex#29b16 relayoutBoundary=up7 OVERFLOWING
+//     parentData: offset=Offset(1.0, 0.0) (can use size)
+//     constraints: BoxConstraints(0.0<=w<=140.9, 0.0<=h<=84.5)
+//     size: Size(138.9, 84.5)
+//     direction: vertical
+//     mainAxisAlignment: start
+//     mainAxisSize: min
+//     crossAxisAlignment: center
+//     verticalDirection: down
+//     spacing: 0.0
+//     child 1: RenderFittedBox#e08a9 relayoutBoundary=up8
+//         parentData: offset=Offset(30.0, 0.0); flex=null; fit=null (can use size)
+//         constraints: BoxConstraints(0.0<=w<=140.9, 0.0<=h<=Infinity)
+//         size: Size(78.8, 54.0)
+//         fit: scaleDown
+//         alignment: Alignment.center
+//         textDirection: rtl
+//         child: RenderFlex#f0fd8 relayoutBoundary=up9
+//             parentData: <none> (can use size)
+//             constraints: BoxConstraints(unconstrained)
+//             size: Size(78.8, 54.0)
+//             direction: horizontal
+//             mainAxisAlignment: start
+//             mainAxisSize: max
+//             crossAxisAlignment: center
+//             textDirection: rtl
+//             verticalDirection: down
+//             spacing: 0.0
+//             child 1: RenderConstrainedBox#c3f87 relayoutBoundary=up10
+//                 parentData: offset=Offset(47.4, 11.3); flex=null; fit=null (can use size)
+//                 constraints: BoxConstraints(unconstrained)
+//                 size: Size(31.4, 31.4)
+//                 additionalConstraints: BoxConstraints(w=31.4, h=31.4)
+//                 child: RenderSemanticsAnnotations#fe511
+//                     parentData: <none> (can use size)
+//                     constraints: BoxConstraints(w=31.4, h=31.4)
+//                     size: Size(31.4, 31.4)
+//             child 2: RenderConstrainedBox#a57a9 relayoutBoundary=up10
+//                 parentData: offset=Offset(39.0, 27.0); flex=null; fit=null (can use size)
+//                 constraints: BoxConstraints(unconstrained)
+//                 size: Size(8.4, 0.0)
+//                 additionalConstraints: BoxConstraints(w=8.4, 0.0<=h<=Infinity)
+//             child 3: RenderParagraph#38aaa relayoutBoundary=up10
+//                 parentData: offset=Offset(0.0, 0.0); flex=null; fit=null (can use size)
+//                 constraints: BoxConstraints(unconstrained)
+//                 size: Size(39.0, 54.0)
+//                 textAlign: start
+//                 textDirection: rtl
+//                 softWrap: wrapping at box width
+//                 overflow: clip
+//                 locale: ar
+//                 maxLines: unlimited
+//                 text: TextSpan
+//                     debugLabel: ((tall bodyMedium 2021).merge((((blackMountainView bodyMedium).apply).apply).copyWith)).merge(unknown)
+//                     inherit: false
+//                     color: Color(alpha: 1.0000, red: 0.3529, green: 0.2078, blue: 0.1255, colorSpace: ColorSpace.sRGB)
+//                     family: Amiri
+//                     size: 37.7
+//                     weight: 700
+//                     letterSpacing: 0.3
+//                     baseline: alphabetic
+//                     height: 1.4x
+//                     leadingDistribution: even
+//                     decoration: Color(alpha: 1.0000, red: 0.1137, green: 0.1059, blue: 0.1255, colorSpace: ColorSpace.sRGB) TextDecoration.none
+//                     "--°"
+//     child 2: RenderConstrainedBox#c37ae relayoutBoundary=up8
+//         parentData: offset=Offset(69.4, 54.0); flex=null; fit=null (can use size)
+//         constraints: BoxConstraints(0.0<=w<=140.9, 0.0<=h<=Infinity)
+//         size: Size(0.0, 4.3)
+//         additionalConstraints: BoxConstraints(0.0<=w<=Infinity, h=4.3)
+//     child 3: _RenderLayoutBuilder#06799 relayoutBoundary=up8
+//         parentData: offset=Offset(0.0, 58.3); flex=null; fit=null (can use size)
+//         constraints: BoxConstraints(0.0<=w<=140.9, 0.0<=h<=Infinity)
+//         size: Size(138.9, 31.0)
+//         child: RenderParagraph#dc45f relayoutBoundary=up9
+//             parentData: offset=Offset(0.0, 0.0) (can use size)
+//             constraints: BoxConstraints(0.0<=w<=140.9, 0.0<=h<=Infinity)
+//             size: Size(138.9, 31.0)
+//             textAlign: center
+//             textDirection: rtl
+//             softWrap: wrapping at box width
+//             overflow: clip
+//             locale: ar
+//             maxLines: 1
+//             text: TextSpan
+//                 debugLabel: (((tall bodyMedium 2021).merge((((blackMountainView bodyMedium).apply).apply).copyWith)).merge(unknown)).copyWith
+//                 inherit: false
+//                 color: Color(alpha: 1.0000, red: 0.2275, green: 0.1412, blue: 0.0824, colorSpace: ColorSpace.sRGB)
+//                 family: Amiri
+//                 size: 27.0
+//                 weight: 400
+//                 letterSpacing: 0.3
+//                 baseline: alphabetic
+//                 height: 1.1x
+//                 leadingDistribution: even
+//                 decoration: Color(alpha: 1.0000, red: 0.1137, green: 0.1059, blue: 0.1255, colorSpace: ColorSpace.sRGB) TextDecoration.none
+//                 "9 أبريل 2026"
+// ◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+// ════════════════════════════════════════════════════════════════════════════════
+// D/EGL_emulation(30907): app_time_stats: avg=70.58ms min=15.00ms max=194.48ms count=15.  المشكلة فيها التالي فيها لما بكون ظاهر الحرارة بيحصل كدا وعاوزك بقا تفهم الموصوع دا وتكبر حجم المتبقي للصلاة وهنا انا اقصد الوقتي المتبقي وليست كلمة المتبقي للصلاة
