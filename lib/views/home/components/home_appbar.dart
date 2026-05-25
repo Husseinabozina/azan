@@ -154,8 +154,8 @@ class _HomeAppBarState extends State<HomeAppBar> {
               );
       }
 
-      return SvgPicture.asset(
-        Assets.svg.logosvg,
+      return Image.asset(
+        'assets/images/rawayie_app_icon.png',
         height: logoH,
         width: logoW,
         fit: BoxFit.contain,
@@ -176,8 +176,8 @@ class _HomeAppBarState extends State<HomeAppBar> {
               height: logoH,
               width: logoW,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => SvgPicture.asset(
-                Assets.svg.logosvg,
+              errorBuilder: (_, __, ___) => Image.asset(
+                'assets/images/rawayie_app_icon.png',
                 height: logoH,
                 width: logoW,
                 fit: BoxFit.contain,
@@ -186,8 +186,8 @@ class _HomeAppBarState extends State<HomeAppBar> {
     }
 
     // fallback
-    return SvgPicture.asset(
-      Assets.svg.logosvg,
+    return Image.asset(
+      'assets/images/rawayie_app_icon.png',
       height: logoH,
       width: logoW,
       fit: BoxFit.contain,

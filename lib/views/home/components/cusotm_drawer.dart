@@ -148,7 +148,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         child: Center(
                           child: MosqueLogoRadioPicker(
                             mainAxisSize: MainAxisSize.min,
-                            defaultAssetPath: Assets.svg.logosvg,
+                            defaultAssetPath: 'assets/images/rawayie_app_icon.png',
                             onChanged: (path) {
                               if (path != null) {
                                 CacheHelper.setMosqueLogoPath(path);
@@ -813,7 +813,7 @@ class _MosqueLogoRadioPickerState extends State<MosqueLogoRadioPicker> {
           ),
           trailing: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: SvgPicture.asset(
+            child: Image.asset(
               widget.defaultAssetPath,
               width: widget.previewSize.r,
               height: widget.previewSize.r,

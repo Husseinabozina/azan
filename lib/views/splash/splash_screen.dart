@@ -120,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
                           width: logoSize,
                           height: logoSize,
                           child: Image.asset(
-                            'assets/images/app_icon.png',
+                            'assets/images/rawayie_app_icon.png',
                             fit: BoxFit.contain,
                           ),
                         ),
