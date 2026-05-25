@@ -338,5 +338,7 @@
   "longitude": "Longitude",
   "time_hour": "Hour",
   "time_minute": "Minute",
-  "hijriPrayerCalendarTitle" : "Managing prayer times according to the Umm al-Qura calendar"
+  "hijriPrayerCalendarTitle" : "Managing prayer times according to the Umm al-Qura calendar",
+  "offline_calendar_gregorian_year": "Gregorian year",
+  "offline_calendar_supported_range": "Supported range"
 }

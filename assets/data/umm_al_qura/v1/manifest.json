@@ -1,0 +1,2450 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-23T12:14:23+00:00",
+  "country_code": "SA",
+  "timezone": "Asia/Riyadh",
+  "city_count": 118,
+  "available_hijri_years": [
+    1447,
+    1448,
+    1449,
+    1450,
+    1451,
+    1452,
+    1453,
+    1454,
+    1455,
+    1456,
+    1457
+  ],
+  "year_summary": [
+    {
+      "hijri_year": 1447,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1448,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1449,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1450,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1451,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1452,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1453,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1454,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1455,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1456,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    },
+    {
+      "hijri_year": 1457,
+      "city_count": 118,
+      "expected_city_count": 118,
+      "complete": true
+    }
+  ],
+  "cities": [
+    {
+      "id": "abha",
+      "name_en": "Abha",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/abha.json",
+      "file": "cities/gz/abha.json.gz"
+    },
+    {
+      "id": "abqaiq",
+      "name_en": "Abqaiq",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/abqaiq.json",
+      "file": "cities/gz/abqaiq.json.gz"
+    },
+    {
+      "id": "abu-arish",
+      "name_en": "Abu Arish",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/abu-arish.json",
+      "file": "cities/gz/abu-arish.json.gz"
+    },
+    {
+      "id": "ad-diriyah",
+      "name_en": "Ad Diriyah",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ad-diriyah.json",
+      "file": "cities/gz/ad-diriyah.json.gz"
+    },
+    {
+      "id": "addayer",
+      "name_en": "Addayer",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/addayer.json",
+      "file": "cities/gz/addayer.json.gz"
+    },
+    {
+      "id": "afif",
+      "name_en": "Afif",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/afif.json",
+      "file": "cities/gz/afif.json.gz"
+    },
+    {
+      "id": "ahad-al-masarihah",
+      "name_en": "Ahad Al Masarihah",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ahad-al-masarihah.json",
+      "file": "cities/gz/ahad-al-masarihah.json.gz"
+    },
+    {
+      "id": "ahad-rafidah",
+      "name_en": "Ahad Rafidah",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ahad-rafidah.json",
+      "file": "cities/gz/ahad-rafidah.json.gz"
+    },
+    {
+      "id": "al-aflaj",
+      "name_en": "Al Aflaj",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-aflaj.json",
+      "file": "cities/gz/al-aflaj.json.gz"
+    },
+    {
+      "id": "al-aqiq",
+      "name_en": "Al Aqiq",
+      "region_en": "Al Bahah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-aqiq.json",
+      "file": "cities/gz/al-aqiq.json.gz"
+    },
+    {
+      "id": "al-aridhah",
+      "name_en": "Al Aridhah",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-aridhah.json",
+      "file": "cities/gz/al-aridhah.json.gz"
+    },
+    {
+      "id": "al-badayea",
+      "name_en": "Al Badayea",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-badayea.json",
+      "file": "cities/gz/al-badayea.json.gz"
+    },
+    {
+      "id": "al-bahah",
+      "name_en": "Al Bahah",
+      "region_en": "Al Bahah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-bahah.json",
+      "file": "cities/gz/al-bahah.json.gz"
+    },
+    {
+      "id": "al-bukayriyah",
+      "name_en": "Al Bukayriyah",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-bukayriyah.json",
+      "file": "cities/gz/al-bukayriyah.json.gz"
+    },
+    {
+      "id": "al-duwadimi",
+      "name_en": "Al Duwadimi",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-duwadimi.json",
+      "file": "cities/gz/al-duwadimi.json.gz"
+    },
+    {
+      "id": "al-edabi",
+      "name_en": "Al Edabi",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-edabi.json",
+      "file": "cities/gz/al-edabi.json.gz"
+    },
+    {
+      "id": "al-ghat",
+      "name_en": "Al Ghat",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-ghat.json",
+      "file": "cities/gz/al-ghat.json.gz"
+    },
+    {
+      "id": "al-ghazalah",
+      "name_en": "Al Ghazalah",
+      "region_en": "Hail Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-ghazalah.json",
+      "file": "cities/gz/al-ghazalah.json.gz"
+    },
+    {
+      "id": "al-hariq",
+      "name_en": "Al Hariq",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-hariq.json",
+      "file": "cities/gz/al-hariq.json.gz"
+    },
+    {
+      "id": "al-henakiyah",
+      "name_en": "Al Henakiyah",
+      "region_en": "Madinah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-henakiyah.json",
+      "file": "cities/gz/al-henakiyah.json.gz"
+    },
+    {
+      "id": "al-hofuf",
+      "name_en": "Al Hofuf",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-hofuf.json",
+      "file": "cities/gz/al-hofuf.json.gz"
+    },
+    {
+      "id": "al-jubail",
+      "name_en": "Al Jubail",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-jubail.json",
+      "file": "cities/gz/al-jubail.json.gz"
+    },
+    {
+      "id": "al-jumum",
+      "name_en": "Al Jumum",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-jumum.json",
+      "file": "cities/gz/al-jumum.json.gz"
+    },
+    {
+      "id": "al-kamil",
+      "name_en": "Al Kamil",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-kamil.json",
+      "file": "cities/gz/al-kamil.json.gz"
+    },
+    {
+      "id": "al-kharj",
+      "name_en": "Al Kharj",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-kharj.json",
+      "file": "cities/gz/al-kharj.json.gz"
+    },
+    {
+      "id": "al-kharkhir",
+      "name_en": "Al Kharkhir",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-kharkhir.json",
+      "file": "cities/gz/al-kharkhir.json.gz"
+    },
+    {
+      "id": "al-khobar",
+      "name_en": "Al Khobar",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-khobar.json",
+      "file": "cities/gz/al-khobar.json.gz"
+    },
+    {
+      "id": "al-khurma",
+      "name_en": "Al Khurma",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-khurma.json",
+      "file": "cities/gz/al-khurma.json.gz"
+    },
+    {
+      "id": "al-lith",
+      "name_en": "Al Lith",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-lith.json",
+      "file": "cities/gz/al-lith.json.gz"
+    },
+    {
+      "id": "al-majmaah",
+      "name_en": "Al Majmaah",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-majmaah.json",
+      "file": "cities/gz/al-majmaah.json.gz"
+    },
+    {
+      "id": "al-makhwah",
+      "name_en": "Al Makhwah",
+      "region_en": "Al Bahah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-makhwah.json",
+      "file": "cities/gz/al-makhwah.json.gz"
+    },
+    {
+      "id": "al-mithnab",
+      "name_en": "Al Mithnab",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-mithnab.json",
+      "file": "cities/gz/al-mithnab.json.gz"
+    },
+    {
+      "id": "al-muzahimiyah",
+      "name_en": "Al Muzahimiyah",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-muzahimiyah.json",
+      "file": "cities/gz/al-muzahimiyah.json.gz"
+    },
+    {
+      "id": "al-namas",
+      "name_en": "Al Namas",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-namas.json",
+      "file": "cities/gz/al-namas.json.gz"
+    },
+    {
+      "id": "al-qatif",
+      "name_en": "Al Qatif",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-qatif.json",
+      "file": "cities/gz/al-qatif.json.gz"
+    },
+    {
+      "id": "al-qunfudhah",
+      "name_en": "Al Qunfudhah",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-qunfudhah.json",
+      "file": "cities/gz/al-qunfudhah.json.gz"
+    },
+    {
+      "id": "al-qurayyat",
+      "name_en": "Al Qurayyat",
+      "region_en": "Al Jawf Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-qurayyat.json",
+      "file": "cities/gz/al-qurayyat.json.gz"
+    },
+    {
+      "id": "al-quwaiiyah",
+      "name_en": "Al Quwaiiyah",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-quwaiiyah.json",
+      "file": "cities/gz/al-quwaiiyah.json.gz"
+    },
+    {
+      "id": "al-reeth",
+      "name_en": "Al Reeth",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-reeth.json",
+      "file": "cities/gz/al-reeth.json.gz"
+    },
+    {
+      "id": "al-ula",
+      "name_en": "Al Ula",
+      "region_en": "Madinah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-ula.json",
+      "file": "cities/gz/al-ula.json.gz"
+    },
+    {
+      "id": "al-wajh",
+      "name_en": "Al Wajh",
+      "region_en": "Tabuk Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/al-wajh.json",
+      "file": "cities/gz/al-wajh.json.gz"
+    },
+    {
+      "id": "alasyah",
+      "name_en": "Alasyah",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/alasyah.json",
+      "file": "cities/gz/alasyah.json.gz"
+    },
+    {
+      "id": "alharth",
+      "name_en": "Alharth",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/alharth.json",
+      "file": "cities/gz/alharth.json.gz"
+    },
+    {
+      "id": "almajaridah",
+      "name_en": "Almajaridah",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/almajaridah.json",
+      "file": "cities/gz/almajaridah.json.gz"
+    },
+    {
+      "id": "almandaq",
+      "name_en": "Almandaq",
+      "region_en": "Al Bahah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/almandaq.json",
+      "file": "cities/gz/almandaq.json.gz"
+    },
+    {
+      "id": "alqeyas",
+      "name_en": "Alqeyas",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/alqeyas.json",
+      "file": "cities/gz/alqeyas.json.gz"
+    },
+    {
+      "id": "alqura",
+      "name_en": "Alqura",
+      "region_en": "Al Bahah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/alqura.json",
+      "file": "cities/gz/alqura.json.gz"
+    },
+    {
+      "id": "an-nabhaniyah",
+      "name_en": "An Nabhaniyah",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/an-nabhaniyah.json",
+      "file": "cities/gz/an-nabhaniyah.json.gz"
+    },
+    {
+      "id": "ar-rass",
+      "name_en": "Ar Rass",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ar-rass.json",
+      "file": "cities/gz/ar-rass.json.gz"
+    },
+    {
+      "id": "arar",
+      "name_en": "Arar",
+      "region_en": "Northern Borders Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/arar.json",
+      "file": "cities/gz/arar.json.gz"
+    },
+    {
+      "id": "as-sulayyil",
+      "name_en": "As Sulayyil",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/as-sulayyil.json",
+      "file": "cities/gz/as-sulayyil.json.gz"
+    },
+    {
+      "id": "ash-shimasiyah",
+      "name_en": "Ash Shimasiyah",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ash-shimasiyah.json",
+      "file": "cities/gz/ash-shimasiyah.json.gz"
+    },
+    {
+      "id": "ash-shinan",
+      "name_en": "Ash Shinan",
+      "region_en": "Hail Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ash-shinan.json",
+      "file": "cities/gz/ash-shinan.json.gz"
+    },
+    {
+      "id": "az-zulfi",
+      "name_en": "Az Zulfi",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/az-zulfi.json",
+      "file": "cities/gz/az-zulfi.json.gz"
+    },
+    {
+      "id": "badr",
+      "name_en": "Badr",
+      "region_en": "Madinah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/badr.json",
+      "file": "cities/gz/badr.json.gz"
+    },
+    {
+      "id": "badr-al-janoub",
+      "name_en": "Badr Al Janoub",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/badr-al-janoub.json",
+      "file": "cities/gz/badr-al-janoub.json.gz"
+    },
+    {
+      "id": "baish",
+      "name_en": "Baish",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/baish.json",
+      "file": "cities/gz/baish.json.gz"
+    },
+    {
+      "id": "baljurashi",
+      "name_en": "Baljurashi",
+      "region_en": "Al Bahah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/baljurashi.json",
+      "file": "cities/gz/baljurashi.json.gz"
+    },
+    {
+      "id": "baqaa",
+      "name_en": "Baqaa",
+      "region_en": "Hail Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/baqaa.json",
+      "file": "cities/gz/baqaa.json.gz"
+    },
+    {
+      "id": "belqarn",
+      "name_en": "Belqarn",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/belqarn.json",
+      "file": "cities/gz/belqarn.json.gz"
+    },
+    {
+      "id": "bishah",
+      "name_en": "Bishah",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/bishah.json",
+      "file": "cities/gz/bishah.json.gz"
+    },
+    {
+      "id": "buraydah",
+      "name_en": "Buraydah",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/buraydah.json",
+      "file": "cities/gz/buraydah.json.gz"
+    },
+    {
+      "id": "damad",
+      "name_en": "Damad",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/damad.json",
+      "file": "cities/gz/damad.json.gz"
+    },
+    {
+      "id": "dammam",
+      "name_en": "Dammam",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/dammam.json",
+      "file": "cities/gz/dammam.json.gz"
+    },
+    {
+      "id": "dhahran-al-janub",
+      "name_en": "Dhahran Al Janub",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/dhahran-al-janub.json",
+      "file": "cities/gz/dhahran-al-janub.json.gz"
+    },
+    {
+      "id": "dhurma",
+      "name_en": "Dhurma",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/dhurma.json",
+      "file": "cities/gz/dhurma.json.gz"
+    },
+    {
+      "id": "duba",
+      "name_en": "Duba",
+      "region_en": "Tabuk Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/duba.json",
+      "file": "cities/gz/duba.json.gz"
+    },
+    {
+      "id": "dumah-al-jandal",
+      "name_en": "Dumah Al Jandal",
+      "region_en": "Al Jawf Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/dumah-al-jandal.json",
+      "file": "cities/gz/dumah-al-jandal.json.gz"
+    },
+    {
+      "id": "farasan-island",
+      "name_en": "Farasan Island",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/farasan-island.json",
+      "file": "cities/gz/farasan-island.json.gz"
+    },
+    {
+      "id": "hafar-al-batin",
+      "name_en": "Hafar Al Batin",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/hafar-al-batin.json",
+      "file": "cities/gz/hafar-al-batin.json.gz"
+    },
+    {
+      "id": "hail",
+      "name_en": "Hail",
+      "region_en": "Hail Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/hail.json",
+      "file": "cities/gz/hail.json.gz"
+    },
+    {
+      "id": "haql",
+      "name_en": "Haql",
+      "region_en": "Tabuk Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/haql.json",
+      "file": "cities/gz/haql.json.gz"
+    },
+    {
+      "id": "howtat-bani-tamim",
+      "name_en": "Howtat Bani Tamim",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/howtat-bani-tamim.json",
+      "file": "cities/gz/howtat-bani-tamim.json.gz"
+    },
+    {
+      "id": "hubuna",
+      "name_en": "Hubuna",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/hubuna.json",
+      "file": "cities/gz/hubuna.json.gz"
+    },
+    {
+      "id": "huraymila",
+      "name_en": "Huraymila",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/huraymila.json",
+      "file": "cities/gz/huraymila.json.gz"
+    },
+    {
+      "id": "jazan",
+      "name_en": "Jazan",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/jazan.json",
+      "file": "cities/gz/jazan.json.gz"
+    },
+    {
+      "id": "jeddah",
+      "name_en": "Jeddah",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/jeddah.json",
+      "file": "cities/gz/jeddah.json.gz"
+    },
+    {
+      "id": "khafji",
+      "name_en": "Khafji",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/khafji.json",
+      "file": "cities/gz/khafji.json.gz"
+    },
+    {
+      "id": "khamis-mushait",
+      "name_en": "Khamis Mushait",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/khamis-mushait.json",
+      "file": "cities/gz/khamis-mushait.json.gz"
+    },
+    {
+      "id": "khaybar",
+      "name_en": "Khaybar",
+      "region_en": "Madinah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/khaybar.json",
+      "file": "cities/gz/khaybar.json.gz"
+    },
+    {
+      "id": "khbash",
+      "name_en": "Khbash",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/khbash.json",
+      "file": "cities/gz/khbash.json.gz"
+    },
+    {
+      "id": "khulais",
+      "name_en": "Khulais",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/khulais.json",
+      "file": "cities/gz/khulais.json.gz"
+    },
+    {
+      "id": "mahd-al-thahab",
+      "name_en": "Mahd Al Thahab",
+      "region_en": "Madinah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/mahd-al-thahab.json",
+      "file": "cities/gz/mahd-al-thahab.json.gz"
+    },
+    {
+      "id": "mecca",
+      "name_en": "Mecca",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/mecca.json",
+      "file": "cities/gz/mecca.json.gz"
+    },
+    {
+      "id": "medina",
+      "name_en": "Medina",
+      "region_en": "Madinah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/medina.json",
+      "file": "cities/gz/medina.json.gz"
+    },
+    {
+      "id": "muhayil",
+      "name_en": "Muhayil",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/muhayil.json",
+      "file": "cities/gz/muhayil.json.gz"
+    },
+    {
+      "id": "nairyah",
+      "name_en": "Nairyah",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/nairyah.json",
+      "file": "cities/gz/nairyah.json.gz"
+    },
+    {
+      "id": "najran",
+      "name_en": "Najran",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/najran.json",
+      "file": "cities/gz/najran.json.gz"
+    },
+    {
+      "id": "qaryat-al-ulya",
+      "name_en": "Qaryat Al Ulya",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/qaryat-al-ulya.json",
+      "file": "cities/gz/qaryat-al-ulya.json.gz"
+    },
+    {
+      "id": "qilwah",
+      "name_en": "Qilwah",
+      "region_en": "Al Bahah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/qilwah.json",
+      "file": "cities/gz/qilwah.json.gz"
+    },
+    {
+      "id": "rabigh",
+      "name_en": "Rabigh",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/rabigh.json",
+      "file": "cities/gz/rabigh.json.gz"
+    },
+    {
+      "id": "rafha",
+      "name_en": "Rafha",
+      "region_en": "Northern Borders Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/rafha.json",
+      "file": "cities/gz/rafha.json.gz"
+    },
+    {
+      "id": "ranyah",
+      "name_en": "Ranyah",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ranyah.json",
+      "file": "cities/gz/ranyah.json.gz"
+    },
+    {
+      "id": "ras-tanura",
+      "name_en": "Ras Tanura",
+      "region_en": "Eastern Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/ras-tanura.json",
+      "file": "cities/gz/ras-tanura.json.gz"
+    },
+    {
+      "id": "riyadh",
+      "name_en": "Riyadh",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/riyadh.json",
+      "file": "cities/gz/riyadh.json.gz"
+    },
+    {
+      "id": "riyadh-al-khabra",
+      "name_en": "Riyadh Al Khabra",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/riyadh-al-khabra.json",
+      "file": "cities/gz/riyadh-al-khabra.json.gz"
+    },
+    {
+      "id": "rojal",
+      "name_en": "Rojal",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/rojal.json",
+      "file": "cities/gz/rojal.json.gz"
+    },
+    {
+      "id": "rumah",
+      "name_en": "Rumah",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/rumah.json",
+      "file": "cities/gz/rumah.json.gz"
+    },
+    {
+      "id": "sabya",
+      "name_en": "Sabya",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/sabya.json",
+      "file": "cities/gz/sabya.json.gz"
+    },
+    {
+      "id": "sakaka",
+      "name_en": "Sakaka",
+      "region_en": "Al Jawf Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/sakaka.json",
+      "file": "cities/gz/sakaka.json.gz"
+    },
+    {
+      "id": "samtah",
+      "name_en": "Samtah",
+      "region_en": "Jazan Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/samtah.json",
+      "file": "cities/gz/samtah.json.gz"
+    },
+    {
+      "id": "sarat-abidah",
+      "name_en": "Sarat Abidah",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/sarat-abidah.json",
+      "file": "cities/gz/sarat-abidah.json.gz"
+    },
+    {
+      "id": "shagra",
+      "name_en": "Shagra",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/shagra.json",
+      "file": "cities/gz/shagra.json.gz"
+    },
+    {
+      "id": "sharorah",
+      "name_en": "Sharorah",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/sharorah.json",
+      "file": "cities/gz/sharorah.json.gz"
+    },
+    {
+      "id": "tabuk",
+      "name_en": "Tabuk",
+      "region_en": "Tabuk Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/tabuk.json",
+      "file": "cities/gz/tabuk.json.gz"
+    },
+    {
+      "id": "taif",
+      "name_en": "Taif",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/taif.json",
+      "file": "cities/gz/taif.json.gz"
+    },
+    {
+      "id": "tathleeth",
+      "name_en": "Tathleeth",
+      "region_en": "Asir Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/tathleeth.json",
+      "file": "cities/gz/tathleeth.json.gz"
+    },
+    {
+      "id": "tayma",
+      "name_en": "Tayma",
+      "region_en": "Tabuk Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/tayma.json",
+      "file": "cities/gz/tayma.json.gz"
+    },
+    {
+      "id": "thadig",
+      "name_en": "Thadig",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/thadig.json",
+      "file": "cities/gz/thadig.json.gz"
+    },
+    {
+      "id": "thar",
+      "name_en": "Thar",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/thar.json",
+      "file": "cities/gz/thar.json.gz"
+    },
+    {
+      "id": "turaif",
+      "name_en": "Turaif",
+      "region_en": "Northern Borders Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/turaif.json",
+      "file": "cities/gz/turaif.json.gz"
+    },
+    {
+      "id": "turbah",
+      "name_en": "Turbah",
+      "region_en": "Makkah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/turbah.json",
+      "file": "cities/gz/turbah.json.gz"
+    },
+    {
+      "id": "umluj",
+      "name_en": "Umluj",
+      "region_en": "Tabuk Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/umluj.json",
+      "file": "cities/gz/umluj.json.gz"
+    },
+    {
+      "id": "unayzah",
+      "name_en": "Unayzah",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/unayzah.json",
+      "file": "cities/gz/unayzah.json.gz"
+    },
+    {
+      "id": "uyun-al-jawa",
+      "name_en": "Uyun Al Jawa",
+      "region_en": "Qassim Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/uyun-al-jawa.json",
+      "file": "cities/gz/uyun-al-jawa.json.gz"
+    },
+    {
+      "id": "wadi-ad-dawasir",
+      "name_en": "Wadi ad-Dawasir",
+      "region_en": "Riyadh Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/wadi-ad-dawasir.json",
+      "file": "cities/gz/wadi-ad-dawasir.json.gz"
+    },
+    {
+      "id": "yadamah",
+      "name_en": "Yadamah",
+      "region_en": "Najran Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/yadamah.json",
+      "file": "cities/gz/yadamah.json.gz"
+    },
+    {
+      "id": "yanbu",
+      "name_en": "Yanbu",
+      "region_en": "Madinah Region",
+      "available_years": [
+        1447,
+        1448,
+        1449,
+        1450,
+        1451,
+        1452,
+        1453,
+        1454,
+        1455,
+        1456,
+        1457
+      ],
+      "json_file": "cities/json/yanbu.json",
+      "file": "cities/gz/yanbu.json.gz"
+    }
+  ]
+}

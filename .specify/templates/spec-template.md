@@ -27,6 +27,9 @@
 
 [Describe this user journey in plain language]
 
+[Note impacted locales, orientation/screen classes, and any persistence or
+background/theme surfaces this story changes when relevant.]
+
 **Why this priority**: [Explain the value and why it has this priority level]
 
 **Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
@@ -42,6 +45,9 @@
 
 [Describe this user journey in plain language]
 
+[Note impacted locales, orientation/screen classes, and any persistence or
+background/theme surfaces this story changes when relevant.]
+
 **Why this priority**: [Explain the value and why it has this priority level]
 
 **Independent Test**: [Describe how this can be tested independently]
@@ -55,6 +61,9 @@
 ### User Story 3 - [Brief Title] (Priority: P3)
 
 [Describe this user journey in plain language]
+
+[Note impacted locales, orientation/screen classes, and any persistence or
+background/theme surfaces this story changes when relevant.]
 
 **Why this priority**: [Explain the value and why it has this priority level]
 
@@ -77,6 +86,10 @@
 
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
+- What happens when timezone, day rollover, or locale changes occur mid-flow?
+- How does the UI behave across portrait, landscape, and large-screen layouts?
+- What is the fallback behavior for offline state, denied permissions, or stale
+  cached data?
 
 ## Requirements *(mandatory)*
 
@@ -97,6 +110,17 @@
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+
+### Constitution Alignment *(mandatory)*
+
+- **CA-001 Localization**: Identify which locales are affected and how fallback
+  copy will be handled.
+- **CA-002 Readability**: Describe any orientation, screen-size, contrast,
+  background, or theme constraints that the feature MUST preserve.
+- **CA-003 Architecture**: Identify the cubits, helpers, services, data
+  sources, and persistence layers that own the behavior.
+- **CA-004 Verification**: List the exact analyzer, test, audit, screenshot,
+  and code-generation steps required to validate the feature.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -129,3 +153,5 @@
 - [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
 - [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
 - [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+- [Assumption about supported locales, layouts, or offline behavior if not
+  otherwise specified]

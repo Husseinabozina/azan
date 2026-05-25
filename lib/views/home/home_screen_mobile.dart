@@ -334,7 +334,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   // =========================
 
   void performAdhanActions(BuildContext context) {
-    if (cubit.prayerTimes == null) return;
+    if (!cubit.hasPrayerSchedule) return;
 
     final azanSource = cubit.getAzanSoundSource;
     final prayers = cubit.prayers(context);
@@ -382,7 +382,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
   }
 
   void _checkAndPlayPrayerSound(DateTime now) {
-    if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
+    if (!cubit.hasPrayerSchedule || cubit.iqamaMinutes == null) return;
 
     final prayers = cubit.prayers(context);
     final iqamaMinutes = cubit.iqamaMinutes!;

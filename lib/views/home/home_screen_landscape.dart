@@ -235,7 +235,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
   //  Actions (كما هي)
   // =========================
   void performAdhanActions(BuildContext context) {
-    if (cubit.prayerTimes == null) return;
+    if (!cubit.hasPrayerSchedule) return;
 
     final azanSource = cubit.getAzanSoundSource;
     final prayers = cubit.prayers(context);
@@ -266,7 +266,7 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
   }
 
   void _checkAndPlayPrayerSound(DateTime now) {
-    if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
+    if (!cubit.hasPrayerSchedule || cubit.iqamaMinutes == null) return;
 
     final prayers = cubit.prayers(context);
     final iqamaMinutes = cubit.iqamaMinutes!;

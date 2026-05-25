@@ -1,5 +1,6 @@
 import 'package:azan/core/helpers/azan_adjust_model.dart';
 import 'package:azan/core/models/city_option.dart';
+import 'package:azan/core/models/gregorian_coverage_window.dart';
 import 'package:azan/core/models/latlng.dart';
 import 'package:jhijri/_src/_jHijri.dart';
 
@@ -87,7 +88,20 @@ class PrayerCalendarHelper {
     return dateOnly(date).add(Duration(minutes: minutes));
   }
 
+  static int minutesFromTimeString(String value) {
+    final parts = value.split(':');
+    if (parts.length != 2) {
+      throw FormatException('Invalid time string: $value');
+    }
+    return (int.parse(parts[0]) * 60) + int.parse(parts[1]);
+  }
+
   static String cityKeyFor({CityOption? city, LatLng? coordinates}) {
+    final bundleId = city?.bundleId?.trim();
+    if (bundleId != null && bundleId.isNotEmpty) {
+      return 'bundle::$bundleId';
+    }
+
     final lat = coordinates?.latitude ?? city?.lat;
     final lon = coordinates?.longitude ?? city?.lon;
 
@@ -161,6 +175,26 @@ class PrayerCalendarHelper {
 
   static bool isFriday(DateTime date) =>
       dateOnly(date).weekday == DateTime.friday;
+
+  static GregorianCoverageWindow currentGregorianCoverageWindow({
+    DateTime? now,
+  }) {
+    return GregorianCoverageWindow.forToday(dateOnly(now ?? DateTime.now()));
+  }
+
+  static DateAvailabilityState availabilityStateForDate(
+    DateTime date, {
+    DateTime? now,
+  }) {
+    return currentGregorianCoverageWindow(
+      now: now,
+    ).availabilityFor(dateOnly(date));
+  }
+
+  static bool isDateSelectable(DateTime date, {DateTime? now}) {
+    return availabilityStateForDate(date, now: now) ==
+        DateAvailabilityState.selectable;
+  }
 
   static bool isRamadanDate(DateTime date, {required int offsetDays}) {
     return hijriPartsForDate(date, offsetDays: offsetDays).month == 9;

@@ -83,6 +83,8 @@ flutter:
     - assets/svg/
     - assets/translations/
     - assets/sounds/
+    - assets/data/umm_al_qura/v1/manifest.json
+    - assets/data/umm_al_qura/v1/cities/gz/
 
   fonts:
     - family: KSA

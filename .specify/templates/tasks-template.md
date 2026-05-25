@@ -9,7 +9,10 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: Include verification tasks for every feature unless the change is
+documentation-only. Logic and state changes normally require unit tests; UI,
+layout, or theme changes normally require widget or golden coverage and any
+applicable audit runs.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -21,10 +24,11 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Flutter app**: `lib/`, `test/`, `assets/`, and `tool/` at repository root
+- **Platform folders**: `android/`, `ios/`, `linux/`, `macos/`, `web/`,
+  `windows/`
+- Paths shown below assume the current Flutter repository structure - adjust
+  based on plan.md when a feature is scoped more narrowly
 
 <!--
   ============================================================================
@@ -50,8 +54,10 @@ description: "Task list template for feature implementation"
 **Purpose**: Project initialization and basic structure
 
 - [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T002 Update `pubspec.yaml`, assets, or package dependencies required by
+  the feature
+- [ ] T003 [P] Refresh generated assets, localization outputs, or fixtures
+  required before implementation
 
 ---
 
@@ -63,12 +69,17 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T004 Create or update shared cubit, state, or controller foundations in
+  `lib/controllers/`
+- [ ] T005 [P] Extend shared helpers, services, or repositories in `lib/core/`
+  or `lib/data/`
+- [ ] T006 [P] Define persistence, caching, or serialization support needed
+  across stories
+- [ ] T007 Add localization, theme, or shared asset plumbing required by all
+  stories
+- [ ] T008 Define golden baselines, test fixtures, or audit inputs used by the
+  feature
+- [ ] T009 Setup any required configuration or platform permissions
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -80,21 +91,26 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 1 ⚠️
 
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+> **NOTE**: Write these tests or audits first when feasible, and ensure at
+> least one relevant check fails before implementation for behavioral changes.
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T010 [P] [US1] Add or update unit/state test in `test/[feature]_test.dart`
+- [ ] T011 [P] [US1] Add or update widget or golden coverage in
+  `test/[feature]_screen_test.dart`
+- [ ] T012 [US1] Run any required audit command or screenshot capture for the
+  changed surface
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T013 [P] [US1] Implement or update data/model logic in
+  `lib/core/` or `lib/data/`
+- [ ] T014 [P] [US1] Implement or update cubit/state behavior in
+  `lib/controllers/`
+- [ ] T015 [US1] Implement the user-facing screen or component in `lib/views/`
+- [ ] T016 [US1] Wire persistence, localization, and error handling
+- [ ] T017 [US1] Refresh generated outputs or assets touched by the story
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -106,17 +122,19 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 2 ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T018 [P] [US2] Add or update unit/state test in `test/[feature]_test.dart`
+- [ ] T019 [P] [US2] Add or update widget or golden coverage in
+  `test/[feature]_screen_test.dart`
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T020 [P] [US2] Implement or update supporting logic in
+  `lib/core/`, `lib/data/`, or `lib/controllers/`
+- [ ] T021 [US2] Implement the user-facing screen or component in `lib/views/`
+- [ ] T022 [US2] Integrate persistence, assets, or localization changes
+- [ ] T023 [US2] Integrate with User Story 1 components if needed
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -128,16 +146,18 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 3 ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T024 [P] [US3] Add or update unit/state test in `test/[feature]_test.dart`
+- [ ] T025 [P] [US3] Add or update widget or golden coverage in
+  `test/[feature]_screen_test.dart`
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T026 [P] [US3] Implement or update supporting logic in
+  `lib/core/`, `lib/data/`, or `lib/controllers/`
+- [ ] T027 [US3] Implement the user-facing screen or component in `lib/views/`
+- [ ] T028 [US3] Integrate persistence, assets, or localization changes
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -154,8 +174,10 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Documentation updates in docs/
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
-- [ ] TXXX Security hardening
+- [ ] TXXX [P] Regenerate code or localization outputs and verify diffs
+- [ ] TXXX [P] Run `flutter analyze`, `flutter test`, and any required audit
+  commands
+- [ ] TXXX Capture screenshots or refresh goldens for changed UI surfaces
 - [ ] TXXX Run quickstart.md validation
 
 ---
@@ -179,10 +201,11 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Within Each User Story
 
-- Tests (if included) MUST be written and FAIL before implementation
-- Models before services
-- Services before endpoints
-- Core implementation before integration
+- Tests and audits MUST be created or updated before implementation when they
+  protect behavior changed by the story
+- Shared logic before cubit wiring
+- Cubit or service updates before UI integration
+- Core implementation before persistence and presentation polish
 - Story complete before moving to next priority
 
 ### Parallel Opportunities
@@ -199,13 +222,13 @@ Examples of foundational tasks (adjust based on your project):
 ## Parallel Example: User Story 1
 
 ```bash
-# Launch all tests for User Story 1 together (if tests requested):
-Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
-Task: "Integration test for [user journey] in tests/integration/test_[name].py"
+# Launch all verification work for User Story 1 together:
+Task: "Add or update unit/state test in test/[feature]_test.dart"
+Task: "Add or update widget or golden coverage in test/[feature]_screen_test.dart"
 
-# Launch all models for User Story 1 together:
-Task: "Create [Entity1] model in src/models/[entity1].py"
-Task: "Create [Entity2] model in src/models/[entity2].py"
+# Launch implementation tasks that touch different layers together:
+Task: "Implement or update data/model logic in lib/core/ or lib/data/"
+Task: "Implement or update cubit/state behavior in lib/controllers/"
 ```
 
 ---
@@ -246,7 +269,7 @@ With multiple developers:
 - [P] tasks = different files, no dependencies
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
-- Verify tests fail before implementing
+- Verify relevant tests or audits fail before implementing behavior changes
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

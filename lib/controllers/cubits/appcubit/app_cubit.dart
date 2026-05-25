@@ -18,13 +18,17 @@ import 'package:azan/core/models/city_option.dart';
 import 'package:azan/core/models/display_announcement.dart';
 import 'package:azan/core/models/diker.dart';
 import 'package:azan/core/models/geo_location.dart';
+import 'package:azan/core/models/gregorian_coverage_window.dart';
 import 'package:azan/core/models/latlng.dart';
 import 'package:azan/core/models/next_Iqama.dart';
+import 'package:azan/core/models/official_city_catalog_entry.dart';
 import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/models/prayer_calendar_day.dart';
 import 'package:azan/core/models/weather_day.dart';
+import 'package:azan/core/services/official_city_catalog_service.dart';
 import 'package:azan/core/services/open_weather_service.dart';
 import 'package:azan/core/services/sytem_time_guard_service.dart';
+import 'package:azan/core/services/umm_al_qura_bundle_service.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/data/data_source/azan_data_source.dart';
 import 'package:azan/gen/assets.gen.dart';
@@ -45,6 +49,10 @@ class AppCubit extends Cubit<AppState> {
 
   AppCubit._internal(this._dio) : super(AppInitial()) {
     weatherService = OpenMeteoWeatherService(dio: _dio);
+    ummAlQuraBundleService = UmmAlQuraBundleService();
+    officialCityCatalogService = OfficialCityCatalogService(
+      bundleService: ummAlQuraBundleService,
+    );
     _initOnce();
   }
 
@@ -94,6 +102,8 @@ class AppCubit extends Cubit<AppState> {
   static bool _initialized = false;
 
   late final OpenMeteoWeatherService weatherService;
+  late final OfficialCityCatalogService officialCityCatalogService;
+  late final UmmAlQuraBundleService ummAlQuraBundleService;
   WeatherForecast? weatherForecast;
   CityOption? _selectedCity;
   PrayerCalendarDay? _todayPrayerCalendarDay;
@@ -238,7 +248,10 @@ class AppCubit extends Cubit<AppState> {
     return '$country|$city';
   }
 
-  String _legacyWeatherCityKey({required String country, required String city}) {
+  String _legacyWeatherCityKey({
+    required String country,
+    required String city,
+  }) {
     return '$country|$city';
   }
 
@@ -350,8 +363,7 @@ class AppCubit extends Cubit<AppState> {
         _lastResolvedWeatherYmd != null &&
         _lastResolvedWeatherYmd != currentYmd;
     final missingToday = activeForecast == null || !hasTodayInForecast;
-    final staleForecast =
-        activeForecast != null && !_isFresh(activeForecast);
+    final staleForecast = activeForecast != null && !_isFresh(activeForecast);
 
     _syncResolvedWeatherSnapshot(emitIfChanged: true);
 
@@ -410,7 +422,7 @@ class AppCubit extends Cubit<AppState> {
         final manualLng = CacheHelper.getManualWeatherLng();
 
         if (manualLat != null && manualLng != null) {
-          cacheKey = 'manual_${manualLat}_${manualLng}';
+          cacheKey = 'manual_${manualLat}_$manualLng';
         } else {
           cacheKey = _weatherCityKey(country: country, city: city);
         }
@@ -926,11 +938,15 @@ class AppCubit extends Cubit<AppState> {
     }
     LatLng latLng = LatLng(geoResponse.latitude, geoResponse.longitude);
     CacheHelper.setCoordinates(latLng);
+    final knownCity = LocationHelper.findSaudiCityByName(city);
     final cityOption = CityOption(
       nameEn: city,
-      nameAr: LocationHelper.findSaudiCityByName(city)!.nameAr,
+      nameAr: knownCity?.nameAr ?? city,
       lat: latLng.latitude,
       lon: latLng.longitude,
+      bundleId: knownCity?.bundleId,
+      regionEn: knownCity?.regionEn,
+      nameAliases: knownCity?.nameAliases ?? const <String>[],
     );
     _selectedCity = cityOption;
     unawaited(CacheHelper.setCity(cityOption));
@@ -1065,15 +1081,141 @@ class AppCubit extends Cubit<AppState> {
     ];
   }
 
-  String _resolvePrayerCalendarCityKey({
-    required LatLng coords,
-  }) {
+  String _resolvePrayerCalendarCityKey({LatLng? coords}) {
     final cityKey = PrayerCalendarHelper.cityKeyFor(
       city: getCity(),
       coordinates: coords,
     );
     _activePrayerCalendarCityKey = cityKey;
     return cityKey;
+  }
+
+  Future<OfficialCityCatalogEntry?> _resolveSelectedCatalogEntry({
+    String? city,
+  }) async {
+    final selected = getCity();
+    final resolved = await officialCityCatalogService.resolveFromCityOption(
+      selected,
+    );
+    if (resolved != null) {
+      final upgradedCity = officialCityCatalogService.cityOptionFromEntry(
+        resolved,
+      );
+      if (selected?.bundleId != upgradedCity.bundleId ||
+          selected?.nameAr != upgradedCity.nameAr ||
+          selected?.lat != upgradedCity.lat ||
+          selected?.lon != upgradedCity.lon) {
+        _selectedCity = upgradedCity;
+        unawaited(CacheHelper.setCity(upgradedCity));
+      }
+      return resolved;
+    }
+
+    if (city == null || city.trim().isEmpty) {
+      return null;
+    }
+
+    final options = await officialCityCatalogService.loadCityOptions();
+    try {
+      final matched = options.firstWhere(
+        (entry) =>
+            entry.nameEn.toLowerCase() == city.toLowerCase() ||
+            entry.nameAr == city,
+      );
+      _selectedCity = matched;
+      unawaited(CacheHelper.setCity(matched));
+      return officialCityCatalogService.resolveFromCityOption(matched);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<PrayerCalendarDay?> _loadOfficialPrayerCalendarDay(
+    DateTime date, {
+    OfficialCityCatalogEntry? catalogEntry,
+    String? cityKey,
+  }) async {
+    final resolvedEntry = catalogEntry ?? await _resolveSelectedCatalogEntry();
+    if (resolvedEntry == null) return null;
+
+    final resolvedCityKey = cityKey ?? _resolvePrayerCalendarCityKey();
+    final normalized = _normalizedDate(date);
+    final stored = await PrayerCalendarHiveHelper.getDay(
+      cityKey: resolvedCityKey,
+      date: normalized,
+    );
+    if (stored != null) return stored;
+
+    final scheduleDay = await ummAlQuraBundleService.loadDay(
+      city: resolvedEntry,
+      date: normalized,
+    );
+    if (scheduleDay == null) return null;
+
+    final created = ummAlQuraBundleService.toPrayerCalendarDay(
+      cityKey: resolvedCityKey,
+      scheduleDay: scheduleDay,
+    );
+    await PrayerCalendarHiveHelper.putDay(created);
+    return created;
+  }
+
+  Future<List<PrayerCalendarDay>> _loadOfficialPrayerCalendarRange({
+    required DateTime startInclusive,
+    required DateTime endInclusive,
+    OfficialCityCatalogEntry? catalogEntry,
+  }) async {
+    final resolvedEntry = catalogEntry ?? await _resolveSelectedCatalogEntry();
+    if (resolvedEntry == null) return const <PrayerCalendarDay>[];
+
+    final resolvedCityKey = _resolvePrayerCalendarCityKey();
+    final normalizedStart = _normalizedDate(startInclusive);
+    final normalizedEnd = _normalizedDate(endInclusive);
+    final endExclusive = normalizedEnd.add(const Duration(days: 1));
+    final cached = await PrayerCalendarHiveHelper.getDaysInRange(
+      cityKey: resolvedCityKey,
+      startInclusive: normalizedStart,
+      endExclusive: endExclusive,
+    );
+    final cachedYmds = cached.map((day) => day.gregorianYmd).toSet();
+
+    final officialDays = await ummAlQuraBundleService.loadRange(
+      city: resolvedEntry,
+      startInclusive: normalizedStart,
+      endInclusive: normalizedEnd,
+    );
+    final missing = officialDays
+        .where((day) => !cachedYmds.contains(day.gregorianYmd))
+        .map(
+          (day) => ummAlQuraBundleService.toPrayerCalendarDay(
+            cityKey: resolvedCityKey,
+            scheduleDay: day,
+          ),
+        )
+        .toList();
+
+    if (missing.isNotEmpty) {
+      await PrayerCalendarHiveHelper.putDays(missing);
+    }
+
+    final hydrated = await PrayerCalendarHiveHelper.getDaysInRange(
+      cityKey: resolvedCityKey,
+      startInclusive: normalizedStart,
+      endExclusive: endExclusive,
+    );
+    hydrated.sort(
+      (left, right) => left.gregorianDate.compareTo(right.gregorianDate),
+    );
+    return hydrated;
+  }
+
+  Future<List<PrayerCalendarDay>> loadGregorianYearPrayerCalendar({
+    required int gregorianYear,
+  }) async {
+    return _loadOfficialPrayerCalendarRange(
+      startInclusive: DateTime(gregorianYear, 1, 1),
+      endInclusive: DateTime(gregorianYear, 12, 31),
+    );
   }
 
   Future<String?> _ensureHijriYearCalendar({
@@ -1137,9 +1279,19 @@ class AppCubit extends Cubit<AppState> {
 
   Future<PrayerCalendarDay?> _loadOrGeneratePrayerCalendarDay(
     DateTime date, {
-    required LatLng coords,
+    LatLng? coords,
     String? cityKey,
+    OfficialCityCatalogEntry? catalogEntry,
   }) async {
+    if ((catalogEntry ?? await _resolveSelectedCatalogEntry()) != null) {
+      return _loadOfficialPrayerCalendarDay(
+        date,
+        catalogEntry: catalogEntry,
+        cityKey: cityKey,
+      );
+    }
+
+    if (coords == null) return null;
     final normalized = _normalizedDate(date);
     final resolvedCityKey =
         cityKey ??
@@ -1215,6 +1367,46 @@ class AppCubit extends Cubit<AppState> {
 
       emit(FetchPrayerTimesLoading());
 
+      final officialEntry = await _resolveSelectedCatalogEntry(city: city);
+      final todayDate = _normalizedDate(DateTime.now());
+      final tomorrowDate = todayDate.add(const Duration(days: 1));
+
+      if (officialEntry != null) {
+        final cityKey = _resolvePrayerCalendarCityKey();
+        prayerTimes = null;
+        _todayPrayerCalendarDay = await _loadOfficialPrayerCalendarDay(
+          todayDate,
+          catalogEntry: officialEntry,
+          cityKey: cityKey,
+        );
+        _tomorrowPrayerCalendarDay = await _loadOfficialPrayerCalendarDay(
+          tomorrowDate,
+          catalogEntry: officialEntry,
+          cityKey: cityKey,
+        );
+
+        if (_tomorrowPrayerCalendarDay != null) {
+          nextFajrPrayer = _mapPrayerCalendarDayToPrayers(
+            _tomorrowPrayerCalendarDay!,
+            context: context,
+            targetDate: tomorrowDate,
+          ).first;
+        } else {
+          nextFajrPrayer = null;
+        }
+
+        if (_todayPrayerCalendarDay != null) {
+          emit(FetchPrayerTimesSuccess());
+        } else {
+          emit(
+            FetchPrayerTimesFailure(
+              LocaleKeys.something_went_wrong_please_try_again.tr(),
+            ),
+          );
+        }
+        return;
+      }
+
       final coords = await _ensureSelectedCityCoordinates(city: city);
       if (coords == null) {
         emit(
@@ -1226,8 +1418,6 @@ class AppCubit extends Cubit<AppState> {
       }
 
       final cityKey = await _ensureCurrentHijriYearCalendar(coords: coords);
-      final todayDate = _normalizedDate(DateTime.now());
-      final tomorrowDate = todayDate.add(const Duration(days: 1));
 
       _todayPrayerCalendarDay = await _loadOrGeneratePrayerCalendarDay(
         todayDate,
@@ -1466,16 +1656,15 @@ class AppCubit extends Cubit<AppState> {
     }
 
     // لو خلصنا صلوات اليوم -> هات بكرة كـ nextPrayer فقط
-    final coords = CacheHelper.getCoordinates();
-    if (coords == null) return null;
-
     final tomorrowDate = todayDate.add(const Duration(days: 1));
+    final officialEntry = await _resolveSelectedCatalogEntry();
     final tomorrowDay =
         _tomorrowPrayerCalendarDay ??
         await _loadOrGeneratePrayerCalendarDay(
           tomorrowDate,
-          coords: coords,
+          coords: CacheHelper.getCoordinates(),
           cityKey: _activePrayerCalendarCityKey,
+          catalogEntry: officialEntry,
         );
     if (tomorrowDay != null) {
       _tomorrowPrayerCalendarDay = tomorrowDay;
@@ -1486,6 +1675,9 @@ class AppCubit extends Cubit<AppState> {
       );
       return tomorrowPrayers.isNotEmpty ? tomorrowPrayers.first : null;
     }
+
+    final coords = CacheHelper.getCoordinates();
+    if (coords == null) return null;
 
     final tomorrowTimes = await fetchPrayerTimesExactDay(coords, tomorrowDate);
     if (tomorrowTimes == null) return null;
@@ -1536,6 +1728,10 @@ class AppCubit extends Cubit<AppState> {
     return '';
   }
 
+  Future<List<CityOption>> loadOfflineCityOptions() {
+    return officialCityCatalogService.loadCityOptions();
+  }
+
   // CityOption? getCity() {
   //   emit(AppInitial());
   //   emit(AppChanged());
@@ -1551,6 +1747,8 @@ class AppCubit extends Cubit<AppState> {
     prayerTimes = null;
     if (city.lat != null && city.lon != null) {
       unawaited(CacheHelper.setCoordinates(LatLng(city.lat!, city.lon!)));
+    } else {
+      unawaited(CacheHelper.removeCoordinates());
     }
     unawaited(CacheHelper.setCity(city));
     emit(AppChanged());
@@ -1575,8 +1773,21 @@ class AppCubit extends Cubit<AppState> {
         offsetDays: CacheHelper.getHijriOffsetDays(),
       );
 
+  GregorianCoverageWindow get currentGregorianCoverageWindow =>
+      PrayerCalendarHelper.currentGregorianCoverageWindow();
+
+  List<int> get supportedGregorianYears =>
+      currentGregorianCoverageWindow.supportedGregorianYears;
+
+  bool get hasPrayerSchedule =>
+      _todayPrayerCalendarDay != null || prayerTimes != null;
+
+  DateAvailabilityState dateAvailabilityFor(DateTime date) {
+    return currentGregorianCoverageWindow.availabilityFor(date);
+  }
+
   bool isPrayerCalendarDateEditable(DateTime date) {
-    return !_normalizedDate(date).isBefore(_normalizedDate(DateTime.now()));
+    return dateAvailabilityFor(date) == DateAvailabilityState.selectable;
   }
 
   DateTime? effectiveAdhanTimeForCalendarDay(

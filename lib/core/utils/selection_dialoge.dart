@@ -25,7 +25,8 @@ class _SelectionDialogBody<T> extends StatefulWidget {
   });
 
   @override
-  State<_SelectionDialogBody<T>> createState() => _SelectionDialogBodyState<T>();
+  State<_SelectionDialogBody<T>> createState() =>
+      _SelectionDialogBodyState<T>();
 }
 
 class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
@@ -43,8 +44,16 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
     final sizing = DialogConfig.getSizing(context);
     final filtered = widget.items.where((item) {
       if (_query.trim().isEmpty) return true;
-      final label = widget.labelBuilder(item);
-      final q = _query.trim();
+      final q = _query.trim().toLowerCase();
+      if (item is CityOption) {
+        final haystack = <String>[
+          item.nameAr,
+          item.nameEn,
+          ...item.nameAliases,
+        ].map((value) => value.toLowerCase()).join(' ');
+        return haystack.contains(q);
+      }
+      final label = widget.labelBuilder(item).toLowerCase();
       return label.contains(q);
     }).toList();
 
@@ -52,7 +61,7 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
       forceMaxHeight: true,
       customMaxWidth: sizing.isLandscape ? 620.w : sizing.dialogWidth,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
           Row(
             children: [
@@ -62,6 +71,7 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
           ),
           SizedBox(height: sizing.verticalGap * 0.7),
           DialogSearchField(
+            key: const ValueKey('selection-dialog-search'),
             controller: _searchController,
             hint: widget.searchHint,
             onChanged: (value) => setState(() => _query = value),
@@ -77,6 +87,7 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
                   final label = widget.labelBuilder(item);
 
                   return DialogSelectableTile(
+                    key: ValueKey('selection-tile-$label'),
                     title: label,
                     onTap: () {
                       Navigator.of(context).pop(item);
@@ -115,6 +126,7 @@ Future<CountryOption?> showCountryPickerDialog(
 
 Future<CityOption?> showSaudiCityPickerDialog(
   BuildContext context,
+  List<CityOption> cities,
   Function(dynamic item) onSelected,
 ) {
   return showAppDialog<CityOption>(
@@ -122,7 +134,7 @@ Future<CityOption?> showSaudiCityPickerDialog(
     builder: (ctx) {
       return _SelectionDialogBody<CityOption>(
         title: LocaleKeys.mosque_city_select_title.tr(),
-        items: kSaudiCities,
+        items: cities,
         labelBuilder: (c) =>
             context.locale.languageCode == 'en' ? c.nameEn : c.nameAr,
         searchHint: LocaleKeys.city_search_hint.tr(),

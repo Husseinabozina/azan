@@ -67,7 +67,10 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
   }
 
   DisplayAnnouncement? get currentAnnouncement =>
-      resolveDisplayAnnouncementForFrame(_runtimeAnnouncements(), _announcementFrame);
+      resolveDisplayAnnouncementForFrame(
+        _runtimeAnnouncements(),
+        _announcementFrame,
+      );
 
   Future<prayer_model.Prayer?> get nextPrayerFuture => _nextPrayerFuture;
 
@@ -98,7 +101,8 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
   void _syncDisplayBoardMode(DateTime now) {
     if (_isRoutingByDisplayMode || !mounted) return;
 
-    final items = cubit.displayAnnouncementList ?? const <DisplayAnnouncement>[];
+    final items =
+        cubit.displayAnnouncementList ?? const <DisplayAnnouncement>[];
     final hasScheduledNow =
         DisplayBoardScheduleResolver.hasScheduledAnnouncementsDue(items, now);
     if (hasScheduledNow) {
@@ -251,7 +255,7 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
   }
 
   void performAdhanActions(BuildContext context) {
-    if (cubit.prayerTimes == null) return;
+    if (!cubit.hasPrayerSchedule) return;
 
     final azanSource = cubit.getAzanSoundSource;
     final prayers = cubit.prayers(context);
@@ -293,7 +297,7 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
   }
 
   void _checkAndPlayPrayerSound(DateTime now) {
-    if (cubit.prayerTimes == null || cubit.iqamaMinutes == null) return;
+    if (!cubit.hasPrayerSchedule || cubit.iqamaMinutes == null) return;
 
     final prayers = cubit.prayers(context);
     final iqamaMinutes = cubit.iqamaMinutes!;

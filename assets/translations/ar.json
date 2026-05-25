@@ -346,6 +346,8 @@
   "longitude": "خط الطول",
   "time_hour": "الساعة",
   "time_minute": "الدقيقة",
-  "hijriPrayerCalendarTitle":"إدارة مواقيت الصلاة حسب توقيت أم القري"
+  "hijriPrayerCalendarTitle":"إدارة مواقيت الصلاة حسب توقيت أم القري",
+  "offline_calendar_gregorian_year": "السنة الميلادية",
+  "offline_calendar_supported_range": "النطاق المدعوم"
 
 }

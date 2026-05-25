@@ -1,6 +1,7 @@
 import 'package:azan/core/helpers/azan_adjust_model.dart';
 import 'package:azan/core/helpers/prayer_calendar_helper.dart';
 import 'package:azan/core/models/city_option.dart';
+import 'package:azan/core/models/gregorian_coverage_window.dart';
 import 'package:azan/core/models/latlng.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jhijri/_src/_jHijri.dart';
@@ -41,9 +42,10 @@ void main() {
         nameEn: 'Dammam',
         lat: 26.4207,
         lon: 50.0888,
+        bundleId: 'dammam',
       );
 
-      expect(PrayerCalendarHelper.cityKeyFor(city: city), '26.4207,50.0888');
+      expect(PrayerCalendarHelper.cityKeyFor(city: city), 'bundle::dammam');
       expect(
         PrayerCalendarHelper.cityKeyFor(
           coordinates: LatLng(21.423456, 39.826789),
@@ -71,6 +73,32 @@ void main() {
         );
 
         expect(minutes, 35);
+      },
+    );
+
+    test(
+      'Gregorian coverage window keeps current year plus next five years',
+      () {
+        final window = PrayerCalendarHelper.currentGregorianCoverageWindow(
+          now: DateTime(2026, 5, 24),
+        );
+
+        expect(window.startInclusive, DateTime(2026, 1, 1));
+        expect(window.endInclusive, DateTime(2031, 12, 31));
+        expect(
+          PrayerCalendarHelper.isDateSelectable(
+            DateTime(2026, 5, 24),
+            now: DateTime(2026, 5, 24),
+          ),
+          isTrue,
+        );
+        expect(
+          PrayerCalendarHelper.availabilityStateForDate(
+            DateTime(2026, 5, 23),
+            now: DateTime(2026, 5, 24),
+          ),
+          DateAvailabilityState.pastReadOnly,
+        );
       },
     );
 

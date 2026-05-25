@@ -147,8 +147,22 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                               AppButton(
                                 color: AppTheme.primaryButtonBackground,
 
-                                onPressed: () {
-                                  showSaudiCityPickerDialog(context, (
+                                onPressed: () async {
+                                  final cities = await appCubit
+                                      .loadOfflineCityOptions();
+                                  if (!mounted) return;
+                                  if (cities.isEmpty) {
+                                    showFlashMessage(
+                                      message: LocaleKeys
+                                          .something_went_wrong_please_try_again
+                                          .tr(),
+                                      type: FlashMessageType.error,
+                                      context: context,
+                                    );
+                                    return;
+                                  }
+
+                                  showSaudiCityPickerDialog(context, cities, (
                                     item,
                                   ) async {
                                     final city = item as CityOption;
@@ -162,7 +176,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                     if (!mounted) return;
 
                                     final hasSchedule =
-                                        appCubit.prayerTimes != null ||
+                                        appCubit.hasPrayerSchedule ||
                                         appCubit.adjustedPrayerTimeById(1) !=
                                             null;
                                     if (!hasSchedule) return;

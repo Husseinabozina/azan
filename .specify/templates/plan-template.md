@@ -18,29 +18,40 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Language/Version**: [e.g., Dart 3.9 / Flutter stable or NEEDS CLARIFICATION]
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Primary Dependencies**: [e.g., Flutter, flutter_bloc, easy_localization, Hive or NEEDS CLARIFICATION]
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Storage**: [if applicable, e.g., Hive, shared_preferences, files, remote APIs, or N/A]
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Testing**: [e.g., flutter_test, widget/golden tests, flutter analyze, background theme audit or NEEDS CLARIFICATION]
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Target Platform**: [e.g., Android, iOS, large-screen display devices, web companion, or NEEDS CLARIFICATION]
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Project Type**: [e.g., Flutter mobile app, shared UI module, platform integration, or NEEDS CLARIFICATION]
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Performance Goals**: [domain-specific, e.g., smooth prayer-display transitions, fast settings load, 60 fps surfaces, or NEEDS CLARIFICATION]
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+**Constraints**: [domain-specific, e.g., offline-tolerant flows, deterministic date/time logic, readable themed surfaces, or NEEDS CLARIFICATION]
 
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: [domain-specific, e.g., affected screens, locales, persisted settings, assets, or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Prayer-time correctness**: If the feature touches schedules, calendars,
+  location, timezone, or date-driven display logic, identify the authoritative
+  logic owner and the deterministic test coverage that will protect it.
+- **Localized readability**: List impacted locales, orientation or screen
+  classes, and any theme/background contrast validation required.
+- **Architecture boundaries**: Confirm which cubits, helpers, services, data
+  sources, or persistence layers will change, and explain how business logic
+  stays out of widgets.
+- **Verification plan**: List the exact commands, tests, audits, screenshots,
+  and code-generation refresh steps required before merge.
+- **Asset and dependency discipline**: Note any new assets, dependencies, or
+  generated outputs and why each is necessary.
 
 ## Project Structure
 
@@ -57,47 +68,35 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+lib/
+├── controllers/
+├── core/
+├── data/
+├── gen/
+├── generated/
+└── views/
 
-tests/
-├── contract/
-├── integration/
-└── unit/
+assets/
+├── fonts/
+├── images/
+├── sounds/
+├── svg/
+└── translations/
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+test/
+├── goldens/
+├── failures/
+└── [feature]_test.dart
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+tool/
+android/
+ios/
+linux/
+macos/
+web/
+windows/
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real

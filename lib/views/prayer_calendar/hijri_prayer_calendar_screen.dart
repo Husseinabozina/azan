@@ -4,6 +4,7 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/core/components/global_copyright_footer.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/prayer_calendar_helper.dart';
+import 'package:azan/core/models/gregorian_coverage_window.dart';
 import 'package:azan/core/models/prayer.dart';
 import 'package:azan/core/models/prayer_calendar_day.dart';
 import 'package:azan/core/theme/app_theme.dart';
@@ -33,9 +34,9 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
   final ScrollController _sideMonthsController = ScrollController();
 
   late AppCubit cubit;
-  late final int _currentHijriYear;
-  late final List<int> _availableHijriYears;
-  late int _selectedHijriYear;
+  late final int _currentGregorianYear;
+  late final List<int> _availableGregorianYears;
+  late int _selectedGregorianYear;
   bool _isLoading = true;
   List<_CalendarDayVm> _days = const <_CalendarDayVm>[];
   List<int> _monthOrder = const <int>[];
@@ -46,12 +47,10 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
   void initState() {
     super.initState();
     cubit = AppCubit.get(context);
-    _currentHijriYear = cubit.currentDisplayedHijriYearRange.hijriYear;
-    _availableHijriYears = List<int>.generate(
-      6,
-      (index) => _currentHijriYear + index,
-    );
-    _selectedHijriYear = _currentHijriYear;
+    _currentGregorianYear =
+        cubit.currentGregorianCoverageWindow.startInclusive.year;
+    _availableGregorianYears = cubit.supportedGregorianYears;
+    _selectedGregorianYear = _currentGregorianYear;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadCalendar();
     });
@@ -93,13 +92,22 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
     return _localizeDigits('$year/$month/$day');
   }
 
+  String _gregorianMonthLabel(DateTime date) {
+    return DateFormat.MMMM(CacheHelper.getLang()).format(date);
+  }
+
+  String _coverageWindowText() {
+    final window = cubit.currentGregorianCoverageWindow;
+    return '${LocaleKeys.offline_calendar_supported_range.tr()}: '
+        '${_gregorianLabel(window.startInclusive)} - ${_gregorianLabel(window.endInclusive)}';
+  }
+
   Future<void> _loadCalendar() async {
     setState(() => _isLoading = true);
 
     final baseIqama = await cubit.getStoredIqamaMinutes();
-    final days = await cubit.loadHijriYearPrayerCalendar(
-      hijriYear: _selectedHijriYear,
-      city: cubit.getCity()?.nameEn,
+    final days = await cubit.loadGregorianYearPrayerCalendar(
+      gregorianYear: _selectedGregorianYear,
     );
 
     final offsetDays = CacheHelper.getHijriOffsetDays();
@@ -125,22 +133,21 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
               hijriMonth: hijri.month,
               hijriYear: hijri.year,
               hijriMonthName: hijri.monthName,
+              gregorianYear: day.gregorianDate.year,
+              gregorianMonth: day.gregorianDate.month,
+              gregorianMonthName: _gregorianMonthLabel(day.gregorianDate),
               weekdayLabel: _weekdayLabel(day.gregorianDate),
               gregorianLabel: _gregorianLabel(day.gregorianDate),
-              editable: cubit.isPrayerCalendarDateEditable(day.gregorianDate),
+              availability: cubit.dateAvailabilityFor(day.gregorianDate),
               defaultIqamaOffsets: defaultIqamaOffsets,
             );
           }).toList()
           ..sort((a, b) => a.day.gregorianDate.compareTo(b.day.gregorianDate));
 
-    final monthOrder = mapped.map((item) => item.hijriMonth).toSet().toList()
-      ..sort();
+    final monthOrder =
+        mapped.map((item) => item.gregorianMonth).toSet().toList()..sort();
 
-    final currentMonth = PrayerCalendarHelper.hijriPartsForDate(
-      DateTime.now(),
-      offsetDays: offsetDays,
-      langCode: langCode,
-    ).month;
+    final currentMonth = DateTime.now().month;
 
     if (!mounted) return;
     final expandedStillExists = mapped.any(
@@ -151,7 +158,7 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
       _monthOrder = monthOrder;
       _selectedMonth = monthOrder.contains(_selectedMonth)
           ? _selectedMonth
-          : (_selectedHijriYear == _currentHijriYear &&
+          : (_selectedGregorianYear == _currentGregorianYear &&
                     monthOrder.contains(currentMonth)
                 ? currentMonth
                 : (monthOrder.isNotEmpty ? monthOrder.first : null));
@@ -163,7 +170,7 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
 
   List<_CalendarDayVm> get _selectedMonthDays {
     if (_selectedMonth == null) return _days;
-    return _days.where((day) => day.hijriMonth == _selectedMonth).toList();
+    return _days.where((day) => day.gregorianMonth == _selectedMonth).toList();
   }
 
   int? _monthIndexFor(int? month) {
@@ -244,10 +251,10 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
 
   String _yearChipLabel(int year) => _localizeDigits(year.toString());
 
-  Future<void> _selectHijriYear(int year) async {
-    if (_selectedHijriYear == year) return;
+  Future<void> _selectGregorianYear(int year) async {
+    if (_selectedGregorianYear == year) return;
     setState(() {
-      _selectedHijriYear = year;
+      _selectedGregorianYear = year;
       _expandedDayYmd = null;
     });
     await _loadCalendar();
@@ -285,19 +292,19 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
 
   String _monthChipLabel(int month) {
     final monthVm = _days.cast<_CalendarDayVm?>().firstWhere(
-      (day) => day?.hijriMonth == month,
+      (day) => day?.gregorianMonth == month,
       orElse: () => null,
     );
     if (monthVm == null) return '';
-    return monthVm.hijriMonthName;
+    return monthVm.gregorianMonthName;
   }
 
   @override
   Widget build(BuildContext context) {
     final city = cubit.getCity();
-    final selectedYear = _selectedHijriYear;
+    final selectedYear = _selectedGregorianYear;
     final selectedYearLabel =
-        '${LocaleKeys.prayer_calendar_hijri_year.tr()} ${_localizeDigits(selectedYear.toString())}';
+        '${LocaleKeys.offline_calendar_gregorian_year.tr()} ${_localizeDigits(selectedYear.toString())}';
 
     return Scaffold(
       key: _scaffoldKey,
@@ -348,17 +355,18 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                                 child: _CalendarSidePanel(
                                   title: LocaleKeys.hijriPrayerCalendarTitle
                                       .tr(),
-                                  note: LocaleKeys.prayer_calendar_note.tr(),
+                                  note:
+                                      '${LocaleKeys.prayer_calendar_note.tr()}\n${_coverageWindowText()}',
                                   cityName: city == null
                                       ? '--'
                                       : (CacheHelper.getLang() == 'en'
                                             ? city.nameEn
                                             : city.nameAr),
                                   hijriYearLabel: selectedYearLabel,
-                                  availableHijriYears: _availableHijriYears,
-                                  selectedHijriYear: _selectedHijriYear,
+                                  availableHijriYears: _availableGregorianYears,
+                                  selectedHijriYear: _selectedGregorianYear,
                                   hijriYearChipLabelBuilder: _yearChipLabel,
-                                  onHijriYearSelected: _selectHijriYear,
+                                  onHijriYearSelected: _selectGregorianYear,
                                   monthOrder: _monthOrder,
                                   selectedMonth: _selectedMonth,
                                   monthLabelBuilder: _monthChipLabel,
@@ -384,7 +392,7 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                                       ? LocaleKeys.hijriPrayerCalendarTitle.tr()
                                       : _monthChipLabel(_selectedMonth!),
                                   subtitle:
-                                      '${LocaleKeys.prayer_calendar_editable_today_future.tr()} • ${LocaleKeys.prayer_calendar_read_only_past.tr()}',
+                                      '${LocaleKeys.prayer_calendar_editable_today_future.tr()} • ${LocaleKeys.prayer_calendar_read_only_past.tr()} • ${_coverageWindowText()}',
                                   days: _selectedMonthDays,
                                   expandedDayYmd: _expandedDayYmd,
                                   onToggleDay: _toggleExpandedDay,
@@ -399,17 +407,18 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                             children: [
                               _CalendarSummaryCard(
                                 title: LocaleKeys.hijriPrayerCalendarTitle.tr(),
-                                note: LocaleKeys.prayer_calendar_note.tr(),
+                                note:
+                                    '${LocaleKeys.prayer_calendar_note.tr()}\n${_coverageWindowText()}',
                                 cityName: city == null
                                     ? '--'
                                     : (CacheHelper.getLang() == 'en'
                                           ? city.nameEn
                                           : city.nameAr),
                                 hijriYearLabel: selectedYearLabel,
-                                availableHijriYears: _availableHijriYears,
-                                selectedHijriYear: _selectedHijriYear,
+                                availableHijriYears: _availableGregorianYears,
+                                selectedHijriYear: _selectedGregorianYear,
                                 hijriYearChipLabelBuilder: _yearChipLabel,
-                                onHijriYearSelected: _selectHijriYear,
+                                onHijriYearSelected: _selectGregorianYear,
                               ),
                               SizedBox(height: 12.h),
                               _CalendarMonthSelectorBar(
@@ -465,7 +474,7 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                                       ? LocaleKeys.hijriPrayerCalendarTitle.tr()
                                       : _monthChipLabel(_selectedMonth!),
                                   subtitle:
-                                      '${LocaleKeys.prayer_calendar_editable_today_future.tr()} • ${LocaleKeys.prayer_calendar_read_only_past.tr()}',
+                                      '${LocaleKeys.prayer_calendar_editable_today_future.tr()} • ${LocaleKeys.prayer_calendar_read_only_past.tr()} • ${_coverageWindowText()}',
                                   days: _selectedMonthDays,
                                   expandedDayYmd: _expandedDayYmd,
                                   onToggleDay: _toggleExpandedDay,
@@ -603,7 +612,7 @@ class _CalendarSummaryCard extends StatelessWidget {
           ),
           SizedBox(height: 14.h),
           Text(
-            LocaleKeys.prayer_calendar_hijri_year.tr(),
+            LocaleKeys.offline_calendar_gregorian_year.tr(),
             style: TextStyle(
               fontSize: 15.sp,
               fontWeight: FontWeight.w700,
@@ -857,6 +866,7 @@ class _CalendarYearDropdown extends StatelessWidget {
     final radius = BorderRadius.circular(18.r);
 
     return DropdownButtonFormField<int>(
+      key: const ValueKey('calendar-year-dropdown'),
       initialValue: selectedHijriYear,
       isExpanded: true,
       icon: Icon(
@@ -1084,6 +1094,7 @@ class _PrayerCalendarDayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = AppCubit.get(context);
     return InkWell(
+      key: ValueKey('calendar-day-${dayVm.day.gregorianYmd}'),
       onTap: onToggle,
       borderRadius: BorderRadius.circular(22.r),
       child: Container(
@@ -1146,6 +1157,9 @@ class _PrayerCalendarDayCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     _StateBadge(
+                      key: ValueKey(
+                        'calendar-day-state-${dayVm.day.gregorianYmd}',
+                      ),
                       label: dayVm.edited
                           ? LocaleKeys.prayer_calendar_edited.tr()
                           : (dayVm.editable
@@ -1167,6 +1181,9 @@ class _PrayerCalendarDayCard extends StatelessWidget {
                     if (dayVm.editable && isExpanded) ...[
                       SizedBox(height: 8.h),
                       InkWell(
+                        key: ValueKey(
+                          'calendar-day-edit-${dayVm.day.gregorianYmd}',
+                        ),
                         onTap: onEdit,
                         borderRadius: BorderRadius.circular(999.r),
                         child: Container(
@@ -2259,7 +2276,11 @@ class _TimeNumpadState extends State<_TimeNumpad>
 }
 
 class _StateBadge extends StatelessWidget {
-  const _StateBadge({required this.label, required this.highlighted});
+  const _StateBadge({
+    super.key,
+    required this.label,
+    required this.highlighted,
+  });
 
   final String label;
   final bool highlighted;
@@ -2322,9 +2343,12 @@ class _CalendarDayVm {
     required this.hijriMonth,
     required this.hijriYear,
     required this.hijriMonthName,
+    required this.gregorianYear,
+    required this.gregorianMonth,
+    required this.gregorianMonthName,
     required this.weekdayLabel,
     required this.gregorianLabel,
-    required this.editable,
+    required this.availability,
     required this.defaultIqamaOffsets,
   });
 
@@ -2333,10 +2357,14 @@ class _CalendarDayVm {
   final int hijriMonth;
   final int hijriYear;
   final String hijriMonthName;
+  final int gregorianYear;
+  final int gregorianMonth;
+  final String gregorianMonthName;
   final String weekdayLabel;
   final String gregorianLabel;
-  final bool editable;
+  final DateAvailabilityState availability;
   final List<int> defaultIqamaOffsets;
 
+  bool get editable => availability == DateAvailabilityState.selectable;
   bool get edited => day.hasManualOverrides;
 }

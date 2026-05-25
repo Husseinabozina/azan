@@ -1,16 +1,43 @@
-# azan
+# Azan
 
-A new Flutter project.
+Azan is a Flutter application for prayer-time experiences, iqama and
+display-board views, multilingual devotional content, and theme-rich mosque or
+home display surfaces.
+
+## Stack
+
+- Dart 3 / Flutter stable
+- `flutter_bloc` for state management
+- `easy_localization` for `ar`, `en`, and `bn`
+- Hive and shared preferences for local persistence
+- Generated assets and localization outputs in `lib/gen/` and `lib/generated/`
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+1. Run `flutter pub get`
+2. Start the app with `flutter run`
 
-A few resources to get you started if this is your first Flutter project:
+## Common Commands
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- `flutter analyze`
+- `flutter test`
+- `dart run build_runner build --delete-conflicting-outputs`
+- `dart run tool/background_theme_audit.dart --fail-on-issues`
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Project Structure
+
+- `lib/views/`: screens and presentation widgets
+- `lib/controllers/`: cubits and app state
+- `lib/core/`: shared helpers, models, services, theming, and UI components
+- `lib/data/`: data sources and integration plumbing
+- `assets/`: bundled fonts, images, audio, SVG, and translations
+- `test/`: unit, widget, and golden coverage
+- `tool/`: repository-specific scripts and audits
+
+## Workflow Expectations
+
+- Keep business logic and persistence out of widgets whenever possible.
+- Refresh generated files when localization, assets, or codegen inputs change.
+- Run `flutter analyze` and the relevant tests for every change.
+- Run the background theme audit when theme or background assets are touched.
+- Follow the project constitution in `.specify/memory/constitution.md`.

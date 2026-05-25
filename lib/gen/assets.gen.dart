@@ -11,6 +11,13 @@
 
 import 'package:flutter/widgets.dart';
 
+class $AssetsDataGen {
+  const $AssetsDataGen();
+
+  /// Directory path: assets/data/umm_al_qura
+  $AssetsDataUmmAlQuraGen get ummAlQura => const $AssetsDataUmmAlQuraGen();
+}
+
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
@@ -540,9 +547,614 @@ class $AssetsTranslationsGen {
   List<String> get values => [ar, bn, en];
 }
 
+class $AssetsDataUmmAlQuraGen {
+  const $AssetsDataUmmAlQuraGen();
+
+  /// Directory path: assets/data/umm_al_qura/v1
+  $AssetsDataUmmAlQuraV1Gen get v1 => const $AssetsDataUmmAlQuraV1Gen();
+}
+
+class $AssetsDataUmmAlQuraV1Gen {
+  const $AssetsDataUmmAlQuraV1Gen();
+
+  /// Directory path: assets/data/umm_al_qura/v1/cities
+  $AssetsDataUmmAlQuraV1CitiesGen get cities =>
+      const $AssetsDataUmmAlQuraV1CitiesGen();
+
+  /// File path: assets/data/umm_al_qura/v1/manifest.json
+  String get manifest => 'assets/data/umm_al_qura/v1/manifest.json';
+
+  /// List of all assets
+  List<String> get values => [manifest];
+}
+
+class $AssetsDataUmmAlQuraV1CitiesGen {
+  const $AssetsDataUmmAlQuraV1CitiesGen();
+
+  /// Directory path: assets/data/umm_al_qura/v1/cities/gz
+  $AssetsDataUmmAlQuraV1CitiesGzGen get gz =>
+      const $AssetsDataUmmAlQuraV1CitiesGzGen();
+}
+
+class $AssetsDataUmmAlQuraV1CitiesGzGen {
+  const $AssetsDataUmmAlQuraV1CitiesGzGen();
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/abha.json.gz
+  String get abhaJson => 'assets/data/umm_al_qura/v1/cities/gz/abha.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/abqaiq.json.gz
+  String get abqaiqJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/abqaiq.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/abu-arish.json.gz
+  String get abuArishJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/abu-arish.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ad-diriyah.json.gz
+  String get adDiriyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ad-diriyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/addayer.json.gz
+  String get addayerJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/addayer.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/afif.json.gz
+  String get afifJson => 'assets/data/umm_al_qura/v1/cities/gz/afif.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ahad-al-masarihah.json.gz
+  String get ahadAlMasarihahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ahad-al-masarihah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ahad-rafidah.json.gz
+  String get ahadRafidahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ahad-rafidah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-aflaj.json.gz
+  String get alAflajJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-aflaj.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-aqiq.json.gz
+  String get alAqiqJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-aqiq.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-aridhah.json.gz
+  String get alAridhahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-aridhah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-badayea.json.gz
+  String get alBadayeaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-badayea.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-bahah.json.gz
+  String get alBahahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-bahah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-bukayriyah.json.gz
+  String get alBukayriyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-bukayriyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-duwadimi.json.gz
+  String get alDuwadimiJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-duwadimi.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-edabi.json.gz
+  String get alEdabiJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-edabi.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-ghat.json.gz
+  String get alGhatJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-ghat.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-ghazalah.json.gz
+  String get alGhazalahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-ghazalah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-hariq.json.gz
+  String get alHariqJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-hariq.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-henakiyah.json.gz
+  String get alHenakiyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-henakiyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-hofuf.json.gz
+  String get alHofufJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-hofuf.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-jubail.json.gz
+  String get alJubailJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-jubail.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-jumum.json.gz
+  String get alJumumJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-jumum.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-kamil.json.gz
+  String get alKamilJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-kamil.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-kharj.json.gz
+  String get alKharjJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-kharj.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-kharkhir.json.gz
+  String get alKharkhirJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-kharkhir.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-khobar.json.gz
+  String get alKhobarJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-khobar.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-khurma.json.gz
+  String get alKhurmaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-khurma.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-lith.json.gz
+  String get alLithJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-lith.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-majmaah.json.gz
+  String get alMajmaahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-majmaah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-makhwah.json.gz
+  String get alMakhwahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-makhwah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-mithnab.json.gz
+  String get alMithnabJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-mithnab.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-muzahimiyah.json.gz
+  String get alMuzahimiyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-muzahimiyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-namas.json.gz
+  String get alNamasJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-namas.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-qatif.json.gz
+  String get alQatifJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-qatif.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-qunfudhah.json.gz
+  String get alQunfudhahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-qunfudhah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-qurayyat.json.gz
+  String get alQurayyatJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-qurayyat.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-quwaiiyah.json.gz
+  String get alQuwaiiyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-quwaiiyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-reeth.json.gz
+  String get alReethJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-reeth.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-ula.json.gz
+  String get alUlaJson => 'assets/data/umm_al_qura/v1/cities/gz/al-ula.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/al-wajh.json.gz
+  String get alWajhJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/al-wajh.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/alasyah.json.gz
+  String get alasyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/alasyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/alharth.json.gz
+  String get alharthJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/alharth.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/almajaridah.json.gz
+  String get almajaridahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/almajaridah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/almandaq.json.gz
+  String get almandaqJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/almandaq.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/alqeyas.json.gz
+  String get alqeyasJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/alqeyas.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/alqura.json.gz
+  String get alquraJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/alqura.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/an-nabhaniyah.json.gz
+  String get anNabhaniyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/an-nabhaniyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ar-rass.json.gz
+  String get arRassJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ar-rass.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/arar.json.gz
+  String get ararJson => 'assets/data/umm_al_qura/v1/cities/gz/arar.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/as-sulayyil.json.gz
+  String get asSulayyilJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/as-sulayyil.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ash-shimasiyah.json.gz
+  String get ashShimasiyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ash-shimasiyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ash-shinan.json.gz
+  String get ashShinanJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ash-shinan.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/az-zulfi.json.gz
+  String get azZulfiJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/az-zulfi.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/badr-al-janoub.json.gz
+  String get badrAlJanoubJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/badr-al-janoub.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/badr.json.gz
+  String get badrJson => 'assets/data/umm_al_qura/v1/cities/gz/badr.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/baish.json.gz
+  String get baishJson => 'assets/data/umm_al_qura/v1/cities/gz/baish.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/baljurashi.json.gz
+  String get baljurashiJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/baljurashi.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/baqaa.json.gz
+  String get baqaaJson => 'assets/data/umm_al_qura/v1/cities/gz/baqaa.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/belqarn.json.gz
+  String get belqarnJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/belqarn.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/bishah.json.gz
+  String get bishahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/bishah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/buraydah.json.gz
+  String get buraydahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/buraydah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/damad.json.gz
+  String get damadJson => 'assets/data/umm_al_qura/v1/cities/gz/damad.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/dammam.json.gz
+  String get dammamJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/dammam.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/dhahran-al-janub.json.gz
+  String get dhahranAlJanubJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/dhahran-al-janub.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/dhurma.json.gz
+  String get dhurmaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/dhurma.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/duba.json.gz
+  String get dubaJson => 'assets/data/umm_al_qura/v1/cities/gz/duba.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/dumah-al-jandal.json.gz
+  String get dumahAlJandalJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/dumah-al-jandal.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/farasan-island.json.gz
+  String get farasanIslandJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/farasan-island.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/hafar-al-batin.json.gz
+  String get hafarAlBatinJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/hafar-al-batin.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/hail.json.gz
+  String get hailJson => 'assets/data/umm_al_qura/v1/cities/gz/hail.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/haql.json.gz
+  String get haqlJson => 'assets/data/umm_al_qura/v1/cities/gz/haql.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/howtat-bani-tamim.json.gz
+  String get howtatBaniTamimJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/howtat-bani-tamim.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/hubuna.json.gz
+  String get hubunaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/hubuna.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/huraymila.json.gz
+  String get huraymilaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/huraymila.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/jazan.json.gz
+  String get jazanJson => 'assets/data/umm_al_qura/v1/cities/gz/jazan.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/jeddah.json.gz
+  String get jeddahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/jeddah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/khafji.json.gz
+  String get khafjiJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/khafji.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/khamis-mushait.json.gz
+  String get khamisMushaitJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/khamis-mushait.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/khaybar.json.gz
+  String get khaybarJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/khaybar.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/khbash.json.gz
+  String get khbashJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/khbash.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/khulais.json.gz
+  String get khulaisJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/khulais.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/mahd-al-thahab.json.gz
+  String get mahdAlThahabJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/mahd-al-thahab.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/mecca.json.gz
+  String get meccaJson => 'assets/data/umm_al_qura/v1/cities/gz/mecca.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/medina.json.gz
+  String get medinaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/medina.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/muhayil.json.gz
+  String get muhayilJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/muhayil.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/nairyah.json.gz
+  String get nairyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/nairyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/najran.json.gz
+  String get najranJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/najran.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/qaryat-al-ulya.json.gz
+  String get qaryatAlUlyaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/qaryat-al-ulya.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/qilwah.json.gz
+  String get qilwahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/qilwah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/rabigh.json.gz
+  String get rabighJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/rabigh.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/rafha.json.gz
+  String get rafhaJson => 'assets/data/umm_al_qura/v1/cities/gz/rafha.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ranyah.json.gz
+  String get ranyahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ranyah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/ras-tanura.json.gz
+  String get rasTanuraJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/ras-tanura.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/riyadh-al-khabra.json.gz
+  String get riyadhAlKhabraJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/riyadh-al-khabra.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/riyadh.json.gz
+  String get riyadhJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/riyadh.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/rojal.json.gz
+  String get rojalJson => 'assets/data/umm_al_qura/v1/cities/gz/rojal.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/rumah.json.gz
+  String get rumahJson => 'assets/data/umm_al_qura/v1/cities/gz/rumah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/sabya.json.gz
+  String get sabyaJson => 'assets/data/umm_al_qura/v1/cities/gz/sabya.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/sakaka.json.gz
+  String get sakakaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/sakaka.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/samtah.json.gz
+  String get samtahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/samtah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/sarat-abidah.json.gz
+  String get saratAbidahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/sarat-abidah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/shagra.json.gz
+  String get shagraJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/shagra.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/sharorah.json.gz
+  String get sharorahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/sharorah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/tabuk.json.gz
+  String get tabukJson => 'assets/data/umm_al_qura/v1/cities/gz/tabuk.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/taif.json.gz
+  String get taifJson => 'assets/data/umm_al_qura/v1/cities/gz/taif.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/tathleeth.json.gz
+  String get tathleethJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/tathleeth.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/tayma.json.gz
+  String get taymaJson => 'assets/data/umm_al_qura/v1/cities/gz/tayma.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/thadig.json.gz
+  String get thadigJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/thadig.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/thar.json.gz
+  String get tharJson => 'assets/data/umm_al_qura/v1/cities/gz/thar.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/turaif.json.gz
+  String get turaifJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/turaif.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/turbah.json.gz
+  String get turbahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/turbah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/umluj.json.gz
+  String get umlujJson => 'assets/data/umm_al_qura/v1/cities/gz/umluj.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/unayzah.json.gz
+  String get unayzahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/unayzah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/uyun-al-jawa.json.gz
+  String get uyunAlJawaJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/uyun-al-jawa.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/wadi-ad-dawasir.json.gz
+  String get wadiAdDawasirJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/wadi-ad-dawasir.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/yadamah.json.gz
+  String get yadamahJson =>
+      'assets/data/umm_al_qura/v1/cities/gz/yadamah.json.gz';
+
+  /// File path: assets/data/umm_al_qura/v1/cities/gz/yanbu.json.gz
+  String get yanbuJson => 'assets/data/umm_al_qura/v1/cities/gz/yanbu.json.gz';
+
+  /// List of all assets
+  List<String> get values => [
+    abhaJson,
+    abqaiqJson,
+    abuArishJson,
+    adDiriyahJson,
+    addayerJson,
+    afifJson,
+    ahadAlMasarihahJson,
+    ahadRafidahJson,
+    alAflajJson,
+    alAqiqJson,
+    alAridhahJson,
+    alBadayeaJson,
+    alBahahJson,
+    alBukayriyahJson,
+    alDuwadimiJson,
+    alEdabiJson,
+    alGhatJson,
+    alGhazalahJson,
+    alHariqJson,
+    alHenakiyahJson,
+    alHofufJson,
+    alJubailJson,
+    alJumumJson,
+    alKamilJson,
+    alKharjJson,
+    alKharkhirJson,
+    alKhobarJson,
+    alKhurmaJson,
+    alLithJson,
+    alMajmaahJson,
+    alMakhwahJson,
+    alMithnabJson,
+    alMuzahimiyahJson,
+    alNamasJson,
+    alQatifJson,
+    alQunfudhahJson,
+    alQurayyatJson,
+    alQuwaiiyahJson,
+    alReethJson,
+    alUlaJson,
+    alWajhJson,
+    alasyahJson,
+    alharthJson,
+    almajaridahJson,
+    almandaqJson,
+    alqeyasJson,
+    alquraJson,
+    anNabhaniyahJson,
+    arRassJson,
+    ararJson,
+    asSulayyilJson,
+    ashShimasiyahJson,
+    ashShinanJson,
+    azZulfiJson,
+    badrAlJanoubJson,
+    badrJson,
+    baishJson,
+    baljurashiJson,
+    baqaaJson,
+    belqarnJson,
+    bishahJson,
+    buraydahJson,
+    damadJson,
+    dammamJson,
+    dhahranAlJanubJson,
+    dhurmaJson,
+    dubaJson,
+    dumahAlJandalJson,
+    farasanIslandJson,
+    hafarAlBatinJson,
+    hailJson,
+    haqlJson,
+    howtatBaniTamimJson,
+    hubunaJson,
+    huraymilaJson,
+    jazanJson,
+    jeddahJson,
+    khafjiJson,
+    khamisMushaitJson,
+    khaybarJson,
+    khbashJson,
+    khulaisJson,
+    mahdAlThahabJson,
+    meccaJson,
+    medinaJson,
+    muhayilJson,
+    nairyahJson,
+    najranJson,
+    qaryatAlUlyaJson,
+    qilwahJson,
+    rabighJson,
+    rafhaJson,
+    ranyahJson,
+    rasTanuraJson,
+    riyadhAlKhabraJson,
+    riyadhJson,
+    rojalJson,
+    rumahJson,
+    sabyaJson,
+    sakakaJson,
+    samtahJson,
+    saratAbidahJson,
+    shagraJson,
+    sharorahJson,
+    tabukJson,
+    taifJson,
+    tathleethJson,
+    taymaJson,
+    thadigJson,
+    tharJson,
+    turaifJson,
+    turbahJson,
+    umlujJson,
+    unayzahJson,
+    uyunAlJawaJson,
+    wadiAdDawasirJson,
+    yadamahJson,
+    yanbuJson,
+  ];
+}
+
 class Assets {
   const Assets._();
 
+  static const $AssetsDataGen data = $AssetsDataGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $AssetsSoundsGen sounds = $AssetsSoundsGen();
   static const $AssetsSvgGen svg = $AssetsSvgGen();

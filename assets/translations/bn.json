@@ -302,5 +302,7 @@
   "longitude": "Longitude",
   "time_hour": "Hour",
   "time_minute": "Minute",
-  "hijriPrayerCalendarTitle": "উম্মুল কুরা সময় অনুযায়ী নামাজের সময় ব্যবস্থাপনা"
+  "hijriPrayerCalendarTitle": "উম্মুল কুরা সময় অনুযায়ী নামাজের সময় ব্যবস্থাপনা",
+  "offline_calendar_gregorian_year": "গ্রেগরিয়ান বছর",
+  "offline_calendar_supported_range": "সমর্থিত পরিসর"
 }
