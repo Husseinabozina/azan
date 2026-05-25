@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:azan/core/models/gregorian_coverage_window.dart';
+import 'package:azan/core/helpers/prayer_calendar_helper.dart';
 import 'package:azan/core/models/umm_al_qura_bundle_manifest.dart';
 
 Future<void> main(List<String> args) async {
@@ -57,7 +57,10 @@ Future<void> _validateCoverage({
   required UmmAlQuraBundleManifest manifest,
   required DateTime now,
 }) async {
-  final window = GregorianCoverageWindow.forToday(now);
+  final window = PrayerCalendarHelper.currentSupportedScheduleWindow(
+    now: now,
+    offsetDays: 0,
+  );
   final expectedDays = <String>{};
   for (
     var day = window.startInclusive;

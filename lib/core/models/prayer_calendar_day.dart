@@ -10,6 +10,7 @@ class PrayerCalendarDay {
   final Map<int, int> manualIqamaMinutesByPrayerId;
   final int generatedAtMs;
   final int updatedAtMs;
+  final String? officialSourceToken;
 
   const PrayerCalendarDay({
     required this.cityKey,
@@ -19,6 +20,7 @@ class PrayerCalendarDay {
     required this.manualIqamaMinutesByPrayerId,
     required this.generatedAtMs,
     required this.updatedAtMs,
+    required this.officialSourceToken,
   });
 
   factory PrayerCalendarDay.generated({
@@ -26,6 +28,7 @@ class PrayerCalendarDay {
     required DateTime date,
     required List<int> generatedAdhanMinutes,
     DateTime? generatedAt,
+    String? officialSourceToken,
   }) {
     final stamp = (generatedAt ?? DateTime.now()).millisecondsSinceEpoch;
     return PrayerCalendarDay(
@@ -36,6 +39,7 @@ class PrayerCalendarDay {
       manualIqamaMinutesByPrayerId: const {},
       generatedAtMs: stamp,
       updatedAtMs: stamp,
+      officialSourceToken: officialSourceToken,
     );
   }
 
@@ -44,6 +48,17 @@ class PrayerCalendarDay {
   bool get hasManualOverrides =>
       manualAdhanMinutesByPrayerId.isNotEmpty ||
       manualIqamaMinutesByPrayerId.isNotEmpty;
+
+  bool get isOfficialBundleBacked =>
+      officialSourceToken != null && officialSourceToken!.trim().isNotEmpty;
+
+  bool hasFreshOfficialSource(String? token) {
+    final normalized = token?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return officialSourceToken == null || officialSourceToken!.trim().isEmpty;
+    }
+    return officialSourceToken == normalized;
+  }
 
   bool hasPrayerOverride(int prayerId) {
     return manualAdhanMinutesByPrayerId.containsKey(prayerId) ||
@@ -92,6 +107,7 @@ class PrayerCalendarDay {
     Map<int, int>? manualIqamaMinutesByPrayerId,
     int? generatedAtMs,
     int? updatedAtMs,
+    String? officialSourceToken,
   }) {
     return PrayerCalendarDay(
       cityKey: cityKey ?? this.cityKey,
@@ -106,6 +122,22 @@ class PrayerCalendarDay {
           Map<int, int>.from(this.manualIqamaMinutesByPrayerId),
       generatedAtMs: generatedAtMs ?? this.generatedAtMs,
       updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      officialSourceToken: officialSourceToken ?? this.officialSourceToken,
+    );
+  }
+
+  PrayerCalendarDay mergeManualOverridesFrom(
+    PrayerCalendarDay? existing, {
+    DateTime? updatedAt,
+  }) {
+    if (existing == null) {
+      return this;
+    }
+
+    return copyWith(
+      manualAdhanMinutesByPrayerId: existing.manualAdhanMinutesByPrayerId,
+      manualIqamaMinutesByPrayerId: existing.manualIqamaMinutesByPrayerId,
+      updatedAtMs: (updatedAt ?? DateTime.now()).millisecondsSinceEpoch,
     );
   }
 
@@ -173,6 +205,7 @@ class PrayerCalendarDay {
       ),
       'generatedAtMs': generatedAtMs,
       'updatedAtMs': updatedAtMs,
+      'officialSourceToken': officialSourceToken,
     };
   }
 
@@ -193,6 +226,7 @@ class PrayerCalendarDay {
       ),
       generatedAtMs: _toInt(map['generatedAtMs']),
       updatedAtMs: _toInt(map['updatedAtMs']),
+      officialSourceToken: map['officialSourceToken'] as String?,
     );
   }
 

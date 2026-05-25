@@ -11,8 +11,8 @@ official Umm Al-Qura bundle becomes the authoritative schedule source.
 - Repo-local `assets/data/umm_al_qura/v1/cities/gz/*.json.gz`
 - Existing `kSaudiCities` metadata for Arabic names and coordinates where
   available
-- Curated alias/mapping table for bundle cities that do not match current app
-  names 1:1
+- Curated alias and mapping table for bundle cities that do not match current
+  app names 1:1
 
 ## App-Facing Catalog Shape
 
@@ -33,11 +33,13 @@ official Umm Al-Qura bundle becomes the authoritative schedule source.
 
 1. Every shipped bundle city appears in the selection UI as a selectable
    offline option.
-2. The selection UI must persist the chosen city with its `bundleId`.
-3. Search and name matching must honor both localized display names and alias
+2. The selection UI persists the chosen city together with its `bundleId`.
+3. Search and name matching honor both localized display names and alias
    matches so legacy names continue to resolve.
-4. If catalog loading fails, the app must block selection completion and show a
+4. If catalog loading fails, the app blocks selection completion and shows a
    localized recoverable error.
+5. If a newer approved bundle ships and the saved `bundleId` still exists, the
+   app preserves that city selection instead of forcing re-selection.
 
 ## Non-Goals
 
@@ -49,3 +51,4 @@ official Umm Al-Qura bundle becomes the authoritative schedule source.
 - Catalog count matches the shipped manifest city count.
 - Every catalog entry points to an existing asset.
 - Every selected city can hydrate at least today's official schedule offline.
+- A previously saved shipped `bundleId` still resolves after a bundle update.

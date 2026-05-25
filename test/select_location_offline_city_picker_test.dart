@@ -106,4 +106,20 @@ void main() {
     expect(selectedCity?.bundleId, 'mecca');
     expect(selectedCity?.nameAliases, contains('Makkah'));
   });
+
+  testWidgets('saved offline city keeps bundleId for restore', (tester) async {
+    const city = CityOption(
+      nameAr: 'مكة المكرمة',
+      nameEn: 'Mecca',
+      bundleId: 'mecca',
+      nameAliases: ['Makkah'],
+    );
+
+    await CacheHelper.setCity(city);
+    final restored = CacheHelper.getCity();
+
+    expect(restored, isNotNull);
+    expect(restored!.bundleId, 'mecca');
+    expect(restored.nameAliases, contains('Makkah'));
+  });
 }

@@ -50,6 +50,20 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
               context: context,
             );
           }
+          if (state is OfficialBundleCitySelectionRequired) {
+            showFlashMessage(
+              message: state.message,
+              type: FlashMessageType.error,
+              context: context,
+            );
+          }
+          if (state is OfficialBundleRefreshFailure) {
+            showFlashMessage(
+              message: state.message,
+              type: FlashMessageType.error,
+              context: context,
+            );
+          }
         },
         builder: (context, state) {
           return LayoutBuilder(

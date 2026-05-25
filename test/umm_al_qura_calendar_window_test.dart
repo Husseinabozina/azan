@@ -1,27 +1,31 @@
+import 'package:azan/core/helpers/prayer_calendar_helper.dart';
 import 'package:azan/core/models/gregorian_coverage_window.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Gregorian coverage window spans current year plus next five years', () {
-    final window = GregorianCoverageWindow.forToday(DateTime(2026, 5, 24));
+  test(
+    'supported window spans current Hijri year through final Hijri year',
+    () {
+      final window = PrayerCalendarHelper.currentSupportedScheduleWindow(
+        now: DateTime(2026, 5, 24),
+        offsetDays: 0,
+      );
 
-    expect(window.startInclusive, DateTime(2026, 1, 1));
-    expect(window.today, DateTime(2026, 5, 24));
-    expect(window.endInclusive, DateTime(2031, 12, 31));
-    expect(window.supportedGregorianYears, [
-      2026,
-      2027,
-      2028,
-      2029,
-      2030,
-      2031,
-    ]);
-  });
+      expect(window.todayGregorian, DateTime(2026, 5, 24));
+      expect(window.gregorianForwardAnchorInclusive, DateTime(2031, 12, 31));
+      expect(window.supportedHijriYears.first, window.currentHijriYear);
+      expect(window.supportedHijriYears.last, window.finalSupportedHijriYear);
+      expect(window.supportedHijriYears, isNotEmpty);
+    },
+  );
 
   test(
     'availability distinguishes past read-only, selectable, and out of range',
     () {
-      final window = GregorianCoverageWindow.forToday(DateTime(2026, 5, 24));
+      final window = PrayerCalendarHelper.currentSupportedScheduleWindow(
+        now: DateTime(2026, 5, 24),
+        offsetDays: 0,
+      );
 
       expect(
         window.availabilityFor(DateTime(2026, 5, 23)),
@@ -32,11 +36,13 @@ void main() {
         DateAvailabilityState.selectable,
       );
       expect(
-        window.availabilityFor(DateTime(2031, 12, 31)),
+        window.availabilityFor(window.endInclusive),
         DateAvailabilityState.selectable,
       );
       expect(
-        window.availabilityFor(DateTime(2032, 1, 1)),
+        window.availabilityFor(
+          window.endInclusive.add(const Duration(days: 1)),
+        ),
         DateAvailabilityState.outOfRange,
       );
     },

@@ -46,4 +46,13 @@ class UmmAlQuraScheduleDay {
   }
 
   List<String> get timeStrings => [fajr, sunrise, dhuhr, asr, maghrib, isha];
+
+  DateTime get gregorianDate {
+    final parts = gregorianYmd.split('-');
+    return DateTime(
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+      int.parse(parts[2]),
+    );
+  }
 }

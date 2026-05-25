@@ -36,8 +36,12 @@
 - [x] Clarification confirms that all cities in the approved bundle are fully
   supported; unsupported handling is now limited to dates outside the
   user-facing browsing window.
-- [x] The user-facing promise is explicitly limited to a 5-year support window.
-- [x] The user-facing window is defined as the full current Gregorian year plus
-  the next 5 full Gregorian years.
+- [x] The user-facing promise is explicitly limited to the approved mixed-year
+  coverage window and does not imply unlimited long-range browsing.
+- [x] The user-facing window is defined as the full current Hijri year plus
+  forward coverage through the end of the Hijri year that contains the end of
+  the fifth upcoming Gregorian year.
+- [x] Hijri month and year navigation are the primary browsing controls, while
+  Gregorian date context remains visible at the day level.
 - [x] Setup, coverage, unsupported-state, and recovery UI expectations are now
   called out as testable requirements.

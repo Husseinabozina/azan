@@ -14,9 +14,9 @@ app flows.
 | `nameEn` | `String` | English display name |
 | `lat` | `double?` | Optional coordinate for weather or legacy flows |
 | `lon` | `double?` | Optional coordinate for weather or legacy flows |
-| `bundleId` | `String?` | New stable Umm Al-Qura city identifier, e.g. `abha` |
+| `bundleId` | `String?` | Stable Umm Al-Qura city identifier, e.g. `abha` |
 | `regionEn` | `String?` | Optional region label from the bundle manifest |
-| `nameAliases` | `List<String>` | Optional normalized aliases for legacy name matching |
+| `nameAliases` | `List<String>` | Normalized aliases for legacy name matching |
 
 **Validation**:
 
@@ -29,12 +29,12 @@ app flows.
 
 - Maps 1:1 to an `OfficialCityCatalogEntry`.
 - Is persisted by `CacheHelper` and consumed by `AppCubit`, selection UI, and
-  shared footer/city labels.
+  shared city labels.
 
 ## 2. `UmmAlQuraBundleManifest`
 
-**Purpose**: Represent the shipped root `manifest.json` and drive supported
-catalog loading.
+**Purpose**: Represent the shipped root `manifest.json` and drive catalog,
+coverage validation, and cache-refresh tokening.
 
 **Fields**:
 
@@ -48,12 +48,14 @@ catalog loading.
 | `availableHijriYears` | `List<int>` | Underlying bundle coverage years |
 | `yearSummary` | `List<UmmAlQuraYearSummary>` | Completeness report for validation |
 | `cities` | `List<UmmAlQuraManifestCity>` | Per-city runtime asset metadata |
+| `officialSourceToken` | `String` | Derived runtime token, e.g. `1@2026-05-23T12:14:23+00:00` |
 
 **Validation**:
 
 - `cityCount` must equal `cities.length`.
 - Every `cities[].file` must resolve to a bundled asset path.
-- Completeness checks must run before the assets are accepted for shipping.
+- Completeness checks must pass for the mixed Hijri/Gregorian support promise
+  before the assets are accepted for shipping.
 
 ## 3. `OfficialCityCatalogEntry`
 
@@ -73,9 +75,8 @@ picker and schedule services.
 | `lat` | `double?` | Optional mapped coordinate |
 | `lon` | `double?` | Optional mapped coordinate |
 | `scheduleAssetPath` | `String` | Bundled `.json.gz` runtime file |
-| `debugJsonPath` | `String?` | Optional raw review path, not required at runtime |
 | `availableHijriYears` | `List<int>` | Years carried by the underlying bundle |
-| `aliases` | `List<String>` | Legacy or normalized names for matching/search |
+| `aliases` | `List<String>` | Legacy or normalized names for matching or search |
 
 **Validation**:
 
@@ -85,8 +86,8 @@ picker and schedule services.
 
 **Relationships**:
 
-- Created from `UmmAlQuraBundleManifest` + existing `kSaudiCities` metadata +
-  curated manual mappings.
+- Created from `UmmAlQuraBundleManifest` plus existing app metadata and
+  curated alias mappings.
 - Converts into persisted `CityOption`.
 
 ## 4. `UmmAlQuraScheduleDay`
@@ -116,62 +117,100 @@ is converted into the runtime persistence model.
 - All six prayer values must match `HH:mm`.
 - Duplicate `gregorianYmd` entries for the same `bundleId` are invalid.
 
-## 5. `PrayerCalendarDay` (existing runtime persistence model)
+## 5. `SupportedScheduleWindow` (design concept replacing the old
+Gregorian-only mental model)
 
-**Purpose**: Continue serving the rest of the app with the same runtime shape
-used by UI rendering and manual overrides.
+**Purpose**: Centralize the mixed support-window logic used by Hijri
+navigation, date availability, supported-range messaging, and import
+validation.
 
-**Existing key fields**:
+**Fields**:
 
 | Field | Type | Notes |
 |------|------|-------|
-| `cityKey` | `String` | Will prefer bundle-based keying for official cities |
+| `todayGregorian` | `DateTime` | Normalized current date |
+| `currentHijriYear` | `int` | Display Hijri year for `todayGregorian` after offset application |
+| `startInclusive` | `DateTime` | First Gregorian date belonging to the current Hijri year |
+| `gregorianForwardAnchorInclusive` | `DateTime` | December 31 of the fifth upcoming Gregorian year |
+| `finalSupportedHijriYear` | `int` | Hijri year containing the Gregorian forward anchor |
+| `endInclusive` | `DateTime` | Last Gregorian date belonging to `finalSupportedHijriYear` |
+| `supportedHijriYears` | `List<int>` | Inclusive list from `currentHijriYear` through `finalSupportedHijriYear` |
+
+**Rules**:
+
+- Any date `< startInclusive` is out of range.
+- Any date `> endInclusive` is out of range.
+- Any date inside the current Hijri year but earlier than `todayGregorian` is
+  visible but read-only.
+- Any date from `todayGregorian` through `endInclusive` is selectable and
+  editable subject to existing override rules.
+- The Gregorian forward anchor is an internal calculation input, not the final
+  user-facing support end.
+
+## 6. `PrayerCalendarDay` (existing runtime persistence model, extended)
+
+**Purpose**: Continue serving the rest of the app with the same runtime shape
+used by UI rendering and manual overrides while tracking official cache
+freshness.
+
+**Key fields**:
+
+| Field | Type | Notes |
+|------|------|-------|
+| `cityKey` | `String` | Prefers bundle-based keying for official cities |
 | `gregorianYmd` | `String` | Primary date key |
-| `generatedAdhanMinutes` | `List<int>` | Now sourced from official bundle minutes |
-| `manualAdhanMinutesByPrayerId` | `Map<int, int>` | Preserved override behavior |
-| `manualIqamaMinutesByPrayerId` | `Map<int, int>` | Preserved override behavior |
+| `generatedAdhanMinutes` | `List<int>` | Official base minutes from the bundle |
+| `manualAdhanMinutesByPrayerId` | `Map<int, int>` | Preserved adhan override behavior |
+| `manualIqamaMinutesByPrayerId` | `Map<int, int>` | Preserved iqama override behavior |
 | `generatedAtMs` | `int` | Initial hydrate timestamp |
-| `updatedAtMs` | `int` | Last override update timestamp |
+| `updatedAtMs` | `int` | Last override or refresh update timestamp |
+| `officialSourceToken` | `String?` | Manifest-derived token used to detect stale official cache |
 
 **Validation**:
 
 - `generatedAdhanMinutes.length` must stay at 6.
 - `cityKey` for official bundle cities must be deterministic and derived from
   `bundleId`, not transient alias text.
+- Official bundle-backed days must persist the active `officialSourceToken`.
 
 **State transitions**:
 
-1. `official_decoded` -> official day read from bundle
-2. `cached` -> day saved into Hive
-3. `overridden` -> any manual adhan or iqama map becomes non-empty
-4. `reset` -> overrides cleared, official generated minutes preserved
+1. `official_decoded` -> day read from bundle
+2. `cached_current` -> day saved into Hive with the active official source token
+3. `stale_after_bundle_update` -> stored token no longer matches the shipped
+   manifest token
+4. `refreshed` -> generated minutes replaced from the newer bundle while manual
+   overrides are preserved
+5. `overridden` -> any manual adhan or iqama map becomes non-empty
 
-## 6. `GregorianCoverageWindow`
+## 7. `OfficialBundleCacheMetadata`
 
-**Purpose**: Centralize the user-facing date-range logic used by calendar UI,
-selection blocking, and validation.
+**Purpose**: Track which shipped official bundle token the runtime has already
+acknowledged for lazy cache refresh decisions.
 
 **Fields**:
 
 | Field | Type | Notes |
 |------|------|-------|
-| `startInclusive` | `DateTime` | January 1 of the current Gregorian year |
-| `today` | `DateTime` | Normalized current date |
-| `endInclusive` | `DateTime` | December 31 of Gregorian year `today.year + 5` |
+| `currentOfficialSourceToken` | `String` | Token derived from the shipped manifest |
+| `lastSeenOfficialSourceToken` | `String?` | Previously applied token from local app data |
+| `lastRefreshCheckAtMs` | `int` | Timestamp of the last bundle freshness check |
 
-**Rules**:
+**Validation**:
 
-- Any date `< startInclusive` is out of range.
-- Any date `> endInclusive` is out of range.
-- Any date inside the current Gregorian year but `< today` is visible but
-  read-only.
-- Any date from `today` through `endInclusive` is selectable/editable subject
-  to existing override rules.
+- If `lastSeenOfficialSourceToken != currentOfficialSourceToken`, official
+  cached days must be treated as stale until refreshed or replaced.
 
-## 7. `DateAvailabilityState`
+**Relationships**:
 
-**Purpose**: Give the calendar UI an explicit state instead of ad-hoc
-comparisons.
+- Stored through `CacheHelper` or a lightweight equivalent.
+- Consumed by `AppCubit`, `UmmAlQuraBundleService`, and Hive-backed refresh
+  logic.
+
+## 8. `DateAvailabilityState`
+
+**Purpose**: Give the calendar UI an explicit supported-state contract instead
+of ad-hoc comparisons.
 
 **Enum values**:
 
@@ -183,4 +222,4 @@ comparisons.
 
 - `HijriPrayerCalendarScreen`
 - Day editor entry points
-- Any future date picker or summary badge that needs the same behavior
+- Any future schedule summary or badge that needs the same behavior

@@ -58,17 +58,28 @@ class UmmAlQuraBundleService {
 
   final UmmAlQuraAssetLoader _assetLoader;
   final Map<String, Map<String, UmmAlQuraScheduleDay>> _cityScheduleCache = {};
+  UmmAlQuraBundleManifest? _manifestCache;
 
   UmmAlQuraBundleService({UmmAlQuraAssetLoader? assetLoader})
     : _assetLoader = assetLoader ?? const RootBundleUmmAlQuraAssetLoader();
 
   Future<UmmAlQuraBundleManifest> loadManifest() async {
+    final cached = _manifestCache;
+    if (cached != null) {
+      return cached;
+    }
+
     final raw = await _assetLoader.loadString(manifestAssetPath);
     final manifest = UmmAlQuraBundleManifest.fromJson(
       jsonDecode(raw) as Map<String, dynamic>,
     );
     manifest.validateShape();
+    _manifestCache = manifest;
     return manifest;
+  }
+
+  Future<String> loadOfficialSourceToken() async {
+    return (await loadManifest()).officialSourceToken;
   }
 
   Future<UmmAlQuraScheduleDay?> loadDay({
@@ -106,6 +117,7 @@ class UmmAlQuraBundleService {
     required String cityKey,
     required UmmAlQuraScheduleDay scheduleDay,
     DateTime? generatedAt,
+    required String officialSourceToken,
   }) {
     return PrayerCalendarDay.generated(
       cityKey: cityKey,
@@ -114,6 +126,7 @@ class UmmAlQuraBundleService {
           .map(PrayerCalendarHelper.minutesFromTimeString)
           .toList(),
       generatedAt: generatedAt,
+      officialSourceToken: officialSourceToken,
     );
   }
 

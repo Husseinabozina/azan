@@ -26,6 +26,7 @@ void main() {
       expect(restored.manualIqamaMinutesByPrayerId[1], 315);
       expect(restored.manualIqamaMinutesByPrayerId[3], 745);
       expect(restored.manualAdhanMinutesByPrayerId.containsKey(3), isFalse);
+      expect(restored.officialSourceToken, day.officialSourceToken);
     });
 
     test('clear operations remove only requested overrides', () {
@@ -53,5 +54,34 @@ void main() {
       final allCleared = seeded.clearAllOverrides();
       expect(allCleared.hasManualOverrides, isFalse);
     });
+
+    test(
+      'official refresh keeps overrides while replacing base source token',
+      () {
+        final stale =
+            PrayerCalendarDay.generated(
+              cityKey: 'bundle::mecca',
+              date: DateTime(2026, 3, 25),
+              generatedAdhanMinutes: [300, 360, 720, 915, 1080, 1170],
+              officialSourceToken: '1@old',
+            ).withPrayerOverride(
+              prayerId: 1,
+              manualAdhanMinutes: 305,
+              manualIqamaMinutes: 320,
+            );
+
+        final refreshed = PrayerCalendarDay.generated(
+          cityKey: 'bundle::mecca',
+          date: DateTime(2026, 3, 25),
+          generatedAdhanMinutes: [301, 361, 721, 916, 1081, 1171],
+          officialSourceToken: '1@new',
+        ).mergeManualOverridesFrom(stale);
+
+        expect(refreshed.generatedAdhanMinutes.first, 301);
+        expect(refreshed.manualAdhanMinutesByPrayerId[1], 305);
+        expect(refreshed.manualIqamaMinutesByPrayerId[1], 320);
+        expect(refreshed.officialSourceToken, '1@new');
+      },
+    );
   });
 }

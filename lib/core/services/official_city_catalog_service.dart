@@ -27,6 +27,14 @@ class OfficialCityCatalogService {
     return catalog;
   }
 
+  Future<UmmAlQuraBundleManifest> loadManifest() {
+    return _bundleService.loadManifest();
+  }
+
+  Future<String> loadOfficialSourceToken() {
+    return _bundleService.loadOfficialSourceToken();
+  }
+
   Future<List<CityOption>> loadCityOptions() async {
     final catalog = await loadCatalog();
     return catalog.map(cityOptionFromEntry).toList(growable: false);

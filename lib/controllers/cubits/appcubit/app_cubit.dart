@@ -56,7 +56,7 @@ class AppCubit extends Cubit<AppState> {
     _initOnce();
   }
 
-  late final SystemTimeGuardService _systemTimeGuard;
+  SystemTimeGuardService? _systemTimeGuard;
 
   Future<void> init() async {
     _systemTimeGuard = SystemTimeGuardService(
@@ -66,7 +66,7 @@ class AppCubit extends Cubit<AppState> {
       },
     );
 
-    _systemTimeGuard.startListening();
+    _systemTimeGuard?.startListening();
   }
 
   Future<void> _onDeviceTimeChanged(DeviceTimeChangeEvent event) async {
@@ -93,7 +93,7 @@ class AppCubit extends Cubit<AppState> {
 
   @override
   Future<void> close() async {
-    await _systemTimeGuard.stopListening();
+    await _systemTimeGuard?.stopListening();
     return super.close();
   }
 
@@ -907,8 +907,12 @@ class AppCubit extends Cubit<AppState> {
   final Connectivity _connectivity = Connectivity();
 
   Future<bool> get _hasConnection async {
-    final result = await _connectivity.checkConnectivity();
-    return !result.contains(ConnectivityResult.none);
+    try {
+      final result = await _connectivity.checkConnectivity();
+      return !result.contains(ConnectivityResult.none);
+    } catch (_) {
+      return false;
+    }
   }
 
   bool? connectivity;
@@ -1090,6 +1094,37 @@ class AppCubit extends Cubit<AppState> {
     return cityKey;
   }
 
+  Future<String> _loadCurrentOfficialSourceToken() async {
+    final token = await officialCityCatalogService.loadOfficialSourceToken();
+    await CacheHelper.setLastOfficialRefreshCheckAtMs(
+      DateTime.now().millisecondsSinceEpoch,
+    );
+    return token;
+  }
+
+  Future<void> _acknowledgeOfficialSourceToken(String token) async {
+    await CacheHelper.setLastSeenOfficialSourceToken(token);
+    await CacheHelper.setLastOfficialRefreshCheckAtMs(
+      DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
+  void _emitOfficialBundleSelectionRequired() {
+    emit(
+      OfficialBundleCitySelectionRequired(
+        LocaleKeys.offline_calendar_city_reselect_required.tr(),
+      ),
+    );
+  }
+
+  void _emitOfficialBundleRefreshFailure() {
+    emit(
+      OfficialBundleRefreshFailure(
+        LocaleKeys.offline_calendar_bundle_refresh_failed.tr(),
+      ),
+    );
+  }
+
   Future<OfficialCityCatalogEntry?> _resolveSelectedCatalogEntry({
     String? city,
   }) async {
@@ -1136,27 +1171,45 @@ class AppCubit extends Cubit<AppState> {
     String? cityKey,
   }) async {
     final resolvedEntry = catalogEntry ?? await _resolveSelectedCatalogEntry();
-    if (resolvedEntry == null) return null;
+    if (resolvedEntry == null) {
+      if (getCity()?.hasBundleId ?? false) {
+        _emitOfficialBundleSelectionRequired();
+      }
+      return null;
+    }
 
     final resolvedCityKey = cityKey ?? _resolvePrayerCalendarCityKey();
     final normalized = _normalizedDate(date);
+    final officialSourceToken = await _loadCurrentOfficialSourceToken();
     final stored = await PrayerCalendarHiveHelper.getDay(
       cityKey: resolvedCityKey,
       date: normalized,
     );
-    if (stored != null) return stored;
+    if (stored != null && stored.hasFreshOfficialSource(officialSourceToken)) {
+      await _acknowledgeOfficialSourceToken(officialSourceToken);
+      return stored;
+    }
 
     final scheduleDay = await ummAlQuraBundleService.loadDay(
       city: resolvedEntry,
       date: normalized,
     );
-    if (scheduleDay == null) return null;
+    if (scheduleDay == null) {
+      _emitOfficialBundleRefreshFailure();
+      return null;
+    }
 
-    final created = ummAlQuraBundleService.toPrayerCalendarDay(
-      cityKey: resolvedCityKey,
-      scheduleDay: scheduleDay,
+    final created = PrayerCalendarHiveHelper.mergeOfficialRefresh(
+      freshDay: ummAlQuraBundleService.toPrayerCalendarDay(
+        cityKey: resolvedCityKey,
+        scheduleDay: scheduleDay,
+        officialSourceToken: officialSourceToken,
+      ),
+      existingDay: stored,
+      refreshedAt: DateTime.now(),
     );
     await PrayerCalendarHiveHelper.putDay(created);
+    await _acknowledgeOfficialSourceToken(officialSourceToken);
     return created;
   }
 
@@ -1166,37 +1219,60 @@ class AppCubit extends Cubit<AppState> {
     OfficialCityCatalogEntry? catalogEntry,
   }) async {
     final resolvedEntry = catalogEntry ?? await _resolveSelectedCatalogEntry();
-    if (resolvedEntry == null) return const <PrayerCalendarDay>[];
+    if (resolvedEntry == null) {
+      if (getCity()?.hasBundleId ?? false) {
+        _emitOfficialBundleSelectionRequired();
+      }
+      return const <PrayerCalendarDay>[];
+    }
 
     final resolvedCityKey = _resolvePrayerCalendarCityKey();
     final normalizedStart = _normalizedDate(startInclusive);
     final normalizedEnd = _normalizedDate(endInclusive);
     final endExclusive = normalizedEnd.add(const Duration(days: 1));
+    final officialSourceToken = await _loadCurrentOfficialSourceToken();
     final cached = await PrayerCalendarHiveHelper.getDaysInRange(
       cityKey: resolvedCityKey,
       startInclusive: normalizedStart,
       endExclusive: endExclusive,
     );
-    final cachedYmds = cached.map((day) => day.gregorianYmd).toSet();
+    final cachedByYmd = {for (final day in cached) day.gregorianYmd: day};
 
     final officialDays = await ummAlQuraBundleService.loadRange(
       city: resolvedEntry,
       startInclusive: normalizedStart,
       endInclusive: normalizedEnd,
     );
-    final missing = officialDays
-        .where((day) => !cachedYmds.contains(day.gregorianYmd))
-        .map(
-          (day) => ummAlQuraBundleService.toPrayerCalendarDay(
-            cityKey: resolvedCityKey,
-            scheduleDay: day,
-          ),
-        )
-        .toList();
-
-    if (missing.isNotEmpty) {
-      await PrayerCalendarHiveHelper.putDays(missing);
+    if (officialDays.isEmpty) {
+      _emitOfficialBundleRefreshFailure();
+      return const <PrayerCalendarDay>[];
     }
+
+    final refreshedDays = <PrayerCalendarDay>[];
+    for (final officialDay in officialDays) {
+      final existing = cachedByYmd[officialDay.gregorianYmd];
+      if (existing != null &&
+          existing.hasFreshOfficialSource(officialSourceToken)) {
+        continue;
+      }
+
+      refreshedDays.add(
+        PrayerCalendarHiveHelper.mergeOfficialRefresh(
+          freshDay: ummAlQuraBundleService.toPrayerCalendarDay(
+            cityKey: resolvedCityKey,
+            scheduleDay: officialDay,
+            officialSourceToken: officialSourceToken,
+          ),
+          existingDay: existing,
+          refreshedAt: DateTime.now(),
+        ),
+      );
+    }
+
+    if (refreshedDays.isNotEmpty) {
+      await PrayerCalendarHiveHelper.putDays(refreshedDays);
+    }
+    await _acknowledgeOfficialSourceToken(officialSourceToken);
 
     final hydrated = await PrayerCalendarHiveHelper.getDaysInRange(
       cityKey: resolvedCityKey,
@@ -1209,12 +1285,33 @@ class AppCubit extends Cubit<AppState> {
     return hydrated;
   }
 
-  Future<List<PrayerCalendarDay>> loadGregorianYearPrayerCalendar({
-    required int gregorianYear,
+  Future<List<PrayerCalendarDay>> loadSupportedHijriYearPrayerCalendar({
+    required int hijriYear,
+    String? city,
   }) async {
+    final window = currentSupportedScheduleWindow;
+    if (!window.supportedHijriYears.contains(hijriYear)) {
+      emit(
+        OfflineCalendarOutOfRange(
+          LocaleKeys.offline_calendar_out_of_range.tr(),
+        ),
+      );
+      return const <PrayerCalendarDay>[];
+    }
+
+    final range = PrayerCalendarHelper.hijriYearRangeFor(
+      hijriYear: hijriYear,
+      offsetDays: CacheHelper.getHijriOffsetDays(),
+    );
+    final officialEntry = await _resolveSelectedCatalogEntry(city: city);
+    if (officialEntry == null) {
+      return loadHijriYearPrayerCalendar(hijriYear: hijriYear, city: city);
+    }
+
     return _loadOfficialPrayerCalendarRange(
-      startInclusive: DateTime(gregorianYear, 1, 1),
-      endInclusive: DateTime(gregorianYear, 12, 31),
+      startInclusive: range.startInclusive,
+      endInclusive: range.endExclusive.subtract(const Duration(days: 1)),
+      catalogEntry: officialEntry,
     );
   }
 
@@ -1273,7 +1370,7 @@ class AppCubit extends Cubit<AppState> {
   }) async {
     return _ensureHijriYearCalendar(
       coords: coords,
-      hijriYear: currentDisplayedHijriYearRange.hijriYear,
+      hijriYear: currentSupportedScheduleWindow.currentHijriYear,
     );
   }
 
@@ -1319,9 +1416,9 @@ class AppCubit extends Cubit<AppState> {
   Future<List<PrayerCalendarDay>> loadCurrentHijriYearPrayerCalendar({
     String? city,
   }) async {
-    return loadHijriYearPrayerCalendar(
+    return loadSupportedHijriYearPrayerCalendar(
       city: city,
-      hijriYear: currentDisplayedHijriYearRange.hijriYear,
+      hijriYear: currentSupportedScheduleWindow.currentHijriYear,
     );
   }
 
@@ -1404,6 +1501,11 @@ class AppCubit extends Cubit<AppState> {
             ),
           );
         }
+        return;
+      }
+
+      if (getCity()?.hasBundleId ?? false) {
+        _emitOfficialBundleSelectionRequired();
         return;
       }
 
@@ -1768,22 +1870,30 @@ class AppCubit extends Cubit<AppState> {
     return '';
   }
 
+  SupportedScheduleWindow get currentSupportedScheduleWindow =>
+      PrayerCalendarHelper.currentSupportedScheduleWindow(
+        offsetDays: CacheHelper.getHijriOffsetDays(),
+      );
+
   HijriYearRange get currentDisplayedHijriYearRange =>
-      PrayerCalendarHelper.currentHijriYearRange(
+      PrayerCalendarHelper.hijriYearRangeFor(
+        hijriYear: currentSupportedScheduleWindow.currentHijriYear,
         offsetDays: CacheHelper.getHijriOffsetDays(),
       );
 
   GregorianCoverageWindow get currentGregorianCoverageWindow =>
-      PrayerCalendarHelper.currentGregorianCoverageWindow();
+      currentSupportedScheduleWindow;
 
-  List<int> get supportedGregorianYears =>
-      currentGregorianCoverageWindow.supportedGregorianYears;
+  List<int> get supportedHijriYears =>
+      currentSupportedScheduleWindow.supportedHijriYears;
+
+  List<int> get supportedGregorianYears => supportedHijriYears;
 
   bool get hasPrayerSchedule =>
       _todayPrayerCalendarDay != null || prayerTimes != null;
 
   DateAvailabilityState dateAvailabilityFor(DateTime date) {
-    return currentGregorianCoverageWindow.availabilityFor(date);
+    return currentSupportedScheduleWindow.availabilityFor(date);
   }
 
   bool isPrayerCalendarDateEditable(DateTime date) {

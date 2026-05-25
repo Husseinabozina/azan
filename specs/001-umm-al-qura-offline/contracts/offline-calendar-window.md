@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Define the date availability and schedule lookup behavior for the prayer
-calendar UI once the official Umm Al-Qura bundle is used.
+Define the date availability, Hijri navigation, and official schedule lookup
+behavior for the prayer calendar UI once the approved Umm Al-Qura bundle is the
+authoritative source.
 
 ## Inputs
 
@@ -11,40 +12,64 @@ calendar UI once the official Umm Al-Qura bundle is used.
 |------|------|-------|
 | `selectedCity.bundleId` | `String` | Required official city key |
 | `currentDate` | `DateTime` | Normalized runtime today |
+| `hijriOffsetDays` | `int` | Existing app-controlled Hijri display offset |
 | `requestedDate` | `DateTime` | Date being browsed or edited |
-| `officialScheduleDay` | `PrayerCalendarDay?` | Cached or hydrated official day |
+| `supportedWindow` | `SupportedScheduleWindow` | Mixed Hijri/Gregorian support model |
+| `officialScheduleDay` | `PrayerCalendarDay?` | Cached or freshly hydrated official day |
 
 ## Window Rules
 
-1. Supported browsing starts on January 1 of the current Gregorian year.
-2. Supported browsing ends on December 31 of the fifth Gregorian year after the
-   current one.
-3. Dates earlier than `currentDate` but still inside the current Gregorian year
-   are visible and readable, but not selectable for editing.
-4. Dates from `currentDate` through the supported end date are selectable and
+1. Supported browsing starts on the first Gregorian date belonging to the
+   current Hijri year.
+2. The app computes a Gregorian forward anchor at December 31 of the fifth
+   upcoming Gregorian year.
+3. The final supported Hijri year is the Hijri year containing that Gregorian
+   forward anchor.
+4. Supported browsing ends on the last Gregorian date belonging to that final
+   supported Hijri year.
+5. Dates earlier than `currentDate` but still inside the current Hijri year are
+   visible and readable, but not selectable for editing.
+6. Dates from `currentDate` through the supported end date are selectable and
    editable under existing override rules.
-5. Dates before the current Gregorian year or after the supported end date are
-   out of range and must not be presented as valid official schedule dates.
+7. Dates before the supported start or after the supported end are out of range
+   and must not be presented as valid official schedule dates.
+
+## Hijri Navigation Contract
+
+1. The year picker lists every supported Hijri year from the current Hijri year
+   through the final supported Hijri year.
+2. Month navigation is Hijri-first and reflects the months present within the
+   selected supported Hijri year.
+3. Day cards and detail surfaces continue to show Gregorian day context for
+   each rendered official schedule day.
+4. Supported-range messaging explains the mixed rule clearly without exposing
+   raw implementation jargon.
 
 ## UI States
 
 | State | Condition | Required UI Behavior |
 |------|-----------|----------------------|
-| `pastReadOnly` | `requestedDate < currentDate` and same Gregorian year | Show the day, suppress edit affordance, and label it read-only |
+| `pastReadOnly` | `requestedDate < currentDate` and the date still belongs to the current supported Hijri year | Show the day, suppress edit affordance, and label it read-only |
 | `selectable` | `currentDate <= requestedDate <= endInclusive` | Show the day normally with edit access where applicable |
-| `outOfRange` | before start or after end | Show localized guidance and a route back to supported dates |
+| `outOfRange` | `requestedDate < startInclusive` or `requestedDate > endInclusive` | Show localized guidance and a route back to supported dates |
 
 ## Official Schedule Lookup Contract
 
 1. Runtime lookup uses `selectedCity.bundleId` plus `requestedDate`.
-2. If the day is already in Hive, return the cached `PrayerCalendarDay`.
-3. Otherwise, load the owning city asset, parse the requested day, convert it
-   to `PrayerCalendarDay.generated(...)`, persist it, and return it.
+2. If the requested day is already in Hive and its `officialSourceToken`
+   matches the currently shipped manifest token, return the cached
+   `PrayerCalendarDay`.
+3. Otherwise, load the owning city asset, parse the requested day or range,
+   convert it to `PrayerCalendarDay.generated(...)`, merge any preserved manual
+   overrides from stale cache, persist it with the current official source
+   token, and return it.
 4. Manual adhan and iqama overrides always layer on top of the official
    generated minutes.
 
 ## Validation Expectations
 
-- Today loads offline for every shipped city.
-- Past days inside the current Gregorian year are blocked consistently.
-- The first date after the supported end range always resolves to `outOfRange`.
+- The first supported day of the current Hijri year loads offline for every
+  shipped city.
+- Past days inside the current Hijri year are blocked consistently.
+- The final supported day of the final supported Hijri year resolves normally.
+- The first day after the supported end range always resolves to `outOfRange`.

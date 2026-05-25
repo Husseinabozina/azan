@@ -146,6 +146,8 @@ class CacheHelper {
   static const _enableHadithBeforeIqama = "_enableHadithBeforeIqama";
   static const _hadithDisplaySeconds = "_hadithDisplaySeconds";
   static const _showAzanScreen = "_showAzanScreen";
+  static const _lastSeenOfficialSourceToken = "_lastSeenOfficialSourceToken";
+  static const _lastOfficialRefreshCheckAtMs = "_lastOfficialRefreshCheckAtMs";
 
   static init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -444,6 +446,30 @@ class CacheHelper {
 
   static removeCity() async {
     await sharedPreferences.remove(_city);
+  }
+
+  static Future<void> setLastSeenOfficialSourceToken(String token) async {
+    await sharedPreferences.setString(_lastSeenOfficialSourceToken, token);
+  }
+
+  static String? getLastSeenOfficialSourceToken() {
+    return sharedPreferences.getString(_lastSeenOfficialSourceToken);
+  }
+
+  static Future<void> removeLastSeenOfficialSourceToken() async {
+    await sharedPreferences.remove(_lastSeenOfficialSourceToken);
+  }
+
+  static Future<void> setLastOfficialRefreshCheckAtMs(int value) async {
+    await sharedPreferences.setInt(_lastOfficialRefreshCheckAtMs, value);
+  }
+
+  static int? getLastOfficialRefreshCheckAtMs() {
+    return sharedPreferences.getInt(_lastOfficialRefreshCheckAtMs);
+  }
+
+  static Future<void> removeLastOfficialRefreshCheckAtMs() async {
+    await sharedPreferences.remove(_lastOfficialRefreshCheckAtMs);
   }
 
   static setMosqueName(String mosqueName) async {

@@ -19,6 +19,30 @@ class CityOption {
     this.nameAliases = const <String>[],
   });
 
+  bool get hasBundleId => bundleId != null && bundleId!.trim().isNotEmpty;
+
+  CityOption copyWith({
+    String? countryCode,
+    String? nameAr,
+    String? nameEn,
+    double? lat,
+    double? lon,
+    String? bundleId,
+    String? regionEn,
+    List<String>? nameAliases,
+  }) {
+    return CityOption(
+      countryCode: countryCode ?? this.countryCode,
+      nameAr: nameAr ?? this.nameAr,
+      nameEn: nameEn ?? this.nameEn,
+      lat: lat ?? this.lat,
+      lon: lon ?? this.lon,
+      bundleId: bundleId ?? this.bundleId,
+      regionEn: regionEn ?? this.regionEn,
+      nameAliases: nameAliases ?? this.nameAliases,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
     'countryCode': countryCode,
     'nameAr': nameAr,

@@ -84,6 +84,17 @@ class PrayerCalendarHiveHelper {
     }
   }
 
+  static PrayerCalendarDay mergeOfficialRefresh({
+    required PrayerCalendarDay freshDay,
+    PrayerCalendarDay? existingDay,
+    DateTime? refreshedAt,
+  }) {
+    return freshDay.mergeManualOverridesFrom(
+      existingDay,
+      updatedAt: refreshedAt,
+    );
+  }
+
   static Future<List<PrayerCalendarDay>> getDaysInRange({
     required String cityKey,
     required DateTime startInclusive,

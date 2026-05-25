@@ -76,31 +76,58 @@ void main() {
       },
     );
 
-    test(
-      'Gregorian coverage window keeps current year plus next five years',
-      () {
-        final window = PrayerCalendarHelper.currentGregorianCoverageWindow(
-          now: DateTime(2026, 5, 24),
-        );
+    test('supported window is Hijri-first and keeps past days read-only', () {
+      final now = DateTime(2026, 5, 24);
+      final window = PrayerCalendarHelper.currentSupportedScheduleWindow(
+        now: now,
+        offsetDays: 0,
+      );
 
-        expect(window.startInclusive, DateTime(2026, 1, 1));
-        expect(window.endInclusive, DateTime(2031, 12, 31));
-        expect(
-          PrayerCalendarHelper.isDateSelectable(
-            DateTime(2026, 5, 24),
-            now: DateTime(2026, 5, 24),
-          ),
-          isTrue,
-        );
-        expect(
-          PrayerCalendarHelper.availabilityStateForDate(
-            DateTime(2026, 5, 23),
-            now: DateTime(2026, 5, 24),
-          ),
-          DateAvailabilityState.pastReadOnly,
-        );
-      },
-    );
+      final startHijri = PrayerCalendarHelper.hijriPartsForDate(
+        window.startInclusive,
+        offsetDays: 0,
+        langCode: 'en',
+      );
+      final anchorHijri = PrayerCalendarHelper.hijriPartsForDate(
+        window.gregorianForwardAnchorInclusive,
+        offsetDays: 0,
+        langCode: 'en',
+      );
+      final endHijri = PrayerCalendarHelper.hijriPartsForDate(
+        window.endInclusive,
+        offsetDays: 0,
+        langCode: 'en',
+      );
+
+      expect(window.todayGregorian, now);
+      expect(startHijri.year, window.currentHijriYear);
+      expect(startHijri.month, 1);
+      expect(startHijri.day, 1);
+      expect(anchorHijri.year, window.finalSupportedHijriYear);
+      expect(endHijri.year, window.finalSupportedHijriYear);
+      expect(window.supportedHijriYears.first, window.currentHijriYear);
+      expect(window.supportedHijriYears.last, window.finalSupportedHijriYear);
+      expect(
+        PrayerCalendarHelper.isDateSelectable(now, now: now, offsetDays: 0),
+        isTrue,
+      );
+      expect(
+        PrayerCalendarHelper.availabilityStateForDate(
+          now.subtract(const Duration(days: 1)),
+          now: now,
+          offsetDays: 0,
+        ),
+        DateAvailabilityState.pastReadOnly,
+      );
+      expect(
+        PrayerCalendarHelper.availabilityStateForDate(
+          window.endInclusive.add(const Duration(days: 1)),
+          now: now,
+          offsetDays: 0,
+        ),
+        DateAvailabilityState.outOfRange,
+      );
+    });
 
     test(
       'defaultIqamaMinutesForDate applies Friday dhuhr override only on Friday',

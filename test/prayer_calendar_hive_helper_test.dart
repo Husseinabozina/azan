@@ -70,5 +70,36 @@ void main() {
         expect(ymds, {'2026-03-25', '2026-03-26'});
       },
     );
+
+    test('mergeOfficialRefresh preserves manual overrides and new token', () {
+      final existing =
+          PrayerCalendarDay.generated(
+            cityKey: 'bundle::mecca',
+            date: DateTime(2026, 3, 25),
+            generatedAdhanMinutes: [1, 2, 3, 4, 5, 6],
+            officialSourceToken: '1@old',
+          ).withPrayerOverride(
+            prayerId: 2,
+            manualAdhanMinutes: 99,
+            manualIqamaMinutes: 120,
+          );
+
+      final fresh = PrayerCalendarDay.generated(
+        cityKey: 'bundle::mecca',
+        date: DateTime(2026, 3, 25),
+        generatedAdhanMinutes: [10, 20, 30, 40, 50, 60],
+        officialSourceToken: '1@new',
+      );
+
+      final merged = PrayerCalendarHiveHelper.mergeOfficialRefresh(
+        freshDay: fresh,
+        existingDay: existing,
+      );
+
+      expect(merged.generatedAdhanMinutes.first, 10);
+      expect(merged.manualAdhanMinutesByPrayerId[2], 99);
+      expect(merged.manualIqamaMinutesByPrayerId[2], 120);
+      expect(merged.officialSourceToken, '1@new');
+    });
   });
 }

@@ -1,4 +1,3 @@
-import 'package:azan/core/models/city_location.dart';
 import 'package:azan/core/models/city_option.dart';
 import 'package:azan/data/data/city_country_data.dart';
 
@@ -14,9 +13,10 @@ class LocationHelper {
     try {
       return kSaudiCities.firstWhere((c) {
         if (looksEnglish) {
-          return c.nameEn.toLowerCase() == normalizedEn;
+          return c.nameEn.toLowerCase() == normalizedEn ||
+              c.nameAliases.any((alias) => alias.toLowerCase() == normalizedEn);
         } else {
-          return c.nameAr == raw;
+          return c.nameAr == raw || c.nameAliases.any((alias) => alias == raw);
         }
       });
     } catch (_) {

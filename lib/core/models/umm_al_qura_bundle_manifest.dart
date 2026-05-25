@@ -63,6 +63,9 @@ class UmmAlQuraBundleManifest {
     };
   }
 
+  String get officialSourceToken =>
+      '$schemaVersion@${generatedAt.toUtc().toIso8601String()}';
+
   void validateShape() {
     if (schemaVersion != 1) {
       throw FormatException(

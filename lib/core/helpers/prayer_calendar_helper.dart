@@ -176,23 +176,71 @@ class PrayerCalendarHelper {
   static bool isFriday(DateTime date) =>
       dateOnly(date).weekday == DateTime.friday;
 
+  static SupportedScheduleWindow currentSupportedScheduleWindow({
+    DateTime? now,
+    required int offsetDays,
+  }) {
+    final todayGregorian = dateOnly(now ?? DateTime.now());
+    final currentHijriYear = hijriPartsForDate(
+      todayGregorian,
+      offsetDays: offsetDays,
+      langCode: 'en',
+    ).year;
+    final currentHijriRange = hijriYearRangeFor(
+      hijriYear: currentHijriYear,
+      offsetDays: offsetDays,
+    );
+    final gregorianForwardAnchorInclusive = DateTime(
+      todayGregorian.year + 5,
+      12,
+      31,
+    );
+    final finalSupportedHijriYear = hijriPartsForDate(
+      gregorianForwardAnchorInclusive,
+      offsetDays: offsetDays,
+      langCode: 'en',
+    ).year;
+    final finalHijriRange = hijriYearRangeFor(
+      hijriYear: finalSupportedHijriYear,
+      offsetDays: offsetDays,
+    );
+
+    return SupportedScheduleWindow(
+      startInclusive: currentHijriRange.startInclusive,
+      todayGregorian: todayGregorian,
+      currentHijriYear: currentHijriYear,
+      gregorianForwardAnchorInclusive: gregorianForwardAnchorInclusive,
+      finalSupportedHijriYear: finalSupportedHijriYear,
+      endInclusive: finalHijriRange.endExclusive.subtract(
+        const Duration(days: 1),
+      ),
+    );
+  }
+
   static GregorianCoverageWindow currentGregorianCoverageWindow({
     DateTime? now,
+    required int offsetDays,
   }) {
-    return GregorianCoverageWindow.forToday(dateOnly(now ?? DateTime.now()));
+    return currentSupportedScheduleWindow(now: now, offsetDays: offsetDays);
   }
 
   static DateAvailabilityState availabilityStateForDate(
     DateTime date, {
     DateTime? now,
+    required int offsetDays,
   }) {
-    return currentGregorianCoverageWindow(
+    return currentSupportedScheduleWindow(
       now: now,
+      offsetDays: offsetDays,
     ).availabilityFor(dateOnly(date));
   }
 
-  static bool isDateSelectable(DateTime date, {DateTime? now}) {
-    return availabilityStateForDate(date, now: now) ==
+  static bool isDateSelectable(
+    DateTime date, {
+    DateTime? now,
+    required int offsetDays,
+  }) {
+    return availabilityStateForDate(date, now: now, offsetDays: offsetDays) ==
         DateAvailabilityState.selectable;
   }
 

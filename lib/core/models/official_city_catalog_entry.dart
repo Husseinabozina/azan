@@ -26,4 +26,6 @@ class OfficialCityCatalogEntry {
     required this.availableHijriYears,
     required this.aliases,
   });
+
+  String get cityKey => 'bundle::$bundleId';
 }

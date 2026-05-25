@@ -8,8 +8,10 @@
 
 **Input**: User description: "Integrate an approved Umm Al-Qura prayer
 timetable package into azan so the app can serve multiple Saudi cities fully
-offline for the next 5 years, with clear UI for city selection, support
-visibility, and offline schedule use."
+offline with Hijri-first calendar browsing, clear city selection and support
+visibility, and long-range schedule use across the full current Hijri year
+plus forward coverage through the end of the Hijri year that contains the end
+of the fifth upcoming Gregorian year."
 
 ## Clarifications
 
@@ -18,10 +20,23 @@ visibility, and offline schedule use."
 - Q: How should the city picker treat cities that exist in the bundle but do
   not meet the full 5-year support promise? → A: Treat all bundle cities as
   fully supported; all cities have full 10-year data.
-- Q: Should the 5-year user-facing window be rolling or fixed? → A: Show the
-  full current year plus the next 5 full years; past dates in the current year
-  are visible but not selectable.
-- Q: Does "current year" mean Gregorian or Hijri? → A: Gregorian current year.
+
+### Session 2026-05-25
+
+- Correction: The calendar must be Hijri-first in user-facing navigation and
+  wording; the earlier Gregorian-first interpretation was not the intended
+  requirement.
+- Q: How should the supported browsing window be defined? → A: Show the full
+  current Hijri year, keep past dates inside that Hijri year visible but not
+  selectable, and continue supported forward coverage through the end of the
+  Hijri year that contains the end of the fifth upcoming Gregorian year.
+- Q: If the 5-Gregorian-year forward horizon ends in the middle of a Hijri
+  year, where should support stop? → A: Extend support to the end of that
+  final covered Hijri year rather than stopping mid-year.
+- Q: When the app updates to a newer approved timetable bundle, what happens
+  to saved official day cache and user configuration? → A: Keep the selected
+  city and local adjustments, but refresh or replace cached official day
+  records from the newer bundle.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -60,14 +75,16 @@ available after restarting the app.
 ### User Story 2 - Browse Fixed Multi-Year Official Schedule (Priority: P2)
 
 As a planner or administrator, I want to browse the official schedule for my
-selected city across the supported fixed window of the current Gregorian year
-plus the next 5 full Gregorian years, so I can confirm upcoming prayer times
-and calendar dates well in advance.
+selected city across the supported fixed window of the full current Hijri year
+plus forward coverage through the end of the Hijri year that contains the end
+of the fifth upcoming Gregorian year, using Hijri month and year navigation
+while still seeing Gregorian date context, so I can confirm upcoming prayer
+times and calendar dates well in advance.
 
-This story affects the prayer-calendar experience, date browsing, and localized
-presentation of city and prayer-time content across shared mobile and
+This story affects the prayer-calendar experience, Hijri date browsing, and
+localized presentation of city and prayer-time content across shared mobile and
 large-screen surfaces, including the UI state that communicates the current
-date range and support boundary.
+date range and support boundary in a Hijri-first way.
 
 **Why this priority**: Long-range access is the main reason to adopt the
 prepared official timetable instead of relying only on generated daily times.
@@ -79,17 +96,21 @@ and end of the published coverage window.
 **Acceptance Scenarios**:
 
 1. **Given** a selected city is supported by the official bundle, **When** the
-   user browses any date inside the current Gregorian year or the next 5 full
-   Gregorian years while offline, **Then** the app shows the official prayer
-   times for that date.
+   user browses any date inside the full current Hijri year or inside the
+   forward coverage that continues through the end of the Hijri year
+   containing the end of the fifth upcoming Gregorian year while offline,
+   **Then** the app shows the official prayer times for that date.
 2. **Given** the user changes the app language, **When** the same future date
    is viewed again, **Then** city names, prayer labels, and schedule context
    remain understandable with no missing text placeholders.
-3. **Given** the user is looking at past dates inside the current Gregorian
-   year,
+3. **Given** the user is looking at past dates inside the current Hijri year,
    **When** the date picker or calendar is shown, **Then** those older dates
    appear but are not selectable.
-4. **Given** the user reaches the end of the supported fixed window,
+4. **Given** the user is browsing the calendar, **When** month and year
+   controls are shown, **Then** the UI presents Hijri month and year choices as
+   the primary browsing structure while still showing the Gregorian date for
+   each day.
+5. **Given** the user reaches the end of the supported fixed window,
    **When** the next date is requested, **Then** the UI explains that official
    offline coverage stops there instead of appearing broken or empty.
 
@@ -102,10 +123,10 @@ inside the supported browsing window and to preserve my local prayer-time
 adjustments, so moving to the official offline timetable does not break
 existing operations.
 
-This story affects Gregorian date-range visibility, disabled past-date
-handling,
+This story affects supported-range visibility, disabled past-date handling,
 unsupported-date messaging, and the continuity of existing local schedule
-adjustments layered on top of official times.
+adjustments layered on top of official times, with Hijri-first calendar
+navigation.
 
 **Why this priority**: Operators need confidence that the app is showing
 official supported data and not silently inventing or losing schedule behavior.
@@ -127,8 +148,12 @@ adjustments remain available for supported city/date views.
    shows an out-of-range date state, **Then** the UI clearly guides the user
    back to a supported date range.
 4. **Given** the user sees dates earlier than today within the current
-   Gregorian year, **When** the user attempts to select one, **Then** the UI
+   Hijri year, **When** the user attempts to select one, **Then** the UI
    prevents the selection without hiding the historical dates from view.
+5. **Given** the app ships a newer approved timetable bundle, **When** the
+   user reopens a previously selected supported city, **Then** the app keeps
+   the selected city and local adjustments while refreshing official cached
+   day records from the newer bundle.
 
 ---
 
@@ -138,12 +163,15 @@ adjustments remain available for supported city/date views.
   city has been selected?
 - What happens if the user switches cities close to midnight or across a Hijri
   date boundary?
-- How does the app present past dates from the current Gregorian year that are
+- How does the app present past dates from the current Hijri year that are
   visible but not selectable?
-- How does the app present unsupported dates near the end of the current
-  Gregorian year plus next-5-years coverage window?
-- What happens to the saved city and local adjustments after an app update that
-  includes a newer official timetable set?
+- How does the app present unsupported dates near the end of the coverage
+  window that starts with the full current Hijri year and ends at the close of
+  the final covered Hijri year?
+- How does the app keep the supported range understandable when the current
+  Hijri year spans parts of two Gregorian years?
+- How does the app refresh official cached day records after an app update
+  while preserving the saved city and local adjustments?
 
 ## Requirements *(mandatory)*
 
@@ -162,17 +190,19 @@ adjustments remain available for supported city/date views.
   every covered city/date combination exactly as published in the timetable
   package.
 - **FR-006**: The system MUST support browsing and using official prayer times
-  across a fixed user-facing window consisting of the full current Gregorian
-  year plus the next 5 full Gregorian years for cities it marks as supported.
+  across a fixed user-facing window consisting of the full current Hijri year
+  plus forward coverage through the end of the Hijri year that contains the
+  end of the fifth upcoming Gregorian year for cities it marks as supported.
 - **FR-007**: The system MUST show dates earlier than today within the current
-  Gregorian year as visible but not selectable.
+  Hijri year as visible but not selectable.
 - **FR-008**: The system MUST NOT present dates outside the user-facing current
-  Gregorian year plus next-5-full-Gregorian-years browsing promise as part of
-  the supported schedule range.
+  Hijri year plus forward coverage through the end of the Hijri year that
+  contains the end of the fifth upcoming Gregorian year as part of the
+  supported schedule range.
 - **FR-009**: The system MUST show a clear user-facing explanation when a date
   falls outside the supported browsing range.
 - **FR-010**: The system MUST show the selected city's supported date range in
-  the schedule-browsing UI whenever the user is navigating future dates.
+  the schedule-browsing UI whenever the user is navigating dates.
 - **FR-011**: The system MUST use one authoritative official schedule for the
   selected city across home, calendar, and display-oriented prayer-time views
   so users do not see conflicting times.
@@ -185,6 +215,13 @@ adjustments remain available for supported city/date views.
 - **FR-014**: The system MUST provide a recovery path in the UI when the user
   reaches a date outside the supported browsing range, including a clear way
   back to supported dates.
+- **FR-015**: The system MUST present calendar month and year navigation in
+  Hijri terms as the primary browsing model while preserving Gregorian date
+  context for each day.
+- **FR-016**: When the app ships a newer approved timetable bundle, the system
+  MUST preserve the saved city and existing local azan or iqama adjustments
+  while refreshing or replacing cached official day records from the newer
+  bundle before presenting supported dates.
 
 ### Constitution Alignment *(mandatory)*
 
@@ -192,7 +229,8 @@ adjustments remain available for supported city/date views.
   coverage messages must be understandable in the app's supported locales.
 - **CA-002 Readability**: Replacing the schedule source must preserve clear,
   legible prayer-time presentation across portrait, landscape, and large-screen
-  display surfaces, including setup, selection, and unsupported-state UI.
+  display surfaces, including setup, selection, Hijri calendar navigation, and
+  unsupported-state UI.
 - **CA-003 Architecture**: The feature must extend the existing city-selection
   and prayer-calendar user journey rather than creating a separate schedule
   experience.
@@ -209,9 +247,10 @@ adjustments remain available for supported city/date views.
   including its display names and inclusion in the approved official bundle.
 - **Schedule Day**: A single dated record of official prayer times for one city.
 - **Coverage Window**: The date range the app is allowed to present as approved
-  official schedule coverage for a city, limited to the full current Gregorian
-  year plus the next 5 full Gregorian years, with past dates in the current
-  Gregorian year visible but not selectable.
+  official schedule coverage for a city, starting with the full current Hijri
+  year and continuing through the end of the Hijri year that contains the end
+  of the fifth upcoming Gregorian year, with past dates in the current Hijri
+  year visible but not selectable.
 - **Local Prayer Configuration**: The saved city choice and any user-maintained
   azan or iqama adjustments that remain active in daily use.
 
@@ -227,12 +266,13 @@ adjustments remain available for supported city/date views.
 - **SC-003**: A user can select a supported city and reach today's prayer-time
   view in under 5 seconds on a representative device, even with internet
   disabled.
-- **SC-004**: Users can browse any date inside the current Gregorian year plus
-  the next 5 full Gregorian years for a supported city without
-  unavailable-state errors, and 100% of out-of-range date attempts show a
-  clear guidance message.
+- **SC-004**: Users can browse any date inside the full current Hijri year and
+  the forward coverage that continues through the end of the Hijri year that
+  contains the end of the fifth upcoming Gregorian year for a supported city
+  without unavailable-state errors, and 100% of out-of-range date attempts
+  show a clear guidance message.
 - **SC-005**: During acceptance review, 100% of tested past dates in the
-  current Gregorian year are visible but blocked from selection.
+  current Hijri year are visible but blocked from selection.
 - **SC-006**: During acceptance review, 100% of tested setup and out-of-range
   date UI states make the next valid user action clear without requiring
   external instructions.
@@ -250,7 +290,10 @@ adjustments remain available for supported city/date views.
 - Every city included in the approved official bundle has full 10-year
   timetable coverage available for use inside the app.
 - Even if the approved timetable package contains additional years, the user
-  promise for this feature is limited to the full current Gregorian year plus
-  the next 5 full Gregorian years that the UI presents.
+  promise for this feature is limited to the full current Hijri year plus
+  forward coverage through the end of the Hijri year that contains the end of
+  the fifth upcoming Gregorian year that the UI presents.
+- The schedule UI may still show Gregorian day-level context, but the primary
+  browsing structure for month and year navigation is Hijri.
 - Existing azan and iqama adjustment behavior remains part of the expected user
   experience and is preserved rather than redesigned by this feature.

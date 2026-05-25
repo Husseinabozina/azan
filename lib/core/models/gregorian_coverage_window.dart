@@ -1,24 +1,21 @@
 enum DateAvailabilityState { pastReadOnly, selectable, outOfRange }
 
-class GregorianCoverageWindow {
+class SupportedScheduleWindow {
   final DateTime startInclusive;
-  final DateTime today;
+  final DateTime todayGregorian;
+  final int currentHijriYear;
+  final DateTime gregorianForwardAnchorInclusive;
+  final int finalSupportedHijriYear;
   final DateTime endInclusive;
 
-  const GregorianCoverageWindow({
+  const SupportedScheduleWindow({
     required this.startInclusive,
-    required this.today,
+    required this.todayGregorian,
+    required this.currentHijriYear,
+    required this.gregorianForwardAnchorInclusive,
+    required this.finalSupportedHijriYear,
     required this.endInclusive,
   });
-
-  factory GregorianCoverageWindow.forToday(DateTime now) {
-    final normalized = DateTime(now.year, now.month, now.day);
-    return GregorianCoverageWindow(
-      startInclusive: DateTime(normalized.year, 1, 1),
-      today: normalized,
-      endInclusive: DateTime(normalized.year + 5, 12, 31),
-    );
-  }
 
   bool contains(DateTime date) {
     final normalized = DateTime(date.year, date.month, date.day);
@@ -31,12 +28,16 @@ class GregorianCoverageWindow {
     if (!contains(normalized)) {
       return DateAvailabilityState.outOfRange;
     }
-    if (normalized.year == today.year && normalized.isBefore(today)) {
+    if (normalized.isBefore(todayGregorian)) {
       return DateAvailabilityState.pastReadOnly;
     }
     return DateAvailabilityState.selectable;
   }
 
-  List<int> get supportedGregorianYears =>
-      List<int>.generate(6, (index) => startInclusive.year + index);
+  List<int> get supportedHijriYears => List<int>.generate(
+    (finalSupportedHijriYear - currentHijriYear) + 1,
+    (index) => currentHijriYear + index,
+  );
 }
+
+typedef GregorianCoverageWindow = SupportedScheduleWindow;

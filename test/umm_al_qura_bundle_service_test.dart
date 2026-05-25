@@ -37,6 +37,7 @@ void main() {
 
   test('loads and converts an official day for a selected city', () async {
     final city = await findCity('abha');
+    final manifest = await bundleService.loadManifest();
     final day = await bundleService.loadDay(
       city: city,
       date: DateTime(2026, 1, 1),
@@ -49,9 +50,11 @@ void main() {
     final prayerDay = bundleService.toPrayerCalendarDay(
       cityKey: 'bundle::abha',
       scheduleDay: day,
+      officialSourceToken: manifest.officialSourceToken,
     );
     expect(prayerDay.cityKey, 'bundle::abha');
     expect(prayerDay.generatedAdhanMinutes, hasLength(6));
+    expect(prayerDay.officialSourceToken, manifest.officialSourceToken);
   });
 
   test('loads the full Gregorian year range from the bundle', () async {

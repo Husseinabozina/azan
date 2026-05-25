@@ -304,5 +304,9 @@
   "time_minute": "Minute",
   "hijriPrayerCalendarTitle": "উম্মুল কুরা সময় অনুযায়ী নামাজের সময় ব্যবস্থাপনা",
   "offline_calendar_gregorian_year": "গ্রেগরিয়ান বছর",
-  "offline_calendar_supported_range": "সমর্থিত পরিসর"
+  "offline_calendar_hijri_year": "হিজরি বছর",
+  "offline_calendar_supported_range": "সমর্থিত পরিসর",
+  "offline_calendar_out_of_range": "এই তারিখটি সমর্থিত সরকারি হিজরি সীমার বাইরে",
+  "offline_calendar_city_reselect_required": "চালিয়ে যেতে অনুগ্রহ করে একটি সমর্থিত অফলাইন শহর আবার নির্বাচন করুন",
+  "offline_calendar_bundle_refresh_failed": "এই তারিখের জন্য সরকারি উম্মুল কুরা ডেটা রিফ্রেশ করা যায়নি"
 }

@@ -340,5 +340,9 @@
   "time_minute": "Minute",
   "hijriPrayerCalendarTitle" : "Managing prayer times according to the Umm al-Qura calendar",
   "offline_calendar_gregorian_year": "Gregorian year",
-  "offline_calendar_supported_range": "Supported range"
+  "offline_calendar_hijri_year": "Hijri year",
+  "offline_calendar_supported_range": "Supported range",
+  "offline_calendar_out_of_range": "This date is outside the supported official Hijri window",
+  "offline_calendar_city_reselect_required": "Please reselect a supported offline city to continue",
+  "offline_calendar_bundle_refresh_failed": "The official Umm al-Qura data could not be refreshed for this date"
 }

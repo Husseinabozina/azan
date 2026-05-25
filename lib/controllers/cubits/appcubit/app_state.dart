@@ -20,6 +20,21 @@ class FetchPrayerTimesSuccess extends AppState {
 
 class FetchPrayerTimesLoading extends AppState {}
 
+class OfficialBundleCitySelectionRequired extends AppState {
+  final String message;
+  OfficialBundleCitySelectionRequired(this.message);
+}
+
+class OfficialBundleRefreshFailure extends AppState {
+  final String message;
+  OfficialBundleRefreshFailure(this.message);
+}
+
+class OfflineCalendarOutOfRange extends AppState {
+  final String message;
+  OfflineCalendarOutOfRange(this.message);
+}
+
 class saveIqamaTimesLoading extends AppState {}
 
 class saveIqamaTimesSuccess extends AppState {}

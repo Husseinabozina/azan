@@ -19,6 +19,7 @@ const kSaudiCities = <CityOption>[
     nameEn: 'Makkah',
     lat: 21.4266,
     lon: 39.8256,
+    nameAliases: ['Mecca', 'Makkah Al Mukarramah'],
   ),
   CityOption(
     countryCode: 'SA',
@@ -26,6 +27,7 @@ const kSaudiCities = <CityOption>[
     nameEn: 'Madinah',
     lat: 24.4686,
     lon: 39.6142,
+    nameAliases: ['Medina', 'Al Madinah'],
   ),
   CityOption(
     countryCode: 'SA',
@@ -47,6 +49,7 @@ const kSaudiCities = <CityOption>[
     nameEn: 'Dammam',
     lat: 26.4207,
     lon: 50.0888,
+    nameAliases: ['Ad Dammam'],
   ),
   CityOption(
     countryCode: 'SA',
@@ -54,6 +57,7 @@ const kSaudiCities = <CityOption>[
     nameEn: 'Khobar',
     lat: 26.2172,
     lon: 50.1971,
+    nameAliases: ['Al Khobar'],
   ),
   CityOption(
     countryCode: 'SA',
