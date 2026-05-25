@@ -43,5 +43,10 @@
   the fifth upcoming Gregorian year.
 - [x] Hijri month and year navigation are the primary browsing controls, while
   Gregorian date context remains visible at the day level.
+- [x] Large-screen prayer-calendar navigation now has explicit UX requirements
+  for month prominence, readability, and low-precision operation in mosque
+  environments.
+- [x] Large-screen month navigation is now concretely specified as a
+  persistent side-panel pattern instead of a generic "larger control" request.
 - [x] Setup, coverage, unsupported-state, and recovery UI expectations are now
   called out as testable requirements.

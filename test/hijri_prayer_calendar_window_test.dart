@@ -81,7 +81,7 @@ void main() {
       buildHarness(
         BlocProvider<AppCubit>.value(
           value: cubit,
-          child: const HijriPrayerCalendarScreen(),
+          child: const HijriPrayerCalendarScreen(forceLargeScreenLayout: false),
         ),
       ),
     );
@@ -92,11 +92,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
 
-    expect(
-      find.textContaining('Umm al-Qura calendar'),
-      findsWidgets,
-    );
+    expect(find.textContaining('Umm al-Qura calendar'), findsWidgets);
     expect(find.text('Gregorian year'), findsNothing);
   });
 }

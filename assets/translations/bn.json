@@ -243,6 +243,8 @@
   "prayer_calendar_no_days": "এই বছরের জন্য এখনও কোনো সংরক্ষিত দিন নেই",
   "prayer_calendar_hijri_year": "হিজরি বছর",
   "prayer_calendar_gregorian": "গ্রেগরিয়ান",
+  "prayer_calendar_hijri_months": "হিজরি মাসসমূহ",
+  "prayer_calendar_current_month": "বর্তমান মাস",
   "prayer_calendar_edited": "সম্পাদিত",
   "prayer_calendar_reset_day": "ডিফল্টে ফেরান",
   "dialogs_examples_title": "Dialogs Examples",

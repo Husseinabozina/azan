@@ -2,7 +2,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-abstract class LocaleKeys {
+abstract class  LocaleKeys {
   static const arabic = 'arabic';
   static const english = 'english';
   static const thursday = 'thursday';
@@ -49,10 +49,8 @@ abstract class LocaleKeys {
   static const edit_mosque_azkar = 'edit_mosque_azkar';
   static const left_for = 'left_for';
   static const pm_label = 'pm_label';
-  static const mosque_azkar_are_displayed_at_the_bottom_of_the_screen =
-      'mosque_azkar_are_displayed_at_the_bottom_of_the_screen';
-  static const something_went_wrong_please_try_again =
-      'something_went_wrong_please_try_again';
+  static const mosque_azkar_are_displayed_at_the_bottom_of_the_screen = 'mosque_azkar_are_displayed_at_the_bottom_of_the_screen';
+  static const something_went_wrong_please_try_again = 'something_went_wrong_please_try_again';
   static const azkar_note = 'azkar_note';
   static const enable_slider = 'enable_slider';
   static const add_message = 'add_message';
@@ -125,8 +123,7 @@ abstract class LocaleKeys {
   static const prayers = 'prayers';
   static const texts = 'texts';
   static const enable_arabic_numbers = 'enable_arabic_numbers';
-  static const notification_message_before_iqama =
-      'notification_message_before_iqama';
+  static const notification_message_before_iqama = 'notification_message_before_iqama';
   static const please_turn_off_the_phone = 'please_turn_off_the_phone';
   static const the_message = 'the_message';
   static const edit_nofication_message = 'edit_nofication_message';
@@ -137,8 +134,7 @@ abstract class LocaleKeys {
   static const show_adha_eid_prayer = 'show_adha_eid_prayer';
   static const eid_al_fitr = 'eid_al_fitr';
   static const eid_al_adha = 'eid_al_adha';
-  static const check_your_internet_connection_the_star =
-      'check_your_internet_connection_the_star';
+  static const check_your_internet_connection_the_star = 'check_your_internet_connection_the_star';
   static const connected = 'connected';
   static const disconnected = 'disconnected';
   static const copy_right_for_sadja = 'copy_right_for_sadja';
@@ -153,17 +149,14 @@ abstract class LocaleKeys {
   static const friday = 'friday';
   static const adhan_ = 'adhan_';
   static const remaining_for_iqamaa = 'remaining_for_iqamaa';
-  static const prayer_duration_for_hiding_screen =
-      'prayer_duration_for_hiding_screen';
+  static const prayer_duration_for_hiding_screen = 'prayer_duration_for_hiding_screen';
   static const show_time_on_black_screen = 'show_time_on_black_screen';
   static const show_date_on_black_screen = 'show_date_on_black_screen';
   static const hide_screen_after_sunrise_by = 'hide_screen_after_sunrise_by';
   static const hide_screen_after_Ishaa_by = 'hide_screen_after_Ishaa_by';
-  static const enable_hiding_screen_during_prayer =
-      'enable_hiding_screen_during_prayer';
+  static const enable_hiding_screen_during_prayer = 'enable_hiding_screen_during_prayer';
   static const iqama_time_has_begun_now = 'iqama_time_has_begun_now';
-  static const prayer_is_currently_being_performed =
-      'prayer_is_currently_being_performed';
+  static const prayer_is_currently_being_performed = 'prayer_is_currently_being_performed';
   static const day = 'day';
   static const hijri_date = 'hijri_date';
   static const gregorian_date = 'gregorian_date';
@@ -179,29 +172,21 @@ abstract class LocaleKeys {
   static const iqama_azan_settings = 'iqama_azan_settings';
   static const azan_adjust_title = 'azan_adjust_title';
   static const azan_adjust_subtitle = 'azan_adjust_subtitle';
-  static const azan_adjust_section_prayer_times =
-      'azan_adjust_section_prayer_times';
-  static const azan_adjust_ramadan_isha_plus_30 =
-      'azan_adjust_ramadan_isha_plus_30';
+  static const azan_adjust_section_prayer_times = 'azan_adjust_section_prayer_times';
+  static const azan_adjust_ramadan_isha_plus_30 = 'azan_adjust_ramadan_isha_plus_30';
   static const azan_adjust_summer_plus_hour = 'azan_adjust_summer_plus_hour';
-  static const azan_adjust_global_shift_title =
-      'azan_adjust_global_shift_title';
+  static const azan_adjust_global_shift_title = 'azan_adjust_global_shift_title';
   static const azan_adjust_global_shift_hint = 'azan_adjust_global_shift_hint';
-  static const azan_adjust_global_shift_plus_hour =
-      'azan_adjust_global_shift_plus_hour';
+  static const azan_adjust_global_shift_plus_hour = 'azan_adjust_global_shift_plus_hour';
   static const azan_adjust_global_shift_none = 'azan_adjust_global_shift_none';
-  static const azan_adjust_global_shift_minus_hour =
-      'azan_adjust_global_shift_minus_hour';
+  static const azan_adjust_global_shift_minus_hour = 'azan_adjust_global_shift_minus_hour';
   static const azan_adjust_per_prayer_title = 'azan_adjust_per_prayer_title';
   static const azan_adjust_per_prayer_hint = 'azan_adjust_per_prayer_hint';
   static const azan_adjust_reset = 'azan_adjust_reset';
-  static const azan_adjust_iqama_section_title =
-      'azan_adjust_iqama_section_title';
+  static const azan_adjust_iqama_section_title = 'azan_adjust_iqama_section_title';
   static const azan_adjust_iqama_hint = 'azan_adjust_iqama_hint';
-  static const azan_adjust_hijri_section_title =
-      'azan_adjust_hijri_section_title';
-  static const azan_adjust_hijri_section_hint =
-      'azan_adjust_hijri_section_hint';
+  static const azan_adjust_hijri_section_title = 'azan_adjust_hijri_section_title';
+  static const azan_adjust_hijri_section_hint = 'azan_adjust_hijri_section_hint';
   static const azan_duration = 'azan_duration';
   static const azkar_timing_settings = 'azkar_timing_settings';
   static const enable_morning_azkar = 'enable_morning_azkar';
@@ -209,25 +194,19 @@ abstract class LocaleKeys {
   static const enable_evening_azkar = 'enable_evening_azkar';
   static const evening_azkar_window_minutes = 'evening_azkar_window_minutes';
   static const enable_after_prayer_azkar = 'enable_after_prayer_azkar';
-  static const after_prayer_azkar_window_minutes =
-      'after_prayer_azkar_window_minutes';
+  static const after_prayer_azkar_window_minutes = 'after_prayer_azkar_window_minutes';
   static const minute = 'minute';
   static const show_seconds_in_next_prayer = 'show_seconds_in_next_prayer';
-  static const iqama_countdown_last_minute_only =
-      'iqama_countdown_last_minute_only';
+  static const iqama_countdown_last_minute_only = 'iqama_countdown_last_minute_only';
   static const show_azan_screen = 'show_azan_screen';
   static const change_app_logo = 'change_app_logo';
   static const select_from_device = 'select_from_device';
   static const default_app_logo = 'default_app_logo';
-  static const put_prayers_titles_in_center_in_landscape =
-      'put_prayers_titles_in_center_in_landscape';
-  static const put_prayers_titles_in_center_in_portrait =
-      'put_prayers_titles_in_center_in_portrait';
-  static const enlarge_iqama_and_adhan_in_landscape =
-      'enlarge_iqama_and_adhan_in_landscape';
+  static const put_prayers_titles_in_center_in_landscape = 'put_prayers_titles_in_center_in_landscape';
+  static const put_prayers_titles_in_center_in_portrait = 'put_prayers_titles_in_center_in_portrait';
+  static const enlarge_iqama_and_adhan_in_landscape = 'enlarge_iqama_and_adhan_in_landscape';
   static const hide_iqamah_times = 'hide_iqamah_times';
-  static const enlarge_remaining_time_counter =
-      'enlarge_remaining_time_counter';
+  static const enlarge_remaining_time_counter = 'enlarge_remaining_time_counter';
   static const enable_hadith_before_iqama = 'enable_hadith_before_iqama';
   static const hadith_display_timing = 'hadith_display_timing';
   static const hadith_display_seconds = 'hadith_display_seconds';
@@ -246,13 +225,10 @@ abstract class LocaleKeys {
   static const display_board_active = 'display_board_active';
   static const display_board_inactive = 'display_board_inactive';
   static const display_board_pin = 'display_board_pin';
-  static const display_board_rotation_duration =
-      'display_board_rotation_duration';
+  static const display_board_rotation_duration = 'display_board_rotation_duration';
   static const display_board_empty_state = 'display_board_empty_state';
-  static const display_board_add_announcement =
-      'display_board_add_announcement';
-  static const display_board_edit_announcement =
-      'display_board_edit_announcement';
+  static const display_board_add_announcement = 'display_board_add_announcement';
+  static const display_board_edit_announcement = 'display_board_edit_announcement';
   static const display_board_title_size = 'display_board_title_size';
   static const display_board_body_size = 'display_board_body_size';
   static const display_board_title_font = 'display_board_title_font';
@@ -266,13 +242,13 @@ abstract class LocaleKeys {
   static const display_board_no_title = 'display_board_no_title';
   static const prayer_calendar_title = 'prayer_calendar_title';
   static const prayer_calendar_note = 'prayer_calendar_note';
-  static const prayer_calendar_editable_today_future =
-      'prayer_calendar_editable_today_future';
-  static const prayer_calendar_read_only_past =
-      'prayer_calendar_read_only_past';
+  static const prayer_calendar_editable_today_future = 'prayer_calendar_editable_today_future';
+  static const prayer_calendar_read_only_past = 'prayer_calendar_read_only_past';
   static const prayer_calendar_no_days = 'prayer_calendar_no_days';
   static const prayer_calendar_hijri_year = 'prayer_calendar_hijri_year';
   static const prayer_calendar_gregorian = 'prayer_calendar_gregorian';
+  static const prayer_calendar_hijri_months = 'prayer_calendar_hijri_months';
+  static const prayer_calendar_current_month = 'prayer_calendar_current_month';
   static const prayer_calendar_edited = 'prayer_calendar_edited';
   static const prayer_calendar_reset_day = 'prayer_calendar_reset_day';
   static const dialogs_examples_title = 'dialogs_examples_title';
@@ -300,11 +276,9 @@ abstract class LocaleKeys {
   static const dialog_choice_arabic = 'dialog_choice_arabic';
   static const dialog_choice_arabic_subtitle = 'dialog_choice_arabic_subtitle';
   static const dialog_choice_english = 'dialog_choice_english';
-  static const dialog_choice_english_subtitle =
-      'dialog_choice_english_subtitle';
+  static const dialog_choice_english_subtitle = 'dialog_choice_english_subtitle';
   static const dialog_choice_bengali = 'dialog_choice_bengali';
-  static const dialog_choice_bengali_subtitle =
-      'dialog_choice_bengali_subtitle';
+  static const dialog_choice_bengali_subtitle = 'dialog_choice_bengali_subtitle';
   static const dialog_custom_title = 'dialog_custom_title';
   static const dialog_custom_subtitle = 'dialog_custom_subtitle';
   static const dialog_custom_feature_1 = 'dialog_custom_feature_1';
@@ -326,8 +300,7 @@ abstract class LocaleKeys {
   static const weather_source_auto = 'weather_source_auto';
   static const weather_source_auto_hint = 'weather_source_auto_hint';
   static const weather_source_manual = 'weather_source_manual';
-  static const weather_source_manual_no_coords =
-      'weather_source_manual_no_coords';
+  static const weather_source_manual_no_coords = 'weather_source_manual_no_coords';
   static const enter_gps_coordinates = 'enter_gps_coordinates';
   static const please_fill_all_fields = 'please_fill_all_fields';
   static const invalid_coordinates = 'invalid_coordinates';
@@ -336,14 +309,11 @@ abstract class LocaleKeys {
   static const time_hour = 'time_hour';
   static const time_minute = 'time_minute';
   static const hijriPrayerCalendarTitle = 'hijriPrayerCalendarTitle';
-  static const offline_calendar_gregorian_year =
-      'offline_calendar_gregorian_year';
+  static const offline_calendar_gregorian_year = 'offline_calendar_gregorian_year';
   static const offline_calendar_hijri_year = 'offline_calendar_hijri_year';
-  static const offline_calendar_supported_range =
-      'offline_calendar_supported_range';
+  static const offline_calendar_supported_range = 'offline_calendar_supported_range';
   static const offline_calendar_out_of_range = 'offline_calendar_out_of_range';
-  static const offline_calendar_city_reselect_required =
-      'offline_calendar_city_reselect_required';
-  static const offline_calendar_bundle_refresh_failed =
-      'offline_calendar_bundle_refresh_failed';
+  static const offline_calendar_city_reselect_required = 'offline_calendar_city_reselect_required';
+  static const offline_calendar_bundle_refresh_failed = 'offline_calendar_bundle_refresh_failed';
+
 }

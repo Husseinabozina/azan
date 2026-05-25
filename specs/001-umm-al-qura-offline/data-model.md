@@ -223,3 +223,58 @@ of ad-hoc comparisons.
 - `HijriPrayerCalendarScreen`
 - Day editor entry points
 - Any future schedule summary or badge that needs the same behavior
+
+## 9. `HijriMonthNavigationOption`
+
+**Purpose**: Represent a single month choice in the Hijri-first calendar
+navigation UI for both compact and large-screen layouts.
+
+**Fields**:
+
+| Field | Type | Notes |
+|------|------|-------|
+| `hijriYear` | `int` | Owning supported Hijri year |
+| `monthNumber` | `int` | `1..12` Hijri month index |
+| `monthName` | `String` | Localized visible month label |
+| `firstGregorianDate` | `DateTime` | First rendered Gregorian day in that Hijri month |
+| `lastGregorianDate` | `DateTime` | Last rendered Gregorian day in that Hijri month |
+| `containsToday` | `bool` | Helps emphasize the current month when applicable |
+| `hasSelectableDays` | `bool` | `true` if the month includes at least one selectable supported day |
+| `hasReadOnlyPastDays` | `bool` | `true` if the month includes visible but locked past days |
+| `isSelected` | `bool` | Current active month in the UI |
+
+**Validation**:
+
+- `monthNumber` must be between `1` and `12`.
+- `firstGregorianDate <= lastGregorianDate`.
+- At least one of `hasSelectableDays` or `hasReadOnlyPastDays` must be `true`
+  for every rendered month option.
+
+**Relationships**:
+
+- Derived from the loaded `PrayerCalendarDay` list for a supported Hijri year.
+- Consumed by `HijriPrayerCalendarScreen` and large-screen navigation tests.
+
+## 10. `CalendarNavigationLayoutMode`
+
+**Purpose**: Explicitly distinguish the compact and large-screen navigation
+patterns so layout behavior can be tested rather than inferred ad hoc.
+
+**Enum values**:
+
+- `compactBottomStrip`
+- `largeScreenSidePanel`
+
+**Rules**:
+
+- Compact layouts may keep navigation in a horizontal strip near the content.
+- Large-screen layouts must render the month navigation as a persistent side
+  panel with strong active-month emphasis.
+- Layout mode is derived from screen constraints; it must not change the
+  supported-date rules themselves.
+
+**Consumers**:
+
+- `HijriPrayerCalendarScreen`
+- Calendar widget or golden tests
+- Any future shared calendar navigation builder

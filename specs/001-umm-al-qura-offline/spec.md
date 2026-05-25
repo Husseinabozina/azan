@@ -37,6 +37,12 @@ of the fifth upcoming Gregorian year."
   to saved official day cache and user configuration? → A: Keep the selected
   city and local adjustments, but refresh or replace cached official day
   records from the newer bundle.
+- Update: The prayer-time management calendar must be large-screen-friendly in
+  its browsing controls. Hijri month navigation cannot remain a tiny,
+  low-emphasis strip that is hard to see or operate on a mosque display.
+- Q: What should the large-screen Hijri month-navigation layout be? → A: Use a
+  large persistent side panel for month navigation, with clear emphasis for
+  the active month.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -84,14 +90,17 @@ times and calendar dates well in advance.
 This story affects the prayer-calendar experience, Hijri date browsing, and
 localized presentation of city and prayer-time content across shared mobile and
 large-screen surfaces, including the UI state that communicates the current
-date range and support boundary in a Hijri-first way.
+date range and support boundary in a Hijri-first way, with special emphasis on
+large-screen month navigation visibility and ease of operation.
 
 **Why this priority**: Long-range access is the main reason to adopt the
 prepared official timetable instead of relying only on generated daily times.
 
 **Independent Test**: With internet disabled, open the schedule for a supported
-city and browse several future dates, including boundary dates near the start
-and end of the published coverage window.
+city on both a normal screen and a large mosque-oriented screen, browse
+several future dates, and confirm month-to-month navigation remains obvious,
+readable, and easy to operate near the start, middle, and end of the published
+coverage window, with a persistent large-screen month-navigation panel.
 
 **Acceptance Scenarios**:
 
@@ -110,7 +119,16 @@ and end of the published coverage window.
    controls are shown, **Then** the UI presents Hijri month and year choices as
    the primary browsing structure while still showing the Gregorian date for
    each day.
-5. **Given** the user reaches the end of the supported fixed window,
+5. **Given** the calendar is shown on a large-screen layout, **When** the user
+   looks for month navigation, **Then** the current Hijri month and available
+   month choices are visually prominent, easy to read from the normal
+   operating position, and are presented in a large persistent side panel
+   rather than a tiny low-emphasis strip below the main summary area.
+6. **Given** the user wants to move to another visible month on a large
+   screen, **When** the browsing controls are used, **Then** the current month
+   is clearly distinguished inside that side panel and the user can change
+   months without precision tapping or hunting through miniature controls.
+7. **Given** the user reaches the end of the supported fixed window,
    **When** the next date is requested, **Then** the UI explains that official
    offline coverage stops there instead of appearing broken or empty.
 
@@ -170,6 +188,11 @@ adjustments remain available for supported city/date views.
   the final covered Hijri year?
 - How does the app keep the supported range understandable when the current
   Hijri year spans parts of two Gregorian years?
+- How does the calendar keep month navigation readable and easy to operate on
+  large mosque screens when Hijri month names are long or the user is standing
+  away from the display?
+- How does the large-screen side panel remain readable and clearly dominant
+  when the selected month changes or the user switches Hijri years?
 - How does the app refresh official cached day records after an app update
   while preserving the saved city and local adjustments?
 
@@ -222,6 +245,18 @@ adjustments remain available for supported city/date views.
   MUST preserve the saved city and existing local azan or iqama adjustments
   while refreshing or replacing cached official day records from the newer
   bundle before presenting supported dates.
+- **FR-017**: The system MUST give the active Hijri month and year strong
+  visual prominence within the schedule-browsing UI so the current browsing
+  context is immediately understandable.
+- **FR-018**: On large-screen layouts, the system MUST provide month
+  navigation that is easy to read and easy to operate from the normal mosque
+  control position without relying on tiny controls or precision tapping.
+- **FR-019**: On large-screen layouts, the system MUST place Hijri month
+  navigation in a large persistent side panel instead of compressing that
+  navigation into a minor secondary strip.
+- **FR-020**: The system MUST clearly distinguish the currently selected Hijri
+  month from adjacent month choices whenever the user is browsing the prayer
+  calendar.
 
 ### Constitution Alignment *(mandatory)*
 
@@ -230,7 +265,9 @@ adjustments remain available for supported city/date views.
 - **CA-002 Readability**: Replacing the schedule source must preserve clear,
   legible prayer-time presentation across portrait, landscape, and large-screen
   display surfaces, including setup, selection, Hijri calendar navigation, and
-  unsupported-state UI.
+  unsupported-state UI. Large-screen navigation controls must remain readable
+  and visually balanced with the rest of the page, using a persistent side
+  panel instead of shrinking into a low-emphasis secondary strip.
 - **CA-003 Architecture**: The feature must extend the existing city-selection
   and prayer-calendar user journey rather than creating a separate schedule
   experience.
@@ -278,6 +315,12 @@ adjustments remain available for supported city/date views.
   external instructions.
 - **SC-007**: No missing-translation placeholders appear on affected
   prayer-time surfaces in supported locales during acceptance review.
+- **SC-008**: During large-screen acceptance review, operators can identify
+  the active Hijri month and year and move to another visible month in under 3
+  seconds without repeated mis-taps.
+- **SC-009**: In 100% of tested large-screen calendar states, month navigation
+  remains clearly visible and discoverable without requiring the operator to
+  move unusually close to the display to understand the controls.
 
 ## Assumptions
 
@@ -295,5 +338,10 @@ adjustments remain available for supported city/date views.
   the fifth upcoming Gregorian year that the UI presents.
 - The schedule UI may still show Gregorian day-level context, but the primary
   browsing structure for month and year navigation is Hijri.
+- The prayer-time management page is expected to be used on large mosque
+  screens, so visibility, clear hierarchy, and low-precision interaction are
+  more important than compact dense month-navigation UI.
+- On large-screen layouts, a persistent side panel for Hijri month navigation
+  is preferred over compact bottom or inline month-strip patterns.
 - Existing azan and iqama adjustment behavior remains part of the expected user
   experience and is preserved rather than redesigned by this feature.

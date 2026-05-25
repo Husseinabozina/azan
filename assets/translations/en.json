@@ -273,6 +273,8 @@
 "prayer_calendar_no_days": "No saved days yet for this year",
 "prayer_calendar_hijri_year": "Hijri year",
 "prayer_calendar_gregorian": "Gregorian",
+"prayer_calendar_hijri_months": "Hijri months",
+"prayer_calendar_current_month": "Current month",
 "prayer_calendar_edited": "Edited",
 "prayer_calendar_reset_day": "Reset default",
 

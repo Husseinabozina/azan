@@ -44,6 +44,13 @@ authoritative source.
    each rendered official schedule day.
 4. Supported-range messaging explains the mixed rule clearly without exposing
    raw implementation jargon.
+5. On compact layouts, month navigation may stay inline with the calendar
+   content as long as the active month remains obvious and tap targets remain
+   readable.
+6. On large-screen layouts, month navigation must stay visible in a persistent
+   side panel rather than collapsing behind a modal, drawer, or tiny strip.
+7. The active Hijri month must remain clearly distinguished whenever the user
+   changes month or year.
 
 ## UI States
 
@@ -73,3 +80,5 @@ authoritative source.
 - Past days inside the current Hijri year are blocked consistently.
 - The final supported day of the final supported Hijri year resolves normally.
 - The first day after the supported end range always resolves to `outOfRange`.
+- Large-screen calendar layouts keep the month panel visible, readable, and
+  synchronized when the selected Hijri year or month changes.

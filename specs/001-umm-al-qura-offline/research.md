@@ -153,3 +153,45 @@ than a superseded Gregorian-only interpretation.
   the assets cannot satisfy.
 - Downgrade support at runtime without validation: rejected because the product
   promise is explicit and all-city.
+
+## Decision 9: Use responsive month navigation with a persistent large-screen
+side panel
+
+**Decision**: Keep compact month navigation lightweight on phone-sized layouts,
+but switch to a large persistent Hijri month side panel on wide mosque-oriented
+layouts so the active month and available months remain visible without extra
+menus or precision tapping.
+
+**Rationale**: The clarified UX requirement is not just "bigger controls"; it
+is a stronger visual hierarchy for large screens. A side panel keeps browsing
+context visible at all times, gives the active month a stable home, and works
+better for operators who stand away from the display.
+
+**Alternatives considered**:
+
+- Simply enlarge the existing lower strip: rejected because it still leaves the
+  navigation visually secondary beneath the summary content.
+- Use only previous/next buttons around a single month label: rejected because
+  it hides the available month set and weakens discoverability.
+- Put month selection in a modal or drawer: rejected because it adds extra
+  steps and is worse for quick repeated navigation on a display screen.
+
+## Decision 10: Reuse current Flutter layout primitives instead of adding a new
+responsive-layout dependency
+
+**Decision**: Implement the large-screen side-panel pattern using existing
+Flutter layout widgets plus the app's current scaling utilities (`ScreenUtil`
+and `MQScale`) instead of adding a separate responsive-layout package.
+
+**Rationale**: The project already has the primitives needed to detect layout
+width, size readable tap targets, and preserve theme alignment. Avoiding a new
+dependency keeps the implementation simpler, lowers regression risk, and stays
+consistent with the constitution's dependency discipline.
+
+**Alternatives considered**:
+
+- Add a responsive framework package: rejected because it solves a problem the
+  existing stack can already address and would increase maintenance surface.
+- Hard-code large-screen sizes without shared scaling utilities: rejected
+  because it is less adaptable across the mixed phone and mosque display
+  surfaces the app already supports.

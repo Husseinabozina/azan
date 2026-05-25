@@ -281,6 +281,8 @@
   "prayer_calendar_no_days": "لا توجد أيام محفوظة لهذه السنة بعد",
   "prayer_calendar_hijri_year": "السنة الهجرية",
   "prayer_calendar_gregorian": "الميلادي",
+  "prayer_calendar_hijri_months": "الشهور الهجرية",
+  "prayer_calendar_current_month": "الشهر الحالي",
   "prayer_calendar_edited": "تم التعديل",
   "prayer_calendar_reset_day": "إعادة للأصل",
 

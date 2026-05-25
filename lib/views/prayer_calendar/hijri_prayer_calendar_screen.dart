@@ -19,7 +19,9 @@ import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter/rendering.dart';
 
 class HijriPrayerCalendarScreen extends StatefulWidget {
-  const HijriPrayerCalendarScreen({super.key});
+  const HijriPrayerCalendarScreen({super.key, this.forceLargeScreenLayout});
+
+  final bool? forceLargeScreenLayout;
 
   @override
   State<HijriPrayerCalendarScreen> createState() =>
@@ -55,7 +57,19 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
     });
   }
 
-  bool get _isLandscape => MediaQuery.of(context).size.width > 700.w;
+  Size get _screenSize => MediaQuery.sizeOf(context);
+
+  bool get _usesLargeScreenLayout {
+    final forcedLayout = widget.forceLargeScreenLayout;
+    if (forcedLayout != null) return forcedLayout;
+    final size = _screenSize;
+    return size.width >= 960 || (size.width >= 760 && size.width > size.height);
+  }
+
+  double get _sidePanelWidth {
+    final width = (_screenSize.width * 0.27).clamp(300.0, 360.0);
+    return (width as num).toDouble();
+  }
 
   String _weekdayLabel(DateTime date) {
     switch (date.weekday) {
@@ -345,12 +359,13 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                               color: AppTheme.primaryTextColor,
                             ),
                           )
-                        : _isLandscape
+                        : _usesLargeScreenLayout
                         ? Row(
+                            key: const ValueKey('calendar-landscape-layout'),
                             children: [
                               SizedBox(
-                                width: 265.w,
-                                child: _CalendarSidePanel(
+                                width: _sidePanelWidth,
+                                child: HijriCalendarLargeScreenSidePanel(
                                   title: LocaleKeys.hijriPrayerCalendarTitle
                                       .tr(),
                                   note:
@@ -365,6 +380,12 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                                   selectedHijriYear: _selectedHijriYear,
                                   hijriYearChipLabelBuilder: _yearChipLabel,
                                   onHijriYearSelected: _selectHijriYear,
+                                  monthsTitle: LocaleKeys
+                                      .prayer_calendar_hijri_months
+                                      .tr(),
+                                  currentMonthTitle: LocaleKeys
+                                      .prayer_calendar_current_month
+                                      .tr(),
                                   monthOrder: _monthOrder,
                                   selectedMonth: _selectedMonth,
                                   monthLabelBuilder: _monthChipLabel,
@@ -402,6 +423,7 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                             ],
                           )
                         : Column(
+                            key: const ValueKey('calendar-compact-layout'),
                             children: [
                               _CalendarSummaryCard(
                                 title: LocaleKeys.hijriPrayerCalendarTitle.tr(),
@@ -419,51 +441,29 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                                 onHijriYearSelected: _selectHijriYear,
                               ),
                               SizedBox(height: 12.h),
-                              _CalendarMonthSelectorBar(
+                              HijriCalendarCompactNavigationPanel(
+                                monthsTitle: LocaleKeys
+                                    .prayer_calendar_hijri_months
+                                    .tr(),
+                                currentMonthTitle: LocaleKeys
+                                    .prayer_calendar_current_month
+                                    .tr(),
+                                monthOrder: _monthOrder,
+                                selectedMonth: _selectedMonth,
+                                monthLabelBuilder: _monthChipLabel,
+                                monthsScrollController: _mobileMonthsController,
+                                monthChipKeyBuilder: (month) =>
+                                    _monthChipKey(month, isLandscape: false),
+                                onMonthSelected: _selectMonth,
+                                selectedMonthLabel: _selectedMonth == null
+                                    ? LocaleKeys.hijriPrayerCalendarTitle.tr()
+                                    : _monthChipLabel(_selectedMonth!),
                                 onLeftArrowTap: _adjacentMonth(1) == null
                                     ? null
                                     : () => _moveMonth(1),
                                 onRightArrowTap: _adjacentMonth(-1) == null
                                     ? null
                                     : () => _moveMonth(-1),
-                                child: Directionality(
-                                  textDirection: ui.TextDirection.rtl,
-                                  child: SizedBox(
-                                    height: 48.h,
-                                    child: SingleChildScrollView(
-                                      controller: _mobileMonthsController,
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        textDirection: ui.TextDirection.rtl,
-                                        children: [
-                                          for (
-                                            var index = 0;
-                                            index < _monthOrder.length;
-                                            index++
-                                          ) ...[
-                                            if (index > 0) SizedBox(width: 8.w),
-                                            _CalendarMonthChip(
-                                              key: _monthChipKey(
-                                                _monthOrder[index],
-                                                isLandscape: false,
-                                              ),
-                                              label: _monthChipLabel(
-                                                _monthOrder[index],
-                                              ),
-                                              selected:
-                                                  _monthOrder[index] ==
-                                                  _selectedMonth,
-                                              dense: true,
-                                              onTap: () => _selectMonth(
-                                                _monthOrder[index],
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
                               ),
                               SizedBox(height: 12.h),
                               Expanded(
@@ -631,8 +631,9 @@ class _CalendarSummaryCard extends StatelessWidget {
   }
 }
 
-class _CalendarSidePanel extends StatelessWidget {
-  const _CalendarSidePanel({
+class HijriCalendarLargeScreenSidePanel extends StatelessWidget {
+  const HijriCalendarLargeScreenSidePanel({
+    super.key,
     required this.title,
     required this.note,
     required this.cityName,
@@ -641,6 +642,8 @@ class _CalendarSidePanel extends StatelessWidget {
     required this.selectedHijriYear,
     required this.hijriYearChipLabelBuilder,
     required this.onHijriYearSelected,
+    required this.monthsTitle,
+    required this.currentMonthTitle,
     required this.monthOrder,
     required this.selectedMonth,
     required this.monthLabelBuilder,
@@ -660,6 +663,8 @@ class _CalendarSidePanel extends StatelessWidget {
   final int selectedHijriYear;
   final String Function(int year) hijriYearChipLabelBuilder;
   final ValueChanged<int> onHijriYearSelected;
+  final String monthsTitle;
+  final String currentMonthTitle;
   final List<int> monthOrder;
   final int? selectedMonth;
   final String Function(int month) monthLabelBuilder;
@@ -673,6 +678,7 @@ class _CalendarSidePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: const ValueKey('calendar-side-panel'),
       padding: EdgeInsets.all(18.r),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.28),
@@ -693,31 +699,204 @@ class _CalendarSidePanel extends StatelessWidget {
             onHijriYearSelected: onHijriYearSelected,
           ),
           SizedBox(height: 16.h),
-          _CalendarMonthSelectorBar(
-            onLeftArrowTap: onLeftArrowTap,
-            onRightArrowTap: onRightArrowTap,
-            child: _CalendarCurrentMonthBadge(label: selectedMonthLabel),
-          ),
-          SizedBox(height: 14.h),
           Expanded(
-            child: SingleChildScrollView(
-              controller: monthsScrollController,
-              child: Column(
-                children: [
-                  for (var index = 0; index < monthOrder.length; index++) ...[
-                    if (index > 0) SizedBox(height: 10.h),
-                    _CalendarMonthChip(
-                      key: monthChipKeyBuilder(monthOrder[index]),
-                      label: monthLabelBuilder(monthOrder[index]),
-                      selected: monthOrder[index] == selectedMonth,
-                      onTap: () => onMonthSelected(monthOrder[index]),
+            child: RepaintBoundary(
+              key: const ValueKey('calendar-side-panel-navigation-surface'),
+              child: Container(
+                key: const ValueKey('calendar-side-panel-months-card'),
+                padding: EdgeInsets.all(16.r),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(22.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      monthsTitle,
+                      key: const ValueKey('calendar-months-title'),
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryTextColor,
+                        fontFamily: CacheHelper.getTextsFontFamily(),
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      currentMonthTitle,
+                      key: const ValueKey('calendar-current-month-title'),
+                      style: TextStyle(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryTextColor.withValues(
+                          alpha: 0.82,
+                        ),
+                        fontFamily: CacheHelper.getTextsFontFamily(),
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    _CalendarMonthSelectorBar(
+                      onLeftArrowTap: onLeftArrowTap,
+                      onRightArrowTap: onRightArrowTap,
+                      child: _CalendarCurrentMonthBadge(
+                        label: selectedMonthLabel,
+                      ),
+                    ),
+                    SizedBox(height: 14.h),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        key: const ValueKey('calendar-side-month-list'),
+                        controller: monthsScrollController,
+                        child: Column(
+                          children: [
+                            for (
+                              var index = 0;
+                              index < monthOrder.length;
+                              index++
+                            ) ...[
+                              if (index > 0) SizedBox(height: 10.h),
+                              _CalendarMonthChip(
+                                key: monthChipKeyBuilder(monthOrder[index]),
+                                label: monthLabelBuilder(monthOrder[index]),
+                                selected: monthOrder[index] == selectedMonth,
+                                onTap: () => onMonthSelected(monthOrder[index]),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    Text(
+                      '${LocaleKeys.prayer_calendar_editable_today_future.tr()}\n'
+                      '${LocaleKeys.prayer_calendar_read_only_past.tr()}',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        height: 1.45,
+                        color: AppTheme.primaryTextColor.withValues(
+                          alpha: 0.78,
+                        ),
+                        fontFamily: CacheHelper.getTextsFontFamily(),
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class HijriCalendarCompactNavigationPanel extends StatelessWidget {
+  const HijriCalendarCompactNavigationPanel({
+    super.key,
+    required this.monthsTitle,
+    required this.currentMonthTitle,
+    required this.monthOrder,
+    required this.selectedMonth,
+    required this.monthLabelBuilder,
+    required this.monthsScrollController,
+    required this.monthChipKeyBuilder,
+    required this.onMonthSelected,
+    required this.selectedMonthLabel,
+    this.onLeftArrowTap,
+    this.onRightArrowTap,
+  });
+
+  final String monthsTitle;
+  final String currentMonthTitle;
+  final List<int> monthOrder;
+  final int? selectedMonth;
+  final String Function(int month) monthLabelBuilder;
+  final ScrollController monthsScrollController;
+  final Key Function(int month) monthChipKeyBuilder;
+  final ValueChanged<int> onMonthSelected;
+  final String selectedMonthLabel;
+  final VoidCallback? onLeftArrowTap;
+  final VoidCallback? onRightArrowTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('calendar-compact-navigation-panel'),
+      width: double.infinity,
+      padding: EdgeInsets.all(14.r),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: RepaintBoundary(
+        key: const ValueKey('calendar-compact-navigation-surface'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              monthsTitle,
+              key: const ValueKey('calendar-compact-months-title'),
+              style: TextStyle(
+                fontSize: 17.sp,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primaryTextColor,
+                fontFamily: CacheHelper.getTextsFontFamily(),
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              currentMonthTitle,
+              key: const ValueKey('calendar-compact-current-month-title'),
+              style: TextStyle(
+                fontSize: 13.5.sp,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryTextColor.withValues(alpha: 0.82),
+                fontFamily: CacheHelper.getTextsFontFamily(),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            _CalendarMonthSelectorBar(
+              onLeftArrowTap: onLeftArrowTap,
+              onRightArrowTap: onRightArrowTap,
+              child: _CalendarCurrentMonthBadge(label: selectedMonthLabel),
+            ),
+            SizedBox(height: 12.h),
+            Directionality(
+              textDirection: ui.TextDirection.rtl,
+              child: SizedBox(
+                key: const ValueKey('calendar-compact-month-list'),
+                height: 58.h,
+                child: SingleChildScrollView(
+                  controller: monthsScrollController,
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    textDirection: ui.TextDirection.rtl,
+                    children: [
+                      for (
+                        var index = 0;
+                        index < monthOrder.length;
+                        index++
+                      ) ...[
+                        if (index > 0) SizedBox(width: 10.w),
+                        _CalendarMonthChip(
+                          key: monthChipKeyBuilder(monthOrder[index]),
+                          label: monthLabelBuilder(monthOrder[index]),
+                          selected: monthOrder[index] == selectedMonth,
+                          onTap: () => onMonthSelected(monthOrder[index]),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -759,6 +938,7 @@ class _CalendarCurrentMonthBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: const ValueKey('calendar-current-month-badge'),
       alignment: Alignment.center,
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
       decoration: BoxDecoration(
@@ -787,17 +967,15 @@ class _CalendarMonthChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    this.dense = false,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final bool dense;
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(dense ? 16.r : 18.r);
+    final radius = BorderRadius.circular(18.r);
     final backgroundColor = selected
         ? AppTheme.primaryButtonBackground
         : AppTheme.dialogBackgroundColor.withValues(alpha: 0.62);
@@ -810,10 +988,7 @@ class _CalendarMonthChip extends StatelessWidget {
       borderRadius: radius,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.symmetric(
-          horizontal: dense ? 14.w : 16.w,
-          vertical: dense ? 10.h : 12.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: radius,
@@ -835,7 +1010,7 @@ class _CalendarMonthChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: (dense ? 14.5 : 16).sp,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w700,
             color: textColor,
             fontFamily: CacheHelper.getTextsFontFamily(),
