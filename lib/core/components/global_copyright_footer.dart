@@ -10,7 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 class GlobalCopyrightFooter extends StatelessWidget {
   const GlobalCopyrightFooter({super.key});
 
-  static const String _brand = 'sajdh.org';
+  static const String _brand = 'rawayie.sa';
   static const String _fallbackCity = '--';
   static const String _fallbackVersion = '--';
   static final Future<String> _versionFuture = _resolveAppVersion();

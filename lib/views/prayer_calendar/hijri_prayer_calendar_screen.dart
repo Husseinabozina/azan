@@ -425,29 +425,20 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                         : Column(
                             key: const ValueKey('calendar-compact-layout'),
                             children: [
-                              _CalendarSummaryCard(
-                                title: LocaleKeys.hijriPrayerCalendarTitle.tr(),
-                                note:
-                                    '${LocaleKeys.prayer_calendar_note.tr()}\n${_coverageWindowText()}',
+                              HijriCalendarCompactHeaderPanel(
+                                coverageText: _coverageWindowText(),
                                 cityName: city == null
                                     ? '--'
                                     : (CacheHelper.getLang() == 'en'
                                           ? city.nameEn
                                           : city.nameAr),
-                                hijriYearLabel: selectedYearLabel,
                                 availableHijriYears: _availableHijriYears,
                                 selectedHijriYear: _selectedHijriYear,
                                 hijriYearChipLabelBuilder: _yearChipLabel,
                                 onHijriYearSelected: _selectHijriYear,
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 8.h),
                               HijriCalendarCompactNavigationPanel(
-                                monthsTitle: LocaleKeys
-                                    .prayer_calendar_hijri_months
-                                    .tr(),
-                                currentMonthTitle: LocaleKeys
-                                    .prayer_calendar_current_month
-                                    .tr(),
                                 monthOrder: _monthOrder,
                                 selectedMonth: _selectedMonth,
                                 monthLabelBuilder: _monthChipLabel,
@@ -465,20 +456,21 @@ class _HijriPrayerCalendarScreenState extends State<HijriPrayerCalendarScreen> {
                                     ? null
                                     : () => _moveMonth(-1),
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 8.h),
                               Expanded(
                                 child: _CalendarDaysPanel(
                                   title: _selectedMonth == null
                                       ? LocaleKeys.hijriPrayerCalendarTitle.tr()
                                       : _monthChipLabel(_selectedMonth!),
                                   subtitle:
-                                      '${LocaleKeys.prayer_calendar_editable_today_future.tr()} • ${LocaleKeys.prayer_calendar_read_only_past.tr()} • ${_coverageWindowText()}',
+                                      '${LocaleKeys.prayer_calendar_editable_today_future.tr()} • ${LocaleKeys.prayer_calendar_read_only_past.tr()}',
                                   days: _selectedMonthDays,
                                   expandedDayYmd: _expandedDayYmd,
                                   onToggleDay: _toggleExpandedDay,
                                   onEditDay: _openEditor,
                                   formatTime: (dateTime) =>
                                       _formatDateTime(dateTime),
+                                  compactMode: true,
                                 ),
                               ),
                             ],
@@ -624,6 +616,81 @@ class _CalendarSummaryCard extends StatelessWidget {
             selectedHijriYear: selectedHijriYear,
             hijriYearLabelBuilder: hijriYearChipLabelBuilder,
             onHijriYearSelected: onHijriYearSelected,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HijriCalendarCompactHeaderPanel extends StatelessWidget {
+  const HijriCalendarCompactHeaderPanel({
+    super.key,
+    required this.coverageText,
+    required this.cityName,
+    required this.availableHijriYears,
+    required this.selectedHijriYear,
+    required this.hijriYearChipLabelBuilder,
+    required this.onHijriYearSelected,
+  });
+
+  final String coverageText;
+  final String cityName;
+  final List<int> availableHijriYears;
+  final int selectedHijriYear;
+  final String Function(int year) hijriYearChipLabelBuilder;
+  final ValueChanged<int> onHijriYearSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('calendar-compact-header-panel'),
+      width: double.infinity,
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.30),
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  cityName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryTextColor,
+                    fontFamily: CacheHelper.getTextsFontFamily(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          _CalendarYearDropdown(
+            availableHijriYears: availableHijriYears,
+            selectedHijriYear: selectedHijriYear,
+            hijriYearLabelBuilder: hijriYearChipLabelBuilder,
+            onHijriYearSelected: onHijriYearSelected,
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            coverageText,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14.sp,
+              height: 1.35,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryTextColor.withValues(alpha: 0.78),
+              fontFamily: CacheHelper.getTextsFontFamily(),
+            ),
           ),
         ],
       ),
@@ -797,8 +864,8 @@ class HijriCalendarLargeScreenSidePanel extends StatelessWidget {
 class HijriCalendarCompactNavigationPanel extends StatelessWidget {
   const HijriCalendarCompactNavigationPanel({
     super.key,
-    required this.monthsTitle,
-    required this.currentMonthTitle,
+    this.monthsTitle,
+    this.currentMonthTitle,
     required this.monthOrder,
     required this.selectedMonth,
     required this.monthLabelBuilder,
@@ -810,8 +877,8 @@ class HijriCalendarCompactNavigationPanel extends StatelessWidget {
     this.onRightArrowTap,
   });
 
-  final String monthsTitle;
-  final String currentMonthTitle;
+  final String? monthsTitle;
+  final String? currentMonthTitle;
   final List<int> monthOrder;
   final int? selectedMonth;
   final String Function(int month) monthLabelBuilder;
@@ -838,39 +905,43 @@ class HijriCalendarCompactNavigationPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              monthsTitle,
-              key: const ValueKey('calendar-compact-months-title'),
-              style: TextStyle(
-                fontSize: 17.sp,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.primaryTextColor,
-                fontFamily: CacheHelper.getTextsFontFamily(),
+            if (monthsTitle != null) ...[
+              Text(
+                monthsTitle!,
+                key: const ValueKey('calendar-compact-months-title'),
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primaryTextColor,
+                  fontFamily: CacheHelper.getTextsFontFamily(),
+                ),
               ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              currentMonthTitle,
-              key: const ValueKey('calendar-compact-current-month-title'),
-              style: TextStyle(
-                fontSize: 13.5.sp,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.primaryTextColor.withValues(alpha: 0.82),
-                fontFamily: CacheHelper.getTextsFontFamily(),
+              SizedBox(height: 4.h),
+            ],
+            if (currentMonthTitle != null) ...[
+              Text(
+                currentMonthTitle!,
+                key: const ValueKey('calendar-compact-current-month-title'),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primaryTextColor.withValues(alpha: 0.82),
+                  fontFamily: CacheHelper.getTextsFontFamily(),
+                ),
               ),
-            ),
-            SizedBox(height: 10.h),
+              SizedBox(height: 8.h),
+            ],
             _CalendarMonthSelectorBar(
               onLeftArrowTap: onLeftArrowTap,
               onRightArrowTap: onRightArrowTap,
               child: _CalendarCurrentMonthBadge(label: selectedMonthLabel),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
             Directionality(
               textDirection: ui.TextDirection.rtl,
               child: SizedBox(
                 key: const ValueKey('calendar-compact-month-list'),
-                height: 58.h,
+                height: 54.h,
                 child: SingleChildScrollView(
                   controller: monthsScrollController,
                   scrollDirection: Axis.horizontal,
@@ -1123,6 +1194,7 @@ class _CalendarDaysPanel extends StatelessWidget {
     required this.onToggleDay,
     required this.onEditDay,
     required this.formatTime,
+    this.compactMode = false,
   });
 
   final String title;
@@ -1132,6 +1204,7 @@ class _CalendarDaysPanel extends StatelessWidget {
   final ValueChanged<_CalendarDayVm> onToggleDay;
   final ValueChanged<_CalendarDayVm> onEditDay;
   final String Function(DateTime? dateTime) formatTime;
+  final bool compactMode;
 
   @override
   Widget build(BuildContext context) {
@@ -1148,23 +1221,27 @@ class _CalendarDaysPanel extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 24.sp,
+              fontSize: compactMode ? 21.sp : 24.sp,
               fontWeight: FontWeight.w800,
               color: AppTheme.primaryTextColor,
               fontFamily: CacheHelper.getTextsFontFamily(),
             ),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: compactMode ? 4.h : 6.h),
           Text(
             subtitle,
+            maxLines: compactMode ? 1 : 3,
+            overflow: compactMode
+                ? TextOverflow.ellipsis
+                : TextOverflow.visible,
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: compactMode ? 13.sp : 14.sp,
               height: 1.45,
               color: AppTheme.primaryTextColor.withValues(alpha: 0.82),
               fontFamily: CacheHelper.getTextsFontFamily(),
             ),
           ),
-          SizedBox(height: 14.h),
+          SizedBox(height: compactMode ? 10.h : 14.h),
           Expanded(
             child: days.isEmpty
                 ? Center(

@@ -66,7 +66,9 @@ dependencies:
 dev_dependencies:
   build_runner: ^2.10.4
   flutter_gen_runner: ^5.12.0
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: ^5.0.0
+  flutter_native_splash: ^2.4.6
   flutter_test:
     sdk: flutter
   freezed: null
@@ -193,3 +195,25 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/rawayie_app_icon.png
+  adaptive_icon_background: "#010A2A"
+  adaptive_icon_foreground: assets/images/rawayie_app_icon.png
+  remove_alpha_ios: true
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#010A2A"
+  image: assets/images/splash_sajda_padded.png
+  ios_content_mode: center
+  android_gravity: center
+  android: true
+  ios: true
+  web: false
+  android_12:
+    color: "#010A2A"
+    image: assets/images/splash_sajda_padded.png
+    icon_background_color: "#010A2A"

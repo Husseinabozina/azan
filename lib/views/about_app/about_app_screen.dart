@@ -19,7 +19,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Future<void> _openSite() async {
-    final uri = Uri.parse('https://sajdh.org');
+    final uri = Uri.parse('https://rawayie.sa');
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
 
     if (!opened && mounted) {
@@ -59,7 +59,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                         child: Column(
                           children: [
                             Text(
-                              'SAJDH.ORG',
+                              'RAWAYIE.SA',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 33.sp,
@@ -94,7 +94,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                             GestureDetector(
                               onTap: _openSite,
                               child: Text(
-                                'Sajdh.org',
+                                'rawayie.sa',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 30.sp,
