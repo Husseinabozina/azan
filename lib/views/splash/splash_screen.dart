@@ -116,13 +116,11 @@ class _SplashScreenState extends State<SplashScreen>
                       opacity: _opacityAnimation,
                       child: ScaleTransition(
                         scale: _scaleAnimation,
-                        child: SizedBox(
+                        child: Image.asset(
+                          'assets/images/rawayie_logo_transparent.png',
                           width: logoSize,
                           height: logoSize,
-                          child: Image.asset(
-                            'assets/images/rawayie_app_icon.png',
-                            fit: BoxFit.contain,
-                          ),
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),

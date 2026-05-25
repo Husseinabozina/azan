@@ -155,7 +155,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
       }
 
       return Image.asset(
-        'assets/images/rawayie_app_icon.png',
+        'assets/images/rawayie_logo_transparent.png',
         height: logoH,
         width: logoW,
         fit: BoxFit.contain,
@@ -177,7 +177,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
               width: logoW,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Image.asset(
-                'assets/images/rawayie_app_icon.png',
+                'assets/images/rawayie_logo_transparent.png',
                 height: logoH,
                 width: logoW,
                 fit: BoxFit.contain,
@@ -187,7 +187,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
 
     // fallback
     return Image.asset(
-      'assets/images/rawayie_app_icon.png',
+      'assets/images/rawayie_logo_transparent.png',
       height: logoH,
       width: logoW,
       fit: BoxFit.contain,
@@ -291,15 +291,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
                         children: [
                           GestureDetector(
                             onTap: _pickLogoFromDevice,
-                            child: Container(
-                              height: logoH,
-                              width: logoW,
-                              clipBehavior: Clip.hardEdge,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(2.r),
-                              ),
-                              child: _buildLogo(logoH, logoW),
-                            ),
+                            child: _buildLogo(logoH, logoW),
                           ),
                           HorizontalSpace(width: gap),
                           ConstrainedBox(

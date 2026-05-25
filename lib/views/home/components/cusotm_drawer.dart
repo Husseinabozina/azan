@@ -148,7 +148,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         child: Center(
                           child: MosqueLogoRadioPicker(
                             mainAxisSize: MainAxisSize.min,
-                            defaultAssetPath: 'assets/images/rawayie_app_icon.png',
+                            defaultAssetPath:
+                                'assets/images/rawayie_logo_transparent.png',
                             onChanged: (path) {
                               if (path != null) {
                                 CacheHelper.setMosqueLogoPath(path);
@@ -556,6 +557,7 @@ class DrawerListTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: vPad),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            // mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Container(
                 height: 9.h,

@@ -132,7 +132,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Image.asset(
-                                      'assets/images/rawayie_app_icon.png',
+                                      'assets/images/rawayie_logo_transparent.png',
                                       height: 50.h,
                                       width: 42.w,
                                       fit: BoxFit.contain,
