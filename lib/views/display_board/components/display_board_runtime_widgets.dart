@@ -422,7 +422,7 @@ class DisplayBoardPrayerRail extends StatelessWidget {
                                 isLandscape: true,
                               ),
                             ),
-                            if (index != rows.length - 1) SizedBox(width: 4.w),
+                            if (index != rows.length - 1) SizedBox(width: 6.w),
                           ],
                         ],
                       ),
@@ -448,7 +448,7 @@ class DisplayBoardPrayerRail extends StatelessWidget {
                             isLandscape: false,
                           ),
                         ),
-                        if (index != rows.length - 1) SizedBox(width: 3.w),
+                        if (index != rows.length - 1) SizedBox(width: 5.w),
                       ],
                     ],
                   ),
@@ -503,14 +503,14 @@ class _DisplayBoardCompactDateTimeBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateStyle = TextStyle(
       fontFamily: CacheHelper.getTextsFontFamily(),
-      fontSize: (isLandscape ? 12.5 : 10.5).sp,
+      fontSize: (isLandscape ? 15.5 : 13.5).sp,
       fontWeight: FontWeight.w700,
       color: AppTheme.displayBoardPrimaryTextColor.withValues(alpha: 0.92),
       height: 1.0,
     );
 
     return SizedBox(
-      height: isLandscape ? 46.h : 36.h,
+      height: isLandscape ? 56.h : 46.h,
       child: Row(
         children: [
           Expanded(
@@ -590,7 +590,7 @@ class _DisplayBoardCompactDateTimeColumn extends StatelessWidget {
     );
     final dateStyle = TextStyle(
       fontFamily: CacheHelper.getTextsFontFamily(),
-      fontSize: 14.5.sp,
+      fontSize: 17.5.sp,
       fontWeight: FontWeight.w700,
       color: AppTheme.displayBoardPrimaryTextColor.withValues(alpha: 0.92),
       height: 1.0,
@@ -672,16 +672,16 @@ class _DisplayBoardPrayerCard extends StatelessWidget {
         enabled: CacheHelper.getEnableGlassEffect(),
         radius: isLandscape ? 18 : 16,
         padding: EdgeInsetsDirectional.symmetric(
-          horizontal: isLandscape ? 3.w : 3.w,
-          vertical: isLandscape ? 1.2.h : 1.h,
+          horizontal: isLandscape ? 4.w : 4.w,
+          vertical: isLandscape ? 3.h : 2.5.h,
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final cardHeight = constraints.maxHeight;
-            final titleFontSize = (cardHeight * (isLandscape ? 0.285 : 0.220));
-            final timeFontSize = (cardHeight * (isLandscape ? 0.255 : 0.190));
-            final primaryGap = (cardHeight * (isLandscape ? 0.03 : 0.022));
-            final secondaryGap = (cardHeight * (isLandscape ? 0.024 : 0.015));
+            final titleFontSize = (cardHeight * (isLandscape ? 0.250 : 0.208));
+            final timeFontSize = (cardHeight * (isLandscape ? 0.220 : 0.182));
+            final primaryGap = (cardHeight * (isLandscape ? 0.062 : 0.050));
+            final secondaryGap = (cardHeight * (isLandscape ? 0.050 : 0.038));
 
             return Center(
               child: Column(

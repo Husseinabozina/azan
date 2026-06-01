@@ -6,7 +6,7 @@ import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
-import 'package:azan/views/home/home_screen_mobile.dart';
+import 'package:azan/views/home/home_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,7 +51,7 @@ class _FridayPrayerSettingsScreenState
                             onPressed: () {
                               AppNavigator.pushAndRemoveUntil(
                                 context,
-                                HomeScreenMobile(),
+                                const HomeScreen(),
                               );
                             },
                             icon: Icon(

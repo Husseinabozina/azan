@@ -53,12 +53,13 @@ class _DisplayBoardSettingsScreenState
   late bool _bodyItalic;
   late int _titleColorIndex;
   late int _bodyColorIndex;
+  List<DisplayAnnouncement> _announcements = const [];
 
   @override
   void initState() {
     super.initState();
     cubit = AppCubit.get(context);
-    cubit.assignDisplayAnnouncements();
+    _loadFromHive();
     _rotationSeconds = CacheHelper.getDisplayBoardRotationSeconds();
     _titleSize = CacheHelper.getDisplayBoardTitleSize();
     _bodySize = CacheHelper.getDisplayBoardBodySize();
@@ -75,20 +76,212 @@ class _DisplayBoardSettingsScreenState
   bool _isLandscape() => UiRotationCubit().isLandscape();
 
   Future<void> _goHome() async {
-    await DisplayBoardScheduleResolver.switchBackToHomeMode(
-      items: cubit.displayAnnouncementList ?? const [],
-      now: DateTime.now(),
-      dismissCurrentScheduled: true,
-    );
     await cubit.assignDisplayAnnouncements();
     if (!mounted) return;
     AppNavigator.pushAndRemoveUntil(context, const HomeScreen());
   }
 
-  Future<void> _reloadAnnouncements() async {
-    await cubit.assignDisplayAnnouncements();
+  Future<TimeOfDay?> _pickTime(BuildContext ctx, TimeOfDay initial) async {
+    final use24h = CacheHelper.getUse24HoursFormat();
+
+    int hour;
+    bool isPm;
+    if (use24h) {
+      hour = initial.hour;
+      isPm = false;
+    } else {
+      isPm = initial.hour >= 12;
+      hour = initial.hour % 12;
+      if (hour == 0) hour = 12;
+    }
+    int minute = initial.minute;
+
+    TimeOfDay? result;
+
+    await showAppDialog(
+      context: ctx,
+      builder: (dialogCtx) {
+        final nav = Navigator.of(dialogCtx);
+        return StatefulBuilder(
+          builder: (dialogCtx, setLocal) {
+            final valueStyle = TextStyle(
+              fontSize: 44.sp,
+              fontWeight: FontWeight.w900,
+              color: DialogPalette.titleTextColor,
+              fontFamily: CacheHelper.getTimesFontFamily(),
+            );
+
+            Widget buildSpinner({
+              required int value,
+              required VoidCallback onInc,
+              required VoidCallback onDec,
+            }) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _TimePickerArrow(
+                    icon: Icons.keyboard_arrow_up_rounded,
+                    onTap: onInc,
+                  ),
+                  SizedBox(height: 8.h),
+                  Container(
+                    width: 88.w,
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.14),
+                      ),
+                    ),
+                    child: Text(
+                      value.toString().padLeft(2, '0'),
+                      textAlign: TextAlign.center,
+                      style: valueStyle,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  _TimePickerArrow(
+                    icon: Icons.keyboard_arrow_down_rounded,
+                    onTap: onDec,
+                  ),
+                ],
+              );
+            }
+
+            return UniversalDialogShell(
+              customMaxWidth: _isLandscape()
+                  ? 400.w
+                  : MediaQuery.sizeOf(ctx).width - 60.w,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _boardStyleText(ar: 'اختيار الوقت', en: 'Select Time'),
+                    style: TextStyle(
+                      fontSize: 22.sp,
+                      fontWeight: FontWeight.w800,
+                      color: DialogPalette.titleTextColor,
+                    ),
+                  ),
+                  SizedBox(height: 28.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      buildSpinner(
+                        value: hour,
+                        onInc: () => setLocal(() {
+                          if (use24h) {
+                            hour = (hour + 1) % 24;
+                          } else {
+                            hour = hour >= 12 ? 1 : hour + 1;
+                          }
+                        }),
+                        onDec: () => setLocal(() {
+                          if (use24h) {
+                            hour = (hour - 1 + 24) % 24;
+                          } else {
+                            hour = hour <= 1 ? 12 : hour - 1;
+                          }
+                        }),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w),
+                        child: Text(
+                          ':',
+                          style: valueStyle.copyWith(
+                            color: DialogPalette.mutedTextColor,
+                          ),
+                        ),
+                      ),
+                      buildSpinner(
+                        value: minute,
+                        onInc: () =>
+                            setLocal(() => minute = (minute + 1) % 60),
+                        onDec: () =>
+                            setLocal(() => minute = (minute - 1 + 60) % 60),
+                      ),
+                      if (!use24h) ...[
+                        SizedBox(width: 20.w),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _AmPmButton(
+                              label: _boardStyleText(ar: 'ص', en: 'AM'),
+                              selected: !isPm,
+                              onTap: () => setLocal(() => isPm = false),
+                            ),
+                            SizedBox(height: 8.h),
+                            _AmPmButton(
+                              label: _boardStyleText(ar: 'م', en: 'PM'),
+                              selected: isPm,
+                              onTap: () => setLocal(() => isPm = true),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                  SizedBox(height: 28.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _BoardActionButton(
+                          label: LocaleKeys.common_cancel.tr(),
+                          onPressed: () => nav.pop(),
+                          filled: false,
+                          foregroundColor: DialogPalette.bodyTextColor,
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: _BoardActionButton(
+                          label: LocaleKeys.common_save.tr(),
+                          onPressed: () {
+                            int hour24;
+                            if (use24h) {
+                              hour24 = hour.clamp(0, 23);
+                            } else {
+                              hour24 = isPm
+                                  ? (hour == 12 ? 12 : hour + 12)
+                                  : (hour == 12 ? 0 : hour);
+                              hour24 = hour24.clamp(0, 23);
+                            }
+                            result = TimeOfDay(
+                              hour: hour24,
+                              minute: minute.clamp(0, 59),
+                            );
+                            nav.pop();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    return result;
+  }
+
+  Future<void> _loadFromHive() async {
+    final list = await DisplayBoardHiveHelper.getAllAnnouncements();
     if (!mounted) return;
-    setState(() {});
+    setState(() => _announcements = list);
+    cubit.assignDisplayAnnouncements();
+  }
+
+  Future<void> _reloadAnnouncements() async {
+    final list = await DisplayBoardHiveHelper.getAllAnnouncements();
+    if (!mounted) return;
+    setState(() => _announcements = list);
+    cubit.assignDisplayAnnouncements();
   }
 
   void _setRotationSeconds(int value) {
@@ -512,10 +705,9 @@ class _DisplayBoardSettingsScreenState
 
             Future<void> pickScheduleTime(bool isStart) async {
               final current = scheduleValue(isStart);
-              final picked = await showUniversalTimePicker(
+              final picked = await _pickTime(
                 dialogContext,
-                initialTime: TimeOfDay.fromDateTime(current),
-                initialEntryMode: TimePickerEntryMode.input,
+                TimeOfDay.fromDateTime(current),
               );
               if (picked == null) return;
               setLocal(() {
@@ -952,7 +1144,7 @@ class _DisplayBoardSettingsScreenState
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {},
         builder: (context, state) {
-          final announcements = cubit.displayAnnouncementList ?? const [];
+          final announcements = _announcements;
           final isBoardEnabled =
               _effectiveDisplayMode(DateTime.now()) ==
               HomeDisplayMode.displayBoard;
@@ -2503,6 +2695,109 @@ class _GlassPanel extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Padding(padding: padding ?? EdgeInsets.all(16.r), child: child),
+    );
+  }
+}
+
+class _TimePickerArrow extends StatefulWidget {
+  const _TimePickerArrow({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  State<_TimePickerArrow> createState() => _TimePickerArrowState();
+}
+
+class _TimePickerArrowState extends State<_TimePickerArrow> {
+  Timer? _repeatTimer;
+
+  void _startRepeat() {
+    widget.onTap();
+    _repeatTimer = Timer.periodic(
+      const Duration(milliseconds: 110),
+      (_) => widget.onTap(),
+    );
+  }
+
+  void _stopRepeat() {
+    _repeatTimer?.cancel();
+    _repeatTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _repeatTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onLongPressStart: (_) => _startRepeat(),
+      onLongPressEnd: (_) => _stopRepeat(),
+      onLongPressCancel: _stopRepeat,
+      child: Container(
+        padding: EdgeInsets.all(8.r),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        ),
+        child: Icon(
+          widget.icon,
+          color: DialogPalette.titleTextColor,
+          size: 26.r,
+        ),
+      ),
+    );
+  }
+}
+
+class _AmPmButton extends StatelessWidget {
+  const _AmPmButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 56.w,
+        padding: EdgeInsets.symmetric(vertical: 12.h),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppTheme.primaryButtonBackground
+              : Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: selected
+                ? AppTheme.primaryButtonBackground
+                : Colors.white.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w800,
+            color: selected
+                ? AppTheme.primaryButtonTextColor
+                : DialogPalette.bodyTextColor,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
-import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -110,10 +109,10 @@ class _DirectionOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderColor = selected
         ? DialogPalette.primaryButtonBackground
-        : DialogPalette.inputBorderColor;
+        : DialogPalette.dividerColor;
     final backgroundColor = selected
         ? DialogPalette.primaryButtonBackground.withValues(alpha: 0.16)
-        : DialogPalette.inputFillColor;
+        : DialogPalette.cardBackground;
 
     return Material(
       color: Colors.transparent,
@@ -136,7 +135,7 @@ class _DirectionOptionTile extends StatelessWidget {
                 size: 26.r,
                 color: selected
                     ? DialogPalette.primaryButtonBackground
-                    : AppTheme.primaryTextColor,
+                    : DialogPalette.mutedTextColor,
               ),
               SizedBox(width: 12.w),
               Expanded(
