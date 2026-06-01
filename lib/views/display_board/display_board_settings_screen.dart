@@ -170,6 +170,25 @@ class _DisplayBoardSettingsScreenState
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      if (!use24h) ...[
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _AmPmButton(
+                              label: _boardStyleText(ar: 'ص', en: 'AM'),
+                              selected: !isPm,
+                              onTap: () => setLocal(() => isPm = false),
+                            ),
+                            SizedBox(height: 8.h),
+                            _AmPmButton(
+                              label: _boardStyleText(ar: 'م', en: 'PM'),
+                              selected: isPm,
+                              onTap: () => setLocal(() => isPm = true),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 20.w),
+                      ],
                       buildSpinner(
                         value: hour,
                         onInc: () => setLocal(() {
@@ -203,25 +222,6 @@ class _DisplayBoardSettingsScreenState
                         onDec: () =>
                             setLocal(() => minute = (minute - 1 + 60) % 60),
                       ),
-                      if (!use24h) ...[
-                        SizedBox(width: 20.w),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _AmPmButton(
-                              label: _boardStyleText(ar: 'ص', en: 'AM'),
-                              selected: !isPm,
-                              onTap: () => setLocal(() => isPm = false),
-                            ),
-                            SizedBox(height: 8.h),
-                            _AmPmButton(
-                              label: _boardStyleText(ar: 'م', en: 'PM'),
-                              selected: isPm,
-                              onTap: () => setLocal(() => isPm = true),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
                   SizedBox(height: 28.h),
