@@ -14,7 +14,6 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
@@ -85,18 +84,14 @@ class _MyAppState extends State<MyApp> {
         bloc: cubit,
         listener: (context, state) {},
         builder: (context, state) {
-          final isMobile = !isLargeScreen(kind);
           final orientation = MediaQuery.of(context).orientation;
           final deviceIsLandscape = orientation == Orientation.landscape;
-          cubit.syncDeviceOrientation(
-            deviceIsLandscape: deviceIsLandscape,
-            isMobile: isMobile,
-          );
+          cubit.syncDeviceOrientation(deviceIsLandscape: deviceIsLandscape);
 
-          final quarter = isMobile ? 0 : cubit.quarterTurns;
-          final effectiveIsLandscape = isMobile
-              ? deviceIsLandscape
-              : cubit.isLandscapeForDevice(deviceIsLandscape);
+          final quarter = cubit.quarterTurns;
+          final effectiveIsLandscape = cubit.isLandscapeForDevice(
+            deviceIsLandscape,
+          );
 
           final designSize = effectiveIsLandscape
               ? const Size(960, 540)
@@ -133,10 +128,10 @@ class _MyAppState extends State<MyApp> {
             ),
           );
 
-          // ✅ على الموبايل: رجّع app بدون RotatedMediaQueryX
-          if (isMobile) return app;
+          // Manual quarter-turns are honored on every screen. With quarter=0,
+          // phones still follow the real device orientation normally.
+          if (quarter == 0) return app;
 
-          // ✅ على الشاشات الكبيرة: لف زي ما أنت عايز
           return RotatedMediaQueryX(quarterTurns: quarter, child: app);
         },
       ),

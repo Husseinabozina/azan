@@ -117,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: ScaleTransition(
                         scale: _scaleAnimation,
                         child: Image.asset(
-                          'assets/images/rawayie_logo_transparent.png',
+                          'assets/images/rawayie_splash_logo.png',
                           width: logoSize,
                           height: logoSize,
                           fit: BoxFit.contain,

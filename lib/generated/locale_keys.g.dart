@@ -309,6 +309,16 @@ abstract class  LocaleKeys {
   static const time_hour = 'time_hour';
   static const time_minute = 'time_minute';
   static const hijriPrayerCalendarTitle = 'hijriPrayerCalendarTitle';
+  static const display_direction_title = 'display_direction_title';
+  static const display_direction_current = 'display_direction_current';
+  static const display_direction_normal = 'display_direction_normal';
+  static const display_direction_normal_desc = 'display_direction_normal_desc';
+  static const display_direction_rotate_right = 'display_direction_rotate_right';
+  static const display_direction_rotate_right_desc = 'display_direction_rotate_right_desc';
+  static const display_direction_upside_down = 'display_direction_upside_down';
+  static const display_direction_upside_down_desc = 'display_direction_upside_down_desc';
+  static const display_direction_rotate_left = 'display_direction_rotate_left';
+  static const display_direction_rotate_left_desc = 'display_direction_rotate_left_desc';
   static const offline_calendar_gregorian_year = 'offline_calendar_gregorian_year';
   static const offline_calendar_hijri_year = 'offline_calendar_hijri_year';
   static const offline_calendar_supported_range = 'offline_calendar_supported_range';

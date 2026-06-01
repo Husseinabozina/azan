@@ -37,7 +37,7 @@
   "contact_us_message_hint": "اكتب المشكلة أو الاقتراح أو أي ملاحظة تود إرسالها إلينا...",
   "contact_us_send": "إرسال",
   "contact_us_empty_error": "من فضلك اكتب رسالتك أولاً",
-  "contact_us_email_subject": "رسالة من تطبيق سجدة",
+  "contact_us_email_subject": "رسالة من تطبيق روائع الأذان",
   "contact_us_launch_error": "تعذر فتح تطبيق البريد على هذا الجهاز",
   "contact_us_delivery_note": "سيتم فتح تطبيق البريد الافتراضي على جهازك مع تجهيز الرسالة تلقائيًا.",
   "edit_mosque_azkar": "تحرير إعلانات المسجد", 
@@ -158,7 +158,7 @@
 "eid_al_adha":"عيد الأضحي",
 "connected":"متصل",
 "disconnected":"غير متصل",
-"copy_right_for_sadja":"تطبيق سجدة © 2026"
+"copy_right_for_sadja":"تطبيق روائع الأذان © 2026"
 ,"loading":"جاري التحميل"
 ,
 "check_your_internet_connection_the_star":"تحقق من الاتصال بالانترنت (النجمة أسفل الشاشة)"
@@ -349,6 +349,16 @@
   "time_hour": "الساعة",
   "time_minute": "الدقيقة",
   "hijriPrayerCalendarTitle":"إدارة مواقيت الصلاة حسب توقيت أم القري",
+  "display_direction_title": "اتجاه الشاشة",
+  "display_direction_current": "الاتجاه الحالي",
+  "display_direction_normal": "الوضع الطبيعي",
+  "display_direction_normal_desc": "اتبع اتجاه الشاشة كما هي معلقة",
+  "display_direction_rotate_right": "تدوير يمين",
+  "display_direction_rotate_right_desc": "لف التطبيق ربع لفة مع عقارب الساعة",
+  "display_direction_upside_down": "مقلوب رأسًا على عقب",
+  "display_direction_upside_down_desc": "اقلب التطبيق من أعلى لأسفل",
+  "display_direction_rotate_left": "تدوير يسار",
+  "display_direction_rotate_left_desc": "لف التطبيق ربع لفة عكس عقارب الساعة",
   "offline_calendar_gregorian_year": "السنة الميلادية",
   "offline_calendar_hijri_year": "السنة الهجرية",
   "offline_calendar_supported_range": "النطاق المدعوم",

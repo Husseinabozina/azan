@@ -1,8 +1,8 @@
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// The state is the number of clockwise quarter turns applied to the large
-/// screen UI: 0, 1, 2, 3. Mobile keeps following the physical sensor.
+/// The state is the number of clockwise quarter turns applied to the UI:
+/// 0, 1, 2, 3. At 0 the UI follows the physical device orientation.
 
 class UiRotationCubit extends Cubit<int> {
   // singleton
@@ -11,38 +11,35 @@ class UiRotationCubit extends Cubit<int> {
   UiRotationCubit._internal() : super(CacheHelper.getUiRotationQuarterTurns());
 
   bool _deviceIsLandscape = false;
-  bool _isMobile = false;
 
   int get quarterTurns => _normalizeQuarterTurns(state);
 
-  void syncDeviceOrientation({
-    required bool deviceIsLandscape,
-    required bool isMobile,
-  }) {
+  void syncDeviceOrientation({required bool deviceIsLandscape}) {
     _deviceIsLandscape = deviceIsLandscape;
-    _isMobile = isMobile;
   }
 
   void rotateClockwise() {
     setQuarterTurns(quarterTurns + 1);
   }
 
+  void selectDisplayDirection(int value) {
+    setQuarterTurns(value);
+  }
+
   void setQuarterTurns(int value) {
     final normalized = _normalizeQuarterTurns(value);
     CacheHelper.setUiRotationQuarterTurns(normalized);
+    if (normalized == state) return;
     emit(normalized);
   }
 
   void changeIsLandscape(bool v) {
     final nextQuarterTurns = v == _deviceIsLandscape ? 0 : 1;
     CacheHelper.setIsLandscape(v);
-    setQuarterTurns(_isMobile ? 0 : nextQuarterTurns);
+    setQuarterTurns(nextQuarterTurns);
   }
 
   bool isLandscape() {
-    if (_isMobile) {
-      return _deviceIsLandscape;
-    }
     return isLandscapeForDevice(_deviceIsLandscape);
   }
 

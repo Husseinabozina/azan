@@ -10,7 +10,6 @@ import 'package:azan/core/utils/alert_dialoges.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/extenstions.dart';
-import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/adhkar_screen.dart';
@@ -18,6 +17,7 @@ import 'package:azan/views/about_app/about_app_screen.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
 import 'package:azan/views/contact_us/contact_us_screen.dart';
 import 'package:azan/views/display_board/display_board_settings_screen.dart';
+import 'package:azan/views/home/components/display_direction_picker.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/managed_azkar/managed_azkar_screen.dart';
 import 'package:azan/views/prayer_calendar/hijri_prayer_calendar_screen.dart';
@@ -28,13 +28,10 @@ import 'package:azan/views/slides/slides_screen.dart';
 import 'package:azan/views/weather_status/weather_status_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'dart:io';
-import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 const String _hijriPrayerCalendarTitle =
     'إدارة مواقيت الصلاة حسب توقيت أم القري';
@@ -62,24 +59,31 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
     await cubit.assignDisplayAnnouncements();
     if (!mounted) return;
-    await AppNavigator.pushAndRemoveUntil(widget.context, const HomeScreen());
+    await AppNavigator.pushAndRemoveUntil(context, const HomeScreen());
   }
 
-  String _rotateScreenLabel() {
-    switch (LocalizationHelper.localCode()) {
-      case 'ar':
-        return 'تدوير الشاشة';
-      case 'bn':
-        return 'স্ক্রিন ঘোরান';
-      default:
-        return 'Rotate screen';
-    }
+  Future<void> _showDisplayDirectionPicker(BuildContext drawerContext) async {
+    final scaffold = Scaffold.maybeOf(drawerContext);
+
+    await showAppDialog(
+      context: drawerContext,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return UniversalDialogShell(
+          child: DisplayDirectionPicker(
+            onDirectionSelected: () {
+              Navigator.of(dialogContext).pop();
+              scaffold?.closeDrawer();
+            },
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     bool isLandscape = UiRotationCubit().isLandscape();
-    final rotateScreenLabel = _rotateScreenLabel();
 
     return Drawer(
       shape: const RoundedRectangleBorder(),
@@ -149,7 +153,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                           child: MosqueLogoRadioPicker(
                             mainAxisSize: MainAxisSize.min,
                             defaultAssetPath:
-                                'assets/images/rawayie_logo_transparent.png',
+                                'assets/images/rawayie_splash_logo.png',
                             onChanged: (path) {
                               if (path != null) {
                                 CacheHelper.setMosqueLogoPath(path);
@@ -303,12 +307,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             // if (isLargeScreen(kind))
             _DrawerEntry(
-              title: rotateScreenLabel,
+              title: LocaleKeys.display_direction_title.tr(),
               onTap: () {
-                // Navigator.pop(context);
-
-                final cubit = context.read<UiRotationCubit>();
-                cubit.rotateClockwise();
+                _showDisplayDirectionPicker(context);
               },
             ),
             //                          if (isLandscape) {
@@ -551,8 +552,8 @@ class DrawerListTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18.r),
-        splashColor: AppTheme.primaryTextColor.withOpacity(0.2),
-        highlightColor: AppTheme.primaryTextColor.withOpacity(0.1),
+        splashColor: AppTheme.primaryTextColor.withValues(alpha: 0.2),
+        highlightColor: AppTheme.primaryTextColor.withValues(alpha: 0.1),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: vPad),
           child: Row(
@@ -638,8 +639,8 @@ class LanguageDrawerTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18.r),
-        splashColor: AppTheme.primaryTextColor.withOpacity(0.2),
-        highlightColor: AppTheme.primaryTextColor.withOpacity(0.1),
+        splashColor: AppTheme.primaryTextColor.withValues(alpha: 0.2),
+        highlightColor: AppTheme.primaryTextColor.withValues(alpha: 0.1),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: vPad),
           child: Row(
@@ -665,7 +666,7 @@ class LanguageDrawerTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryTextColor.withOpacity(0.85),
+                      color: AppTheme.primaryTextColor.withValues(alpha: 0.85),
                     ),
                     children: [
                       TextSpan(
@@ -673,7 +674,9 @@ class LanguageDrawerTile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 20.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryTextColor.withOpacity(0.6),
+                          color: AppTheme.primaryTextColor.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                       TextSpan(
@@ -757,9 +760,9 @@ class _MosqueLogoRadioPickerState extends State<MosqueLogoRadioPicker> {
 
     // ✅ خزّن نسخة داخل app storage عشان تفضل موجودة
     final dir = await getApplicationDocumentsDirectory();
-    final ext = p.extension(picked.path).toLowerCase();
+    final ext = _fileExtension(picked.path).toLowerCase();
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final savedPath = p.join(dir.path, 'mosque_logo_$ts$ext');
+    final savedPath = '${dir.path}${Platform.pathSeparator}mosque_logo_$ts$ext';
 
     await File(picked.path).copy(savedPath);
 
@@ -913,7 +916,7 @@ class CustomRadioTile<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final sel = selectedColor ?? AppTheme.accentColor;
     final unsel =
-        unselectedColor ?? AppTheme.primaryTextColor.withOpacity(0.35);
+        unselectedColor ?? AppTheme.primaryTextColor.withValues(alpha: 0.35);
 
     return Material(
       color: backgroundColor ?? Colors.transparent,
@@ -951,7 +954,9 @@ class CustomRadioTile<T> extends StatelessWidget {
                       const VerticalSpace(height: 4),
                       DefaultTextStyle.merge(
                         style: TextStyle(
-                          color: AppTheme.primaryTextColor.withOpacity(0.7),
+                          color: AppTheme.primaryTextColor.withValues(
+                            alpha: 0.7,
+                          ),
                           fontSize: 12.sp,
                         ),
                         child: subtitle!,
@@ -971,6 +976,7 @@ class CustomRadioTile<T> extends StatelessWidget {
 
 class RadioDot extends StatelessWidget {
   const RadioDot({
+    super.key,
     required this.selected,
     required this.size,
     required this.strokeWidth,
@@ -1012,4 +1018,11 @@ class RadioDot extends StatelessWidget {
       ),
     );
   }
+}
+
+String _fileExtension(String path) {
+  final separatorIndex = path.lastIndexOf(Platform.pathSeparator);
+  final dotIndex = path.lastIndexOf('.');
+  if (dotIndex <= separatorIndex) return '';
+  return path.substring(dotIndex);
 }
