@@ -1,23 +1,21 @@
 <!--
 Sync Impact Report
-Version change: N/A -> 1.0.0
+Version change: 1.0.0 -> 1.0.0 (validation-only pass, no substantive changes)
+Review date: 2026-06-01
+Context: spec-kit integration switched from codex to claude (v0.8.18). Constitution
+         is agent-agnostic and required no amendments.
 Modified principles:
-- Template principle 1 -> I. Correct Prayer-Time and Calendar Behavior
-- Template principle 2 -> II. Localized and Readable User Experience
-- Template principle 3 -> III. Feature-Scoped Architecture and Persistence Boundaries
-- Template principle 4 -> IV. Verification Before Merge
-- Template principle 5 -> V. Controlled Assets, Dependencies, and Build Outputs
+- None
 Added sections:
-- Technical Standards
-- Delivery Workflow
+- None
 Removed sections:
 - None
-Templates requiring updates:
-- ✅ .specify/templates/plan-template.md
-- ✅ .specify/templates/spec-template.md
-- ✅ .specify/templates/tasks-template.md
-- ✅ README.md
-- ✅ .specify/templates/commands/ (directory not present; no command template updates required)
+Templates reviewed:
+- ✅ .specify/templates/plan-template.md (Constitution Check aligns with all 5 principles)
+- ✅ .specify/templates/spec-template.md (CA-001–CA-004 map correctly)
+- ✅ .specify/templates/tasks-template.md (verification phases and audit runs align)
+- ✅ README.md (stack, commands, and constitution reference are accurate)
+- ✅ .specify/templates/commands/ (directory not present; skills live in .claude/skills/)
 Follow-up TODOs:
 - None
 -->

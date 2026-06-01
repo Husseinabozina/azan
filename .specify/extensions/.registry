@@ -15,7 +15,7 @@
           "speckit.git.initialize",
           "speckit.git.commit"
         ],
-        "codex": [
+        "claude": [
           "speckit.git.feature",
           "speckit.git.validate",
           "speckit.git.remote",
