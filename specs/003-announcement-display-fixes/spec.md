@@ -104,8 +104,9 @@ and no distortion.
 
 3. **Given** an announcement has both an image and text (title and/or body),
    **When** it appears on the display board,
-   **Then** the image is shown prominently and the text overlays or appears
-   below it, remaining legible.
+   **Then** the image fills the announcement zone and the text is overlaid on
+   top of the image with a semi-transparent dark scrim behind it to ensure
+   legibility against any image background.
 
 4. **Given** an image announcement has a schedule set,
    **When** the scheduled time arrives,
@@ -222,11 +223,14 @@ list. The home screen MUST NOT appear.
   legibility from a large-display distance.
 - **FR-003**: The announcement editor MUST provide an "Add Image" control that
   opens the device image library.
-- **FR-004**: A `DisplayAnnouncement` MUST be able to store a reference to an
-  attached image (file path or stored bytes).
+- **FR-004**: A `DisplayAnnouncement` MUST store an optional `imagePath` field
+  pointing to a file copied into app-private storage at attachment time. Storing
+  raw bytes in the persistence layer is explicitly out of scope.
 - **FR-005**: When a display board announcement has an image, the display board
-  screen MUST render that image filling the content area using an appropriate
-  fit mode (cover or contain).
+  screen MUST render that image filling the announcement content zone (the rotating
+  announcement area) using an appropriate fit mode (cover or contain). The prayer
+  times section MUST remain visible at all times, even when an image announcement
+  is active.
 - **FR-006**: Image-type announcements MUST participate in the rotation cycle,
   scheduling, active/inactive state, and pinning behavior identically to
   text announcements.
@@ -275,9 +279,13 @@ list. The home screen MUST NOT appear.
 
 ### Key Entities
 
-- **DisplayAnnouncement**: Extended with an optional `imagePath` (or `imageBytes`)
-  field; serialization must be backward-compatible so existing saved announcements
-  without images continue to load correctly.
+- **DisplayAnnouncement**: Extended with an optional `imagePath` (String?) field
+  pointing to a file in app-private storage. Serialization MUST be
+  backward-compatible so existing announcements without images load correctly
+  with `imagePath` defaulting to `null`.
+- **Image file**: A copy of the original image stored in app-private storage,
+  compressed to ≤ 2 MB at attachment time. The file MUST be deleted when the
+  announcement is deleted.
 - **DisplayBoardSchedule**: No changes required to the schedule model itself;
   the fix is in how often and how early the resolver is called.
 
@@ -303,11 +311,21 @@ list. The home screen MUST NOT appear.
 - **SC-006**: Attached images are stored at ≤ 2 MB per announcement and render
   without visible lag (appear within 1 second) on the display board.
 
+## Clarifications
+
+### Session 2026-06-01
+
+- Q: When an image announcement is showing on the display board, does the image take over the full screen or appear only in the announcement content zone? → A: Image fills the announcement content zone only; the prayer times section remains visible at all times.
+- Q: When an announcement has both an image and text, how are they laid out? → A: Image fills the announcement zone; title/body text overlays on top of the image with a semi-transparent dark scrim behind the text for legibility.
+- Q: How should attached images be stored — file path, bytes in Hive, or device URI? → A: Copy the image into app-private storage on attachment and store the file path in the announcement record.
+
 ## Assumptions
 
 - Image source is the device photo library only (no camera, no URL); this covers
   the primary ministry announcement use case where images are forwarded via
   messaging apps and saved to the device.
+- Images are copied into app-private storage at attachment time; the original
+  device gallery file is not modified or tracked.
 - Image compression and resizing are handled at the time of attachment (before
   storage), not at render time.
 - The display board polling interval fix applies to both landscape home screen

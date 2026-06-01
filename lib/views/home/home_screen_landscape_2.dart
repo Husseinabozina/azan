@@ -9,7 +9,6 @@ import 'package:azan/core/helpers/localizationHelper.dart';
 import 'package:azan/core/helpers/simple_sound_player.dart';
 import 'package:azan/core/models/next_Iqama.dart';
 import 'package:azan/core/models/home_display_mode.dart';
-import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/constants.dart';
@@ -28,7 +27,6 @@ import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
 import 'package:azan/views/home/components/landscape_iqama_countdown_panel.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
-import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -88,7 +86,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
   }
 
   void _syncDisplayBoardMode(DateTime now) {
-    if (_isRoutingByDisplayMode || !mounted) return;
+    if (!mounted) return;
 
     final manualMode = CacheHelper.getHomeDisplayMode();
     final effectiveMode = DisplayBoardScheduleResolver.effectiveDisplayMode(
@@ -103,12 +101,17 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
         );
 
     if (effectiveMode != HomeDisplayMode.displayBoard) {
+      _isRoutingByDisplayMode = false;
       return;
     }
 
-    if (manualMode == HomeDisplayMode.displayBoard || scheduledBoardActive) {
+    // Refresh announcement data so HomeScreen's BlocBuilder re-evaluates the
+    // schedule. Navigation is handled by HomeScreen's own periodic timer —
+    // no pushAndRemoveUntil here so the nav stack (including settings) is preserved.
+    if ((manualMode == HomeDisplayMode.displayBoard || scheduledBoardActive) &&
+        !_isRoutingByDisplayMode) {
       _isRoutingByDisplayMode = true;
-      AppNavigator.pushAndRemoveUntil(context, const HomeScreen());
+      cubit.assignDisplayAnnouncements();
     }
   }
 

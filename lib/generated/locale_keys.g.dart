@@ -240,6 +240,9 @@ abstract class  LocaleKeys {
   static const display_board_move_up = 'display_board_move_up';
   static const display_board_move_down = 'display_board_move_down';
   static const display_board_no_title = 'display_board_no_title';
+  static const display_board_add_image = 'display_board_add_image';
+  static const display_board_remove_image = 'display_board_remove_image';
+  static const display_board_image_permission_denied = 'display_board_image_permission_denied';
   static const prayer_calendar_title = 'prayer_calendar_title';
   static const prayer_calendar_note = 'prayer_calendar_note';
   static const prayer_calendar_editable_today_future = 'prayer_calendar_editable_today_future';

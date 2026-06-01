@@ -41,7 +41,7 @@ class _DisplayBoardPortraitScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                flex: 8,
+                flex: 7,
                 child: SizedBox.expand(
                   child: DisplayBoardAnnouncementStage(
                     announcement: currentAnnouncement,
@@ -51,7 +51,7 @@ class _DisplayBoardPortraitScreenState
               ),
               SizedBox(height: 8.h),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: DisplayBoardPrayerRail(
                   rows: rows,
                   nextPrayerFuture: nextPrayerFuture,

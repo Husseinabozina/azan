@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
@@ -128,90 +129,243 @@ class DisplayBoardAnnouncementStage extends StatelessWidget {
 
     final title = announcement?.title.trim() ?? '';
     final body = announcement?.body.trim() ?? '';
-    final hasAnnouncement = title.isNotEmpty || body.isNotEmpty;
+    final hasText = title.isNotEmpty || body.isNotEmpty;
 
-    return DisplayBoardSurface(
-      padding: EdgeInsets.symmetric(
-        horizontal: isLandscape ? 20.w : 18.w,
-        vertical: isLandscape ? 18.h : 16.h,
-      ),
-      borderRadius: BorderRadius.circular(isLandscape ? 34.r : 28.r),
-      child: SizedBox.expand(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 500),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          child: hasAnnouncement
-              ? Column(
-                  key: ValueKey(
-                    '${announcement!.id}-${announcement!.sortOrder}',
+    final imagePath = announcement?.imagePath;
+    final imageFile = imagePath != null ? File(imagePath) : null;
+    final hasImage = imageFile != null && imageFile.existsSync();
+
+    final hasAnnouncement = hasText || hasImage;
+
+    Widget announcementContent;
+    if (hasImage) {
+      final imageWidget = SizedBox.expand(
+        child: Image.file(
+          imageFile,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        ),
+      );
+
+      if (hasText) {
+        // Image + text: Stack with dark scrim over image, text on top
+        announcementContent = Stack(
+          key: ValueKey(
+            '${announcement!.id}-${announcement!.sortOrder}-img-text',
+          ),
+          children: [
+            imageWidget,
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.18),
+                      Colors.black.withValues(alpha: 0.62),
+                    ],
                   ),
-                  mainAxisAlignment: MainAxisAlignment.center,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Padding(
+                padding: EdgeInsets.all(isLandscape ? 16.r : 12.r),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     if (title.isNotEmpty)
                       AutoSizeText(
                         title,
-                        maxLines: isLandscape ? 3 : 3,
-                        minFontSize: isLandscape ? 24 : 20,
+                        maxLines: isLandscape ? 2 : 2,
+                        minFontSize: isLandscape ? 20 : 16,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: titleFont,
                           fontSize: titleSize,
                           fontWeight: titleBold
                               ? FontWeight.w800
-                              : FontWeight.w500,
+                              : FontWeight.w600,
                           fontStyle: titleItalic
                               ? FontStyle.italic
                               : FontStyle.normal,
-                          color: titleColor,
-                          height: 1.02,
+                          color: Colors.white,
+                          height: 1.1,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.8),
+                              blurRadius: 6,
+                            ),
+                          ],
                         ),
                       ),
                     if (title.isNotEmpty && body.isNotEmpty)
-                      SizedBox(height: isLandscape ? 14.h : 10.h),
+                      SizedBox(height: 6.h),
                     if (body.isNotEmpty)
                       AutoSizeText(
                         body,
-                        maxLines: isLandscape ? 6 : 6,
-                        minFontSize: isLandscape ? 18 : 16,
+                        maxLines: isLandscape ? 3 : 3,
+                        minFontSize: isLandscape ? 14 : 12,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: bodyFont,
                           fontSize: bodySize,
                           fontWeight: bodyBold
-                              ? FontWeight.w700
+                              ? FontWeight.w600
                               : FontWeight.w400,
                           fontStyle: bodyItalic
                               ? FontStyle.italic
                               : FontStyle.normal,
-                          color: bodyColor,
-                          height: 1.12,
+                          color: Colors.white.withValues(alpha: 0.92),
+                          height: 1.15,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.8),
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
                       ),
                   ],
-                )
-              : Column(
-                  key: const ValueKey('empty-board-announcement'),
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.campaign_outlined,
-                      size: isLandscape ? 56.r : 44.r,
-                      color: AppTheme.displayBoardAccentColor,
-                    ),
-                    SizedBox(height: 12.h),
-                    Text(
-                      LocaleKeys.display_board_empty_state.tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: CacheHelper.getTextsFontFamily(),
-                        fontSize: (isLandscape ? 30 : 24).sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.displayBoardSecondaryTextColor,
-                      ),
-                    ),
-                  ],
                 ),
+              ),
+            ),
+          ],
+        );
+      } else {
+        // Image only — no text overlay
+        announcementContent = SizedBox.expand(
+          key: ValueKey(
+            '${announcement!.id}-${announcement!.sortOrder}-img',
+          ),
+          child: Image.file(
+            imageFile,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        );
+      }
+    } else if (hasText) {
+      announcementContent = SingleChildScrollView(
+        key: ValueKey(
+          '${announcement!.id}-${announcement!.sortOrder}',
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            if (title.isNotEmpty)
+              AutoSizeText(
+                title,
+                maxLines: isLandscape ? 3 : 3,
+                minFontSize: isLandscape ? 24 : 20,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: titleFont,
+                  fontSize: titleSize,
+                  fontWeight: titleBold
+                      ? FontWeight.w800
+                      : FontWeight.w500,
+                  fontStyle: titleItalic
+                      ? FontStyle.italic
+                      : FontStyle.normal,
+                  color: titleColor,
+                  height: 1.02,
+                ),
+              ),
+            if (title.isNotEmpty && body.isNotEmpty)
+              SizedBox(height: isLandscape ? 14.h : 10.h),
+            if (body.isNotEmpty)
+              AutoSizeText(
+                body,
+                maxLines: isLandscape ? 6 : 6,
+                minFontSize: isLandscape ? 18 : 16,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: bodyFont,
+                  fontSize: bodySize,
+                  fontWeight: bodyBold
+                      ? FontWeight.w700
+                      : FontWeight.w400,
+                  fontStyle: bodyItalic
+                      ? FontStyle.italic
+                      : FontStyle.normal,
+                  color: bodyColor,
+                  height: 1.12,
+                ),
+              ),
+          ],
+        ),
+      );
+    } else {
+      // No content — empty state placeholder
+      announcementContent = Column(
+        key: const ValueKey('empty-board-announcement'),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.campaign_outlined,
+            size: isLandscape ? 56.r : 44.r,
+            color: AppTheme.displayBoardAccentColor,
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            LocaleKeys.display_board_empty_state.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: CacheHelper.getTextsFontFamily(),
+              fontSize: (isLandscape ? 30 : 24).sp,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.displayBoardSecondaryTextColor,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return DisplayBoardSurface(
+      padding: hasImage
+          ? EdgeInsets.zero
+          : EdgeInsets.symmetric(
+              horizontal: isLandscape ? 20.w : 18.w,
+              vertical: isLandscape ? 18.h : 16.h,
+            ),
+      borderRadius: BorderRadius.circular(isLandscape ? 34.r : 28.r),
+      child: SizedBox.expand(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(isLandscape ? 34.r : 28.r),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            child: hasAnnouncement
+                ? announcementContent
+                : Column(
+                    key: const ValueKey('empty-board-announcement'),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.campaign_outlined,
+                        size: isLandscape ? 56.r : 44.r,
+                        color: AppTheme.displayBoardAccentColor,
+                      ),
+                      SizedBox(height: 12.h),
+                      Text(
+                        LocaleKeys.display_board_empty_state.tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: CacheHelper.getTextsFontFamily(),
+                          fontSize: (isLandscape ? 30 : 24).sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.displayBoardSecondaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );

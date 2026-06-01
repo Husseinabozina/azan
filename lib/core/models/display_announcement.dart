@@ -19,6 +19,7 @@ class DisplayAnnouncement {
     required this.titleColorIndex,
     required this.bodyColorIndex,
     this.schedule,
+    this.imagePath,
   });
 
   final int id;
@@ -38,6 +39,7 @@ class DisplayAnnouncement {
   final int titleColorIndex;
   final int bodyColorIndex;
   final DisplayBoardSchedule? schedule;
+  final String? imagePath;
 
   DisplayAnnouncement copyWith({
     int? id,
@@ -58,6 +60,8 @@ class DisplayAnnouncement {
     int? bodyColorIndex,
     DisplayBoardSchedule? schedule,
     bool clearSchedule = false,
+    String? imagePath,
+    bool clearImagePath = false,
   }) {
     return DisplayAnnouncement(
       id: id ?? this.id,
@@ -77,6 +81,7 @@ class DisplayAnnouncement {
       titleColorIndex: titleColorIndex ?? this.titleColorIndex,
       bodyColorIndex: bodyColorIndex ?? this.bodyColorIndex,
       schedule: clearSchedule ? null : (schedule ?? this.schedule),
+      imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
     );
   }
 
@@ -99,6 +104,7 @@ class DisplayAnnouncement {
       'titleColorIndex': titleColorIndex,
       'bodyColorIndex': bodyColorIndex,
       'schedule': schedule?.toMap(),
+      'imagePath': imagePath,
     };
   }
 
@@ -125,6 +131,7 @@ class DisplayAnnouncement {
               Map<String, dynamic>.from(map['schedule'] as Map),
             )
           : null,
+      imagePath: map['imagePath'] as String?,
     );
   }
 }

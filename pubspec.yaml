@@ -51,6 +51,7 @@ dependencies:
   hijri: ^3.0.0
   hive: null
   hive_flutter: null
+  flutter_image_compress: ^2.3.0
   image_picker: ^1.2.1
   intl: ^0.20.2
   jhijri: ^1.0.0

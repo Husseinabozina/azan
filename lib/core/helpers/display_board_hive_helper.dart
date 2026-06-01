@@ -1,3 +1,4 @@
+import 'package:azan/core/helpers/display_board_image_helper.dart';
 import 'package:azan/core/models/display_announcement.dart';
 import 'package:azan/core/models/display_board_schedule.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -167,6 +168,7 @@ class DisplayBoardHiveHelper {
     int? titleColorIndex,
     int? bodyColorIndex,
     DisplayBoardSchedule? schedule,
+    String? imagePath,
   }) async {
     final box = await _openBox();
     final current = _readAllFromBox(box);
@@ -192,6 +194,7 @@ class DisplayBoardHiveHelper {
       bodyColorIndex:
           bodyColorIndex ?? CacheHelper.getDisplayBoardBodyColorIndex(),
       schedule: schedule,
+      imagePath: imagePath,
     );
 
     current.add(created);
@@ -221,8 +224,15 @@ class DisplayBoardHiveHelper {
   static Future<void> deleteAnnouncement(int id) async {
     final box = await _openBox();
     final current = _readAllFromBox(box);
+    final target = current.cast<DisplayAnnouncement?>().firstWhere(
+      (item) => item?.id == id,
+      orElse: () => null,
+    );
     current.removeWhere((item) => item.id == id);
     await _writeAllToBox(box, current);
+    if (target != null) {
+      await DisplayBoardImageHelper.deleteImageFile(target.imagePath);
+    }
   }
 
   static Future<void> reorderAnnouncements(int oldIndex, int newIndex) async {

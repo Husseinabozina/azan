@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
@@ -6,6 +7,7 @@ import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/global_copyright_footer.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/display_board_hive_helper.dart';
+import 'package:azan/core/helpers/display_board_image_helper.dart';
 import 'package:azan/core/helpers/display_board_schedule_helper.dart';
 import 'package:azan/core/models/display_announcement.dart';
 import 'package:azan/core/models/display_board_schedule.dart';
@@ -23,6 +25,7 @@ import 'package:azan/views/home/home_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 String _boardStyleText({required String ar, required String en}) {
   return CacheHelper.getLang() == 'ar' ? ar : en;
@@ -441,6 +444,7 @@ class _DisplayBoardSettingsScreenState
         ? initial!.bodyColorIndex
         : _bodyColorIndex;
     DisplayBoardSchedule? schedule = initial?.schedule;
+    String? imagePath = initial?.imagePath;
 
     await showAppDialog(
       context: context,
@@ -596,6 +600,66 @@ class _DisplayBoardSettingsScreenState
                       controller: bodyController,
                       label: LocaleKeys.display_board_body.tr(),
                       maxLines: 5,
+                    ),
+                    SizedBox(height: 12.h),
+                    if (imagePath != null &&
+                        File(imagePath!).existsSync()) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12.r),
+                        child: SizedBox(
+                          height: 120.h,
+                          width: double.infinity,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.file(
+                                File(imagePath!),
+                                fit: BoxFit.cover,
+                              ),
+                              Positioned(
+                                top: 4.h,
+                                right: 4.w,
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    await DisplayBoardImageHelper
+                                        .deleteImageFile(imagePath);
+                                    setLocal(() => imagePath = null);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black
+                                          .withValues(alpha: 0.6),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: EdgeInsets.all(4.r),
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 18.r,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                    ],
+                    _BoardActionButton(
+                      label: LocaleKeys.display_board_add_image.tr(),
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final file = await picker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (file == null) return;
+                        final path = await DisplayBoardImageHelper
+                            .copyImageToPrivateStorage(file);
+                        setLocal(() => imagePath = path);
+                      },
+                      filled: false,
+                      foregroundColor: DialogPalette.primaryButtonBackground,
                     ),
                     SizedBox(height: 14.h),
                     Container(
@@ -801,7 +865,8 @@ class _DisplayBoardSettingsScreenState
                             onPressed: () async {
                               final title = titleController.text.trim();
                               final body = bodyController.text.trim();
-                              if (title.isEmpty && body.isEmpty) {
+                              // Allow save with image even if title and body are empty
+                              if (title.isEmpty && body.isEmpty && imagePath == null) {
                                 return;
                               }
                               if (schedule != null &&
@@ -826,8 +891,16 @@ class _DisplayBoardSettingsScreenState
                                   titleColorIndex: titleColorIndex,
                                   bodyColorIndex: bodyColorIndex,
                                   schedule: schedule,
+                                  imagePath: imagePath,
                                 );
                               } else {
+                                // Delete old image file if replaced or removed
+                                if (initial.imagePath != null &&
+                                    initial.imagePath != imagePath) {
+                                  await DisplayBoardImageHelper.deleteImageFile(
+                                    initial.imagePath,
+                                  );
+                                }
                                 await DisplayBoardHiveHelper.updateAnnouncement(
                                   initial.copyWith(
                                     title: title,
@@ -846,6 +919,8 @@ class _DisplayBoardSettingsScreenState
                                     bodyColorIndex: bodyColorIndex,
                                     schedule: schedule,
                                     clearSchedule: schedule == null,
+                                    imagePath: imagePath,
+                                    clearImagePath: imagePath == null,
                                   ),
                                 );
                               }
@@ -1801,6 +1876,19 @@ class _AnnouncementTile extends StatelessWidget {
                   color: AppTheme.accentColor,
                   size: 20.r,
                 ),
+              if (item.imagePath != null &&
+                  File(item.imagePath!).existsSync()) ...[
+                SizedBox(width: 8.w),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Image.file(
+                    File(item.imagePath!),
+                    width: 40.r,
+                    height: 40.r,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
             ],
           ),
           if (item.body.isNotEmpty) SizedBox(height: 6.h),
