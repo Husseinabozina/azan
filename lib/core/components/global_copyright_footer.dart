@@ -8,7 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class GlobalCopyrightFooter extends StatelessWidget {
-  const GlobalCopyrightFooter({super.key});
+  const GlobalCopyrightFooter({super.key, this.cityOnly = false, this.label});
+
+  final bool cityOnly;
+  final String? label;
 
   static const String _brand = 'rawayie.sa';
   static const String _fallbackCity = '--';
@@ -53,12 +56,37 @@ class GlobalCopyrightFooter extends StatelessWidget {
             if (cubit.isBlackScreenVisible) return const SizedBox.shrink();
 
             final cityEn = _resolveCityEn(cubit);
+            final cityLabel = cityEn.toLowerCase();
+
+            if (cityOnly) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: AppTheme.primaryTextColor,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'sa.$cityLabel',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryTextColor,
+                    ),
+                  ),
+                ],
+              );
+            }
+
             return FutureBuilder<String>(
               future: _versionFuture,
               builder: (context, snapshot) {
                 final version = snapshot.data ?? _fallbackVersion;
-                final cityLabel = cityEn.toLowerCase();
-
                 return FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(

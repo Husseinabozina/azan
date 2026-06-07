@@ -1,12 +1,13 @@
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/constants.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:azan/core/components/global_copyright_footer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutAppScreen extends StatefulWidget {
   const AboutAppScreen({super.key});
@@ -33,7 +34,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      bottomNavigationBar: const GlobalCopyrightFooter(),
+      bottomNavigationBar: const GlobalCopyrightFooter(cityOnly: true),
       key: _scaffoldKey,
       drawer: CustomDrawer(context: context),
       body: Stack(
@@ -69,8 +70,32 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                               ),
                             ),
                             SizedBox(height: 30.h),
+
+                            SizedBox(height: 10.h),
                             Text(
-                              LocaleKeys.about_app_dedicated_message.tr(),
+                              LocaleKeys.about_app_details.tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 27.sp,
+                                height: 1.65,
+                                color: AppTheme.primaryTextColor,
+                                fontFamily: "SULTAN",
+                              ),
+                            ),
+                            SizedBox(height: 10.h),
+                            Text(
+                              LocaleKeys.unified_number.tr() + unifiedNumber,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 27.sp,
+                                height: 1.65,
+                                color: AppTheme.primaryTextColor,
+                                fontFamily: "SULTAN",
+                              ),
+                            ),
+                            SizedBox(height: 26.h),
+                            Text(
+                              LocaleKeys.website.tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 27.sp,
@@ -79,18 +104,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 fontFamily: CacheHelper.getTextsFontFamily(),
                               ),
                             ),
-                            SizedBox(height: 10.h),
-                            Text(
-                              'This application is 100% freeware!',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 24.sp,
-                                height: 1.55,
-                                color: AppTheme.primaryTextColor,
-                                fontFamily: CacheHelper.getTextsFontFamily(),
-                              ),
-                            ),
-                            SizedBox(height: 26.h),
+                            SizedBox(height: 6.h),
                             GestureDetector(
                               onTap: _openSite,
                               child: Text(

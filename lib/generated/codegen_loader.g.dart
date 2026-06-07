@@ -672,7 +672,12 @@ static const Map<String,dynamic> _en = {
   "offline_calendar_supported_range": "Supported range",
   "offline_calendar_out_of_range": "This date is outside the supported official Hijri window",
   "offline_calendar_city_reselect_required": "Please reselect a supported offline city to continue",
-  "offline_calendar_bundle_refresh_failed": "The official Umm al-Qura data could not be refreshed for this date"
+  "offline_calendar_bundle_refresh_failed": "The official Umm al-Qura data could not be refreshed for this date",
+  "mosque_location": "Mosque Location",
+  "about_app_details": "Saudi Arabia is a great information technology company",
+  "unified_number": "Unified number:",
+  "location": "Location:",
+  "website": "Website:"
 };
 static const Map<String,dynamic> _ar = {
   "arabic": "العربية",
@@ -1009,7 +1014,12 @@ static const Map<String,dynamic> _ar = {
   "offline_calendar_supported_range": "النطاق المدعوم",
   "offline_calendar_out_of_range": "هذا التاريخ خارج نافذة الدعم الرسمية الهجرية",
   "offline_calendar_city_reselect_required": "يرجى إعادة اختيار مدينة مدعومة للمتابعة",
-  "offline_calendar_bundle_refresh_failed": "تعذر تحديث بيانات أم القرى الرسمية لهذا التاريخ"
+  "offline_calendar_bundle_refresh_failed": "تعذر تحديث بيانات أم القرى الرسمية لهذا التاريخ",
+  "mosque_location": "موقع المسجد",
+  "about_app_details": "المملكة العربية السعودية مؤسسة روائع لتقنية المعلومات ",
+  "unified_number": "الرقم الموحد:",
+  "location": "الموقع:",
+  "website": "الموقع الإلكتروني:"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"bn": _bn, "en": _en, "ar": _ar};
 }

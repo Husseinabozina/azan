@@ -328,5 +328,10 @@ abstract class  LocaleKeys {
   static const offline_calendar_out_of_range = 'offline_calendar_out_of_range';
   static const offline_calendar_city_reselect_required = 'offline_calendar_city_reselect_required';
   static const offline_calendar_bundle_refresh_failed = 'offline_calendar_bundle_refresh_failed';
+  static const mosque_location = 'mosque_location';
+  static const about_app_details = 'about_app_details';
+  static const unified_number = 'unified_number';
+  static const location = 'location';
+  static const website = 'website';
 
 }
