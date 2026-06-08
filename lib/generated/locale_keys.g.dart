@@ -52,6 +52,15 @@ abstract class  LocaleKeys {
   static const mosque_azkar_are_displayed_at_the_bottom_of_the_screen = 'mosque_azkar_are_displayed_at_the_bottom_of_the_screen';
   static const something_went_wrong_please_try_again = 'something_went_wrong_please_try_again';
   static const azkar_note = 'azkar_note';
+  static const mosque_announcements_bottom_title = 'mosque_announcements_bottom_title';
+  static const mosque_announcements_note = 'mosque_announcements_note';
+  static const announcement_display_duration = 'announcement_display_duration';
+  static const enable_slides = 'enable_slides';
+  static const display_slides_randomly = 'display_slides_randomly';
+  static const slide_display_duration = 'slide_display_duration';
+  static const add_slide = 'add_slide';
+  static const slides_center_title = 'slides_center_title';
+  static const slides_center_note = 'slides_center_note';
   static const enable_slider = 'enable_slider';
   static const add_message = 'add_message';
   static const daily = 'daily';
@@ -62,7 +71,6 @@ abstract class  LocaleKeys {
   static const short_azan_sound = 'short_azan_sound';
   static const short_iqama_sound = 'short_iqama_sound';
   static const no_prayer_times = 'no_prayer_times';
-  static const saturday = 'saturday';
   static const day_saturday = 'day_saturday';
   static const day_sunday = 'day_sunday';
   static const day_monday = 'day_monday';
@@ -289,6 +297,8 @@ abstract class  LocaleKeys {
   static const dialog_custom_feature_3 = 'dialog_custom_feature_3';
   static const dialog_custom_close = 'dialog_custom_close';
   static const dialog_custom_ok = 'dialog_custom_ok';
+  static const dialog_ok = 'dialog_ok';
+  static const dialog_cancel = 'dialog_cancel';
   static const dedication_title = 'dedication_title';
   static const dedication_subtitle = 'dedication_subtitle';
   static const dedication_card_title = 'dedication_card_title';
@@ -303,8 +313,10 @@ abstract class  LocaleKeys {
   static const weather_source_auto = 'weather_source_auto';
   static const weather_source_auto_hint = 'weather_source_auto_hint';
   static const weather_source_manual = 'weather_source_manual';
+  static const weather_source_manual_hint = 'weather_source_manual_hint';
   static const weather_source_manual_no_coords = 'weather_source_manual_no_coords';
   static const enter_gps_coordinates = 'enter_gps_coordinates';
+  static const enter_gps_coordinates_hint = 'enter_gps_coordinates_hint';
   static const please_fill_all_fields = 'please_fill_all_fields';
   static const invalid_coordinates = 'invalid_coordinates';
   static const latitude = 'latitude';
