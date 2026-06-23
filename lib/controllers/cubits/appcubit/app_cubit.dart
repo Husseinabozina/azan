@@ -791,6 +791,8 @@ class AppCubit extends Cubit<AppState> {
 
   static AppCubit get(context) => BlocProvider.of(context);
 
+  void notifyAppChanged() => emit(AppChanged());
+
   final AzanDataSource azanDataSource = AzanDataSourceImpl(Dio());
 
   HomeScreenMobileState? homeScreenMobile;

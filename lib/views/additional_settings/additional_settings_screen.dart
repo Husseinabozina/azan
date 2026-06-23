@@ -1466,6 +1466,7 @@ class _FontsGrid extends StatelessWidget {
             selected: _pick(CacheHelper.getTextsFontFamily(), textsFonts),
             onSelect: (v) {
               CacheHelper.setTextsFontFamily(v);
+              AppCubit.get(context).notifyAppChanged();
               onChanged();
             },
           ),
@@ -1480,6 +1481,7 @@ class _FontsGrid extends StatelessWidget {
             selected: _pick(CacheHelper.getTimesFontFamily(), timesFonts),
             onSelect: (v) {
               CacheHelper.setTimesFontFamily(v);
+              AppCubit.get(context).notifyAppChanged();
               onChanged();
             },
           ),
@@ -1494,6 +1496,7 @@ class _FontsGrid extends StatelessWidget {
             selected: _pick(CacheHelper.getTimeFontFamily(), timeFonts),
             onSelect: (v) {
               CacheHelper.setTimeFontFamily(v);
+              AppCubit.get(context).notifyAppChanged();
               onChanged();
             },
           ),
@@ -1508,6 +1511,7 @@ class _FontsGrid extends StatelessWidget {
             selected: _pick(CacheHelper.getAzkarFontFamily(), azkarFonts),
             onSelect: (v) {
               CacheHelper.setAzkarFontFamily(v);
+              AppCubit.get(context).notifyAppChanged();
               onChanged();
             },
           ),
