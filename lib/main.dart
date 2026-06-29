@@ -33,7 +33,7 @@ void main() async {
   await DhikrHiveHelper.ensureInitialAzkar(azkar);
   await ManagedAzkarHiveHelper.ensureInitialAzkarSets();
   await SlideHiveHelper.ensureInitialSlides(ayat);
-
+  
   runApp(
     EasyLocalization(
       path: 'assets/Lang',

@@ -1,13 +1,9 @@
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/models/dhikr_schedule.dart';
 import 'package:azan/core/models/diker.dart';
-import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/core/utils/device_kind_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/home_screen_landscape.dart';
-import 'package:azan/views/home/home_screen_mobile.dart';
-import 'package:azan/views/select_location/select_location_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +14,7 @@ const String ksaFont = "KSA";
 const String tahaFont = "TAHA";
 const String sultanFont = "SULTAN";
 const String fodaFont = "FODA";
+const String uthmanicFont = "Othmani Regular";
 
 // ===== CLOCK / TIMES =====
 const String freeSerifBoldFont = "FreeSerifBold";

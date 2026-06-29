@@ -17,7 +17,7 @@ class AzanAdjustSettings {
 
   factory AzanAdjustSettings.defaults() => const AzanAdjustSettings(
     ramadanIshaPlus30: true,
-    summerPlusHour: true,
+    summerPlusHour: false,
     manualAllShiftMinutes: 0,
     perPrayerMinutes: [0, 0, 0, 0, 0, 0],
   );
@@ -71,7 +71,7 @@ class AzanAdjustSettings {
 
     return AzanAdjustSettings(
       ramadanIshaPlus30: (json["ramadanIshaPlus30"] as bool?) ?? true,
-      summerPlusHour: (json["summerPlusHour"] as bool?) ?? true,
+      summerPlusHour: (json["summerPlusHour"] as bool?) ?? false,
       manualAllShiftMinutes:
           (json["manualAllShiftMinutes"] as num?)?.toInt() ?? 0,
       perPrayerMinutes: list,

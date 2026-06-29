@@ -64,7 +64,7 @@ class UmmAlQuraBundleManifest {
   }
 
   String get officialSourceToken =>
-      '$schemaVersion@${generatedAt.toUtc().toIso8601String()}';
+      '$schemaVersion@${generatedAt.toUtc().toIso8601String()}@${availableHijriYears.join('-')}';
 
   void validateShape() {
     if (schemaVersion != 1) {

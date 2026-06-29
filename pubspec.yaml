@@ -94,6 +94,9 @@ flutter:
       fonts:
         - asset: assets/fonts/KSARegular.ttf
           weight: 400
+    - family: Othmani Regular
+      fonts:
+        - asset: assets/fonts/Othmani_Regular.ttf
 
     - family: Taha
       fonts:

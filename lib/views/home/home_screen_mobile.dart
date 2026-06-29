@@ -1241,8 +1241,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                                   CacheHelper.getSlidesDisplaySeconds(),
                                             ),
                                             randomOrder: false,
-                                            fontFamily:
-                                                CacheHelper.getTextsFontFamily(),
+                                            fontFamily: uthmanicFont,
                                             textColor:
                                                 AppTheme.primaryTextColor,
                                           ),
