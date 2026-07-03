@@ -5,6 +5,7 @@ import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/global_copyright_footer.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
+import 'package:azan/core/utils/dialoge_helper.dart';
 import 'package:azan/core/utils/mqscale.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
@@ -38,13 +39,17 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
 
     FocusScope.of(context).unfocus();
 
+    // Build the query manually so spaces are encoded as %20 (not '+').
+    // Uri's queryParameters uses application/x-www-form-urlencoded encoding,
+    // which turns spaces into '+', and Gmail shows those '+' literally in the
+    // subject instead of decoding them back to spaces.
+    final subject = LocaleKeys.contact_us_email_subject.tr();
+    final body = _messageController.text.trim();
     final mailUri = Uri(
       scheme: 'mailto',
       path: _supportEmail,
-      queryParameters: <String, String>{
-        'subject': LocaleKeys.contact_us_email_subject.tr(),
-        'body': _messageController.text.trim(),
-      },
+      query:
+          'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
 
     final opened = await launchUrl(
@@ -455,75 +460,49 @@ class _ComposerPanel extends StatelessWidget {
               ),
             ),
             SizedBox(height: metrics.fieldGap),
-            Directionality(
+            VirtualTextField(
+              key: const ValueKey('contact-us-message-field'),
+              controller: messageController,
+              maxLines: metrics.messageMaxLines,
+              hintText: LocaleKeys.contact_us_message_hint.tr(),
+              textAlign: TextAlign.right,
               textDirection: ui.TextDirection.rtl,
-              child: TextFormField(
-                key: const ValueKey('contact-us-message-field'),
-                controller: messageController,
-                minLines: metrics.messageMinLines,
-                maxLines: metrics.messageMaxLines,
-                keyboardType: TextInputType.multiline,
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: metrics.bodySize,
-                  fontFamily: CacheHelper.getTextsFontFamily(),
-                ),
-                decoration: InputDecoration(
-                  hintText: LocaleKeys.contact_us_message_hint.tr(),
-                  hintStyle: TextStyle(
-                    color: AppTheme.secondaryTextColor.withOpacity(0.82),
-                    fontSize: metrics.bodySize,
-                    fontFamily: CacheHelper.getTextsFontFamily(),
+              minFieldHeight:
+                  metrics.bodySize * metrics.messageMinLines * 1.35,
+              borderRadius: metrics.fieldRadius,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: metrics.fieldHorizontalPadding,
+                vertical: metrics.fieldVerticalPadding,
+              ),
+              textStyle: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontSize: metrics.bodySize,
+                fontFamily: CacheHelper.getTextsFontFamily(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return LocaleKeys.contact_us_empty_error.tr();
+                }
+                return null;
+              },
+              theme: VirtualKeyboardFieldTheme(
+                fillColor: Colors.white.withOpacity(0.10),
+                borderColor: Colors.white.withOpacity(0.20),
+                activeBorderColor: AppTheme.accentColor.withOpacity(0.88),
+                errorBorderColor: const Color(0xFFE57373),
+                textColor: AppTheme.primaryTextColor,
+                hintColor: AppTheme.secondaryTextColor.withOpacity(0.82),
+                labelColor: AppTheme.secondaryTextColor,
+                keyboardTextColor: const Color(0xFF18202A),
+                keyboardBackgroundColor: Colors.white,
+                keyboardBorderColor: const Color(0x66D4A64A),
+                keyboardShadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
                   ),
-                  alignLabelWithHint: true,
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.10),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: metrics.fieldHorizontalPadding,
-                    vertical: metrics.fieldVerticalPadding,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(metrics.fieldRadius),
-                    borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.20),
-                      width: 1,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(metrics.fieldRadius),
-                    borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.20),
-                      width: 1,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(metrics.fieldRadius),
-                    borderSide: BorderSide(
-                      color: AppTheme.accentColor.withOpacity(0.88),
-                      width: 2,
-                    ),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(metrics.fieldRadius),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFE57373),
-                      width: 1.5,
-                    ),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(metrics.fieldRadius),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFE57373),
-                      width: 2,
-                    ),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return LocaleKeys.contact_us_empty_error.tr();
-                  }
-                  return null;
-                },
+                ],
               ),
             ),
             SizedBox(height: metrics.fieldGap),

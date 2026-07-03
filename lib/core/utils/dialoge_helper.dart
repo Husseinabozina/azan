@@ -552,6 +552,7 @@ class VirtualSearchField extends StatelessWidget {
     this.contentPadding,
     this.borderRadius,
     this.textStyle,
+    this.maxKeyboardHeight,
     this.theme = const VirtualKeyboardFieldTheme(
       fillColor: DialogPalette.inputFillColor,
       borderColor: DialogPalette.inputBorderColor,
@@ -580,6 +581,7 @@ class VirtualSearchField extends StatelessWidget {
   final EdgeInsetsGeometry? contentPadding;
   final double? borderRadius;
   final TextStyle? textStyle;
+  final double? maxKeyboardHeight;
   final VirtualKeyboardFieldTheme theme;
 
   @override
@@ -601,6 +603,7 @@ class VirtualSearchField extends StatelessWidget {
       minFieldHeight: sizing.textFieldHeight,
       borderRadius: borderRadius,
       textStyle: textStyle,
+      maxKeyboardHeight: maxKeyboardHeight,
       theme: theme,
       kind: _VirtualKeyboardFieldKind.text,
     );
@@ -848,6 +851,7 @@ class _VirtualKeyboardEditableField extends StatefulWidget {
     required this.theme,
     this.allowNegative = false,
     this.obscureText = false,
+    this.maxKeyboardHeight,
   });
 
   final TextEditingController controller;
@@ -870,6 +874,7 @@ class _VirtualKeyboardEditableField extends StatefulWidget {
   final VirtualKeyboardFieldTheme theme;
   final bool allowNegative;
   final bool obscureText;
+  final double? maxKeyboardHeight;
 
   @override
   State<_VirtualKeyboardEditableField> createState() =>
@@ -1020,9 +1025,14 @@ class _VirtualKeyboardEditableFieldState
           fontSize: sizing.bodyFontSize * 0.82,
           fontWeight: FontWeight.w600,
         );
-    final keyboardHeight = sizing.isLandscape
+    // ارتفاع الكيبورد بُعد ergonomic ثابت (حجم اللمسة) — ميكبرش بلا حدود على
+    // الشاشات الكبيرة. في الـ dialogs الضيقة بنحدّه بـ maxKeyboardHeight.
+    final defaultKeyboardHeight = sizing.isLandscape
         ? (widget.kind == _VirtualKeyboardFieldKind.numeric ? 220.0 : 230.0)
         : (widget.kind == _VirtualKeyboardFieldKind.numeric ? 240.0 : 260.0);
+    final keyboardHeight = widget.maxKeyboardHeight != null
+        ? widget.maxKeyboardHeight!.clamp(120.0, defaultKeyboardHeight)
+        : defaultKeyboardHeight;
 
     return FormField<String>(
       key: _fieldKey,
@@ -1289,11 +1299,13 @@ class DialogSearchField extends StatelessWidget {
     required this.controller,
     required this.hint,
     this.onChanged,
+    this.maxKeyboardHeight,
   });
 
   final TextEditingController controller;
   final String hint;
   final ValueChanged<String>? onChanged;
+  final double? maxKeyboardHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -1313,6 +1325,7 @@ class DialogSearchField extends StatelessWidget {
         horizontal: sizing.screenWidth * 0.03,
         vertical: sizing.screenHeight * 0.014,
       ),
+      maxKeyboardHeight: maxKeyboardHeight,
     );
   }
 }

@@ -96,7 +96,25 @@ flutter:
           weight: 400
     - family: Othmani Regular
       fonts:
-        - asset: assets/fonts/Othmani_Regular.ttf
+        - asset: assets/fonts/Othmani Regular.ttf
+    - family: UthmanTN_v2-0
+      fonts:
+        - asset: assets/fonts/UthmanTN_v2-0.ttf
+    - family: uthmanic_hafs_v20
+      fonts:
+        - asset: assets/fonts/uthmanic_hafs_v20.ttf
+    - family: uthman_tn1b_ver20
+      fonts:
+        - asset: assets/fonts/uthman_tn1b_ver20.ttf
+    - family: uthman_tn1_ver20
+      fonts:
+        - asset: assets/fonts/uthman_tn1_ver20.ttf
+    - family: UthmanTNB_v2-0
+      fonts:
+        - asset: assets/fonts/UthmanTNB_v2-0.ttf
+    - family: UthmanicHafs_V22
+      fonts:
+        - asset: assets/fonts/UthmanicHafs_V22.ttf
 
     - family: Taha
       fonts:

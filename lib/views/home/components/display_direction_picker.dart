@@ -50,29 +50,31 @@ class DisplayDirectionPicker extends StatelessWidget {
         return ConstrainedBox(
           key: const ValueKey('display-direction-picker'),
           constraints: BoxConstraints(maxWidth: 520.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              DialogTitle(
-                LocaleKeys.display_direction_title.tr(),
-                icon: Icons.screen_rotation_alt_outlined,
-              ),
-              SizedBox(height: 14.h),
-              ..._options.map(
-                (option) => Padding(
-                  padding: EdgeInsets.only(bottom: 8.h),
-                  child: _DirectionOptionTile(
-                    option: option,
-                    selected: option.quarterTurns == selectedQuarterTurns,
-                    onTap: () {
-                      cubit.selectDisplayDirection(option.quarterTurns);
-                      onDirectionSelected?.call();
-                    },
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DialogTitle(
+                  LocaleKeys.display_direction_title.tr(),
+                  icon: Icons.screen_rotation_alt_outlined,
+                ),
+                SizedBox(height: 14.h),
+                ..._options.map(
+                  (option) => Padding(
+                    padding: EdgeInsets.only(bottom: 8.h),
+                    child: _DirectionOptionTile(
+                      option: option,
+                      selected: option.quarterTurns == selectedQuarterTurns,
+                      onTap: () {
+                        cubit.selectDisplayDirection(option.quarterTurns);
+                        onDirectionSelected?.call();
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

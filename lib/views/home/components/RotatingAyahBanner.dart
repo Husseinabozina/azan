@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:azan/core/utils/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -250,7 +251,7 @@ class _RotatingAyahBannerState extends State<RotatingAyahBanner> {
                   style: TextStyle(
                     fontSize: fs,
                     fontWeight: FontWeight.bold,
-                    fontFamily: widget.fontFamily,
+                    fontFamily: uthmanTN1Bv20Font,
                     color:
                         widget.textColor ??
                         Theme.of(context).colorScheme.onSurface,

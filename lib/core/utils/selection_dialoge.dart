@@ -57,51 +57,99 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
       return label.contains(q);
     }).toList();
 
+    final listView = DialogContentCard(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+      child: ListView.separated(
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          final item = filtered[index];
+          final label = widget.labelBuilder(item);
+          return DialogSelectableTile(
+            key: ValueKey('selection-tile-$label'),
+            title: label,
+            onTap: () {
+              Navigator.of(context).pop(item);
+              widget.onSelected(item);
+            },
+          );
+        },
+        separatorBuilder: (_, __) => SizedBox(height: 8.h),
+        itemCount: filtered.length,
+      ),
+    );
+
     return UniversalDialogShell(
       forceMaxHeight: true,
       customMaxWidth: sizing.isLandscape ? 620.w : sizing.dialogWidth,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Row(
-            children: [
-              Expanded(child: DialogTitle(widget.title)),
-              DialogCloseButton(onPressed: () => Navigator.of(context).pop()),
-            ],
-          ),
-          SizedBox(height: sizing.verticalGap * 0.7),
-          DialogSearchField(
-            key: const ValueKey('selection-dialog-search'),
-            controller: _searchController,
-            hint: widget.searchHint,
-            onChanged: (value) => setState(() => _query = value),
-          ),
-          SizedBox(height: sizing.verticalGap * 0.7),
-          Flexible(
-            child: DialogContentCard(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  final item = filtered[index];
-                  final label = widget.labelBuilder(item);
+      child: sizing.isLandscape
+          ? LayoutBuilder(
+              builder: (context, constraints) {
+                // كل القياسات مشتقّة من sizing — مفيش أرقام ثابتة.
+                // العنوان worst-case سطرين، والـ field بارتفاعه الفعلي.
+                final titleH = sizing.titleFontSize * 1.3 * 2;
+                final fieldH = sizing.textFieldHeight;
+                final gap = sizing.verticalGap * 0.7;
+                final kbPad = sizing.verticalGap * 0.55;
+                final maxKbH =
+                    constraints.maxHeight - titleH - gap - fieldH - kbPad;
 
-                  return DialogSelectableTile(
-                    key: ValueKey('selection-tile-$label'),
-                    title: label,
-                    onTap: () {
-                      Navigator.of(context).pop(item);
-                      widget.onSelected(item);
-                    },
-                  );
-                },
-                separatorBuilder: (_, __) => SizedBox(height: 8.h),
-                itemCount: filtered.length,
-              ),
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(child: DialogTitle(widget.title)),
+                              DialogCloseButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: gap),
+                          DialogSearchField(
+                            key: const ValueKey('selection-dialog-search'),
+                            controller: _searchController,
+                            hint: widget.searchHint,
+                            onChanged: (value) =>
+                                setState(() => _query = value),
+                            // الـ field بيعمل clamp(120, default) داخلياً
+                            maxKeyboardHeight: maxKbH,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: sizing.verticalGap),
+                    Expanded(flex: 5, child: listView),
+                  ],
+                );
+              },
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: DialogTitle(widget.title)),
+                    DialogCloseButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: sizing.verticalGap * 0.7),
+                DialogSearchField(
+                  key: const ValueKey('selection-dialog-search'),
+                  controller: _searchController,
+                  hint: widget.searchHint,
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+                SizedBox(height: sizing.verticalGap * 0.7),
+                Flexible(child: listView),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

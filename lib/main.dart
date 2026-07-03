@@ -33,7 +33,7 @@ void main() async {
   await DhikrHiveHelper.ensureInitialAzkar(azkar);
   await ManagedAzkarHiveHelper.ensureInitialAzkarSets();
   await SlideHiveHelper.ensureInitialSlides(ayat);
-  
+
   runApp(
     EasyLocalization(
       path: 'assets/Lang',
@@ -63,6 +63,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     cubit = UiRotationCubit();
+    cubit.changeIsLandscape(false);
 
     // widget ensure initialized
 
