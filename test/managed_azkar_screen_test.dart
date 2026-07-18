@@ -133,6 +133,10 @@ void main() {
 
     await tester.tap(find.text('إضافة جديد').first);
     await pumpManagedScreenFrame(tester);
+    expect(find.text('استيراد جماعي'), findsOneWidget);
+    expect(find.text('استيراد من ملف'), findsOneWidget);
+    expect(find.text('كتابة عنصر يدوي'), findsOneWidget);
+    expect(find.text('لصق جماعي'), findsNothing);
     expect(find.text('الصلوات المعنية'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('managed-azkar-prayer-1')),

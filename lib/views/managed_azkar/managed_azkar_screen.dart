@@ -82,12 +82,11 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
   }
 
   Future<void> _showEditor({ManagedAzkarEntry? entry}) async {
-    await showManagedAzkarEditorDialog(
+    final importMessage = await _showManagedAzkarEditorDialog(
       context,
       type: _selectedType,
       initialEntry: entry,
       onImportFile: entry == null ? _importFromFile : null,
-      onPasteBulk: entry == null ? _importFromClipboard : null,
       onSubmit: (text, applicablePrayerIds) async {
         if (entry == null) {
           await ManagedAzkarHiveHelper.addEntry(
@@ -106,9 +105,21 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
         await _loadEntries();
       },
     );
+
+    if (!mounted || importMessage == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          importMessage,
+          textDirection: ui.TextDirection.rtl,
+          textAlign: TextAlign.right,
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
-  Future<String?> _importFromFile() async {
+  Future<_ManagedAzkarImportFeedback?> _importFromFile() async {
     PlatformFile? file;
     try {
       final picked = await FilePicker.platform.pickFiles(
@@ -119,9 +130,13 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
       );
       file = picked?.files.single;
     } on PlatformException {
-      return 'الجهاز لا يحتوي على تطبيق لاختيار الملفات. على بعض شاشات Android TV لا يوجد مدير ملفات، استخدم "لصق جماعي" أو ثبّت مدير ملفات/Document Picker على الشاشة.';
+      return const _ManagedAzkarImportFeedback.error(
+        'الجهاز لا يحتوي على تطبيق لاختيار الملفات. على بعض شاشات Android TV لا يوجد مدير ملفات، ثبّت مدير ملفات/Document Picker على الشاشة أو جرّب من جهاز آخر.',
+      );
     } catch (_) {
-      return 'تعذر فتح اختيار الملفات على هذا الجهاز. استخدم لصق جماعي أو جرّب من جهاز يحتوي على مدير ملفات.';
+      return const _ManagedAzkarImportFeedback.error(
+        'تعذر فتح اختيار الملفات على هذا الجهاز. جرّب من جهاز يحتوي على مدير ملفات.',
+      );
     }
 
     if (file == null) return null;
@@ -130,10 +145,14 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
         file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
     if (bytes == null || bytes.isEmpty) {
-      return 'لم نتمكن من قراءة الملف. جرّب ملف TXT أو CSV أو XLSX واضح.';
+      return const _ManagedAzkarImportFeedback.error(
+        'لم نتمكن من قراءة الملف. جرّب ملف TXT أو CSV أو XLSX واضح.',
+      );
     }
     if (bytes.length > 5 * 1024 * 1024) {
-      return 'حجم الملف أكبر من 5MB. قسّم المحتوى إلى ملف أصغر.';
+      return const _ManagedAzkarImportFeedback.error(
+        'حجم الملف أكبر من 5MB. قسّم المحتوى إلى ملف أصغر.',
+      );
     }
 
     return _importParsedContent(
@@ -143,21 +162,7 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
     );
   }
 
-  Future<String?> _importFromClipboard() async {
-    final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
-    final content = clipboard?.text ?? '';
-    if (content.trim().isEmpty) {
-      return 'لا يوجد نص منسوخ حاليًا.';
-    }
-
-    return _importParsedContent(
-      content: content,
-      sourceName: 'clipboard.txt',
-      successPrefix: 'تم استيراد النص المنسوخ',
-    );
-  }
-
-  Future<String?> _importParsedContent({
+  Future<_ManagedAzkarImportFeedback?> _importParsedContent({
     String? content,
     List<int>? bytes,
     required String sourceName,
@@ -176,9 +181,11 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
           );
 
     if (result.entries.isEmpty) {
-      return result.warnings.isEmpty
-          ? 'لم يتم العثور على عناصر صالحة للاستيراد.'
-          : result.warnings.join('\n');
+      return _ManagedAzkarImportFeedback.error(
+        result.warnings.isEmpty
+            ? 'لم يتم العثور على عناصر صالحة للاستيراد.'
+            : result.warnings.join('\n'),
+      );
     }
 
     final count = await ManagedAzkarHiveHelper.importEntries(
@@ -191,7 +198,9 @@ class _ManagedAzkarScreenState extends State<ManagedAzkarScreen> {
     final warnings = result.warnings.isEmpty
         ? ''
         : '\n\nملاحظات:\n${result.warnings.take(2).join('\n')}';
-    return '$successPrefix: $count عنصر إلى ${_selectedType.defaultTitle}.$warnings';
+    return _ManagedAzkarImportFeedback.success(
+      '$successPrefix: $count عنصر إلى ${_selectedType.defaultTitle}.$warnings',
+    );
   }
 
   Future<void> _deleteEntry(ManagedAzkarEntry entry) async {
@@ -531,62 +540,29 @@ class _ManagedAzkarControls extends StatelessWidget {
 }
 
 class _ContentImportGrid extends StatelessWidget {
-  const _ContentImportGrid({
-    required this.onImportFile,
-    required this.onPasteBulk,
-  });
+  const _ContentImportGrid({required this.onImportFile});
 
   final VoidCallback onImportFile;
-  final VoidCallback onPasteBulk;
 
   @override
   Widget build(BuildContext context) {
     final isLandscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
-    final cards = [
-      _ContentImportCard(
-        icon: Icons.table_chart_rounded,
-        title: 'استيراد من ملف',
-        description: 'اختر ملف Excel أو CSV أو TXT جاهز للاستيراد.',
-        actionLabel: 'اختر ملف',
-        onTap: onImportFile,
-        compact: isLandscape,
-        stretchContent: isLandscape,
-      ),
-      _ContentImportCard(
-        icon: Icons.content_paste_go_rounded,
-        title: 'لصق جماعي',
-        description: 'انسخ النصوص من الحاسب أو الجوال، أو استخدم ملف TXT.',
-        actionLabel: 'لصق محتوى',
-        onTap: onPasteBulk,
-        compact: isLandscape,
-        stretchContent: isLandscape,
-      ),
-    ];
+    final card = _ContentImportCard(
+      icon: Icons.table_chart_rounded,
+      title: 'استيراد من ملف',
+      description: 'اختر ملف Excel أو CSV أو TXT جاهز للاستيراد.',
+      actionLabel: 'اختر ملف',
+      onTap: onImportFile,
+      compact: isLandscape,
+      stretchContent: isLandscape,
+    );
 
     if (isLandscape) {
-      return SizedBox(
-        height: 144.h,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < cards.length; i++) ...[
-              if (i > 0) SizedBox(width: 8.w),
-              Expanded(child: cards[i]),
-            ],
-          ],
-        ),
-      );
+      return SizedBox(height: 144.h, child: card);
     }
 
-    return Column(
-      children: [
-        for (var i = 0; i < cards.length; i++) ...[
-          if (i > 0) SizedBox(height: 8.h),
-          cards[i],
-        ],
-      ],
-    );
+    return card;
   }
 }
 
@@ -1491,18 +1467,33 @@ class _ManagedAzkarDialogColors {
   static const Color badgeBackground = Color(0xFF203448);
 }
 
-Future<void> showManagedAzkarEditorDialog(
+class _ManagedAzkarImportFeedback {
+  const _ManagedAzkarImportFeedback._({
+    required this.message,
+    required this.imported,
+  });
+
+  const _ManagedAzkarImportFeedback.success(String message)
+    : this._(message: message, imported: true);
+
+  const _ManagedAzkarImportFeedback.error(String message)
+    : this._(message: message, imported: false);
+
+  final String message;
+  final bool imported;
+}
+
+Future<String?> _showManagedAzkarEditorDialog(
   BuildContext context, {
   required AzkarType type,
   ManagedAzkarEntry? initialEntry,
-  Future<String?> Function()? onImportFile,
-  Future<String?> Function()? onPasteBulk,
+  Future<_ManagedAzkarImportFeedback?> Function()? onImportFile,
   required Future<void> Function(String text, List<int> applicablePrayerIds)
   onSubmit,
 }) async {
   final sizing = DialogConfig.getSizing(context);
 
-  await showAppDialog(
+  return showAppDialog<String>(
     context: context,
     barrierDismissible: true,
     builder: (context) {
@@ -1527,7 +1518,6 @@ Future<void> showManagedAzkarEditorDialog(
                   type: type,
                   initialEntry: initialEntry,
                   onImportFile: onImportFile,
-                  onPasteBulk: onPasteBulk,
                   onSubmit: onSubmit,
                 ),
               ),
@@ -1544,14 +1534,12 @@ class _ManagedAzkarEditorForm extends StatefulWidget {
     required this.type,
     required this.initialEntry,
     required this.onImportFile,
-    required this.onPasteBulk,
     required this.onSubmit,
   });
 
   final AzkarType type;
   final ManagedAzkarEntry? initialEntry;
-  final Future<String?> Function()? onImportFile;
-  final Future<String?> Function()? onPasteBulk;
+  final Future<_ManagedAzkarImportFeedback?> Function()? onImportFile;
   final Future<void> Function(String text, List<int> applicablePrayerIds)
   onSubmit;
 
@@ -1561,13 +1549,9 @@ class _ManagedAzkarEditorForm extends StatefulWidget {
 }
 
 class _EditorImportPanel extends StatelessWidget {
-  const _EditorImportPanel({
-    required this.onImportFile,
-    required this.onPasteBulk,
-  });
+  const _EditorImportPanel({required this.onImportFile});
 
   final Future<void> Function() onImportFile;
-  final Future<void> Function() onPasteBulk;
 
   @override
   Widget build(BuildContext context) {
@@ -1598,13 +1582,13 @@ class _EditorImportPanel extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.edit_document,
+                      Icons.upload_file_rounded,
                       color: _ManagedAzkarDialogColors.accent,
                       size: 16.r,
                     ),
                     SizedBox(width: 6.w),
                     Text(
-                      'كتابة يدوية',
+                      'استيراد جماعي',
                       style: TextStyle(
                         color: _ManagedAzkarDialogColors.primaryText,
                         fontSize: 12.5.sp,
@@ -1617,7 +1601,7 @@ class _EditorImportPanel extends StatelessWidget {
               SizedBox(width: 10.w),
               Expanded(
                 child: Text(
-                  'أدخل النص مباشرة، أو استخدم طريقة أسرع للاستيراد.',
+                  'أضف عدة عناصر مرة واحدة من ملف جاهز، وسيتم حفظها مباشرة.',
                   textAlign: TextAlign.right,
                   textDirection: ui.TextDirection.rtl,
                   maxLines: 2,
@@ -1633,12 +1617,44 @@ class _EditorImportPanel extends StatelessWidget {
             ],
           ),
           SizedBox(height: 10.h),
-          _ContentImportGrid(
-            onImportFile: () => unawaited(onImportFile()),
-            onPasteBulk: () => unawaited(onPasteBulk()),
-          ),
+          _ContentImportGrid(onImportFile: () => unawaited(onImportFile())),
         ],
       ),
+    );
+  }
+}
+
+class _ManualEntryDivider extends StatelessWidget {
+  const _ManualEntryDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      textDirection: ui.TextDirection.rtl,
+      children: [
+        Icon(
+          Icons.edit_document,
+          color: _ManagedAzkarDialogColors.accent,
+          size: 17.r,
+        ),
+        SizedBox(width: 7.w),
+        Text(
+          'كتابة عنصر يدوي',
+          textDirection: ui.TextDirection.rtl,
+          style: TextStyle(
+            color: _ManagedAzkarDialogColors.primaryText,
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        SizedBox(width: 10.w),
+        Expanded(
+          child: Container(
+            height: 1,
+            color: _ManagedAzkarDialogColors.cardBorder.withValues(alpha: 0.8),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1740,7 +1756,9 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _runImportAction(Future<String?> Function()? action) async {
+  Future<void> _runImportAction(
+    Future<_ManagedAzkarImportFeedback?> Function()? action,
+  ) async {
     if (action == null) return;
 
     setState(() {
@@ -1748,17 +1766,24 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
       _importMessage = null;
     });
 
-    String? message;
+    _ManagedAzkarImportFeedback? feedback;
     try {
-      message = await action();
+      feedback = await action();
     } catch (_) {
-      message = 'حدث خطأ أثناء الاستيراد. جرّب اللصق الجماعي أو ملفًا أبسط.';
+      feedback = const _ManagedAzkarImportFeedback.error(
+        'حدث خطأ أثناء الاستيراد. جرّب ملفًا أبسط.',
+      );
     }
 
     if (!mounted) return;
+    if (feedback?.imported == true) {
+      Navigator.of(context).pop(feedback!.message);
+      return;
+    }
+
     setState(() {
       _isImporting = false;
-      _importMessage = message ?? 'لم يتم اختيار محتوى للاستيراد.';
+      _importMessage = feedback?.message;
     });
   }
 
@@ -1766,9 +1791,7 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
   Widget build(BuildContext context) {
     final sizing = DialogConfig.getSizing(context);
     final canImport =
-        widget.initialEntry == null &&
-        widget.onImportFile != null &&
-        widget.onPasteBulk != null;
+        widget.initialEntry == null && widget.onImportFile != null;
     final prayerHelpText = widget.type == AzkarType.afterPrayer
         ? 'اترك الاختيارات فارغة إذا أردت إظهار الذكر بعد كل الصلوات.'
         : 'اترك الاختيارات فارغة للحفاظ على الموعد الافتراضي لهذا القسم، أو اختر صلاة محددة ليظهر الذكر بعدها.';
@@ -1781,7 +1804,6 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
           if (canImport) ...[
             _EditorImportPanel(
               onImportFile: () => _runImportAction(widget.onImportFile),
-              onPasteBulk: () => _runImportAction(widget.onPasteBulk),
             ),
             if (_isImporting || _importMessage != null) ...[
               SizedBox(height: sizing.verticalGap * 0.35),
@@ -1790,12 +1812,13 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
                 message: _importMessage,
               ),
             ],
-            SizedBox(height: sizing.verticalGap * 0.75),
+            SizedBox(height: sizing.verticalGap * 0.65),
+            const _ManualEntryDivider(),
+            SizedBox(height: sizing.verticalGap * 0.45),
           ],
           VirtualTextField(
             controller: _textController,
             maxLines: 8,
-            enablePasteAction: true,
             minFieldHeight: sizing.bodyFontSize * 5.2,
             labelText: LocaleKeys.dhikr_text_label.tr(),
             textAlign: TextAlign.right,
@@ -1841,7 +1864,7 @@ class _ManagedAzkarEditorFormState extends State<_ManagedAzkarEditorForm> {
           ),
           SizedBox(height: sizing.verticalGap * 0.3),
           Text(
-            'يمكنك النسخ من مصدر خارجي ثم استخدام زر اللصق. سيتم تنظيف الرموز غير المرئية وتنسيق الأسطر قبل الحفظ.',
+            'اكتب نص العنصر مباشرة هنا، أو استخدم استيراد الملفات لإضافة عدة عناصر مرة واحدة.',
             style: TextStyle(
               color: _ManagedAzkarDialogColors.mutedText,
               fontSize: sizing.bodyFontSize * 0.84,
