@@ -44,6 +44,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:jhijri/_src/_jHijri.dart';
 
+enum PrayerCyclePhase {
+  idle,
+  adhan,
+  duaa,
+  betweenAdhanAndIqama,
+  iqama,
+  prayerActive,
+  ended,
+}
+
 class AppCubit extends Cubit<AppState> {
   final Dio _dio;
 
@@ -2078,6 +2088,31 @@ class AppCubit extends Cubit<AppState> {
     try {
       await IqamaHiveHelper.saveIqamaMinutes(iqamaMinutes!);
       _baseIqamaMinutes = List<int>.from(iqamaMinutes!);
+      iqamaMinutes = await _effectiveIqamaOffsetsForDate(
+        _normalizedDate(DateTime.now()),
+        day: _todayPrayerCalendarDay,
+      );
+      emit(saveIqamaTimesSuccess());
+    } catch (e) {
+      emit(saveIqamaTimesFailure());
+    }
+  }
+
+  Future<void> saveBaseIqamaTimes(
+    List<int> baseIqamaMinutes, {
+    int? fridayMinutes,
+  }) async {
+    emit(saveIqamaTimesLoading());
+    try {
+      if (fridayMinutes != null) {
+        await CacheHelper.setFridayTime(fridayMinutes);
+      }
+      await IqamaHiveHelper.saveIqamaMinutes(baseIqamaMinutes);
+      _baseIqamaMinutes = List<int>.from(baseIqamaMinutes);
+      iqamaMinutes = await _effectiveIqamaOffsetsForDate(
+        _normalizedDate(DateTime.now()),
+        day: _todayPrayerCalendarDay,
+      );
       emit(saveIqamaTimesSuccess());
     } catch (e) {
       emit(saveIqamaTimesFailure());
@@ -2204,6 +2239,24 @@ class AppCubit extends Cubit<AppState> {
     emit(AppInitial());
   }
 
+  void closePrayerAzanPage() {
+    if (!showPrayerAzanPage) return;
+    showPrayerAzanPage = false;
+    emit(AppChanged());
+  }
+
+  void finishPrayerAzanCycle() {
+    showPrayerAzanPage = false;
+    startAzanAtIqamaPhase = false;
+    isBetweenAdhanAndIqama = false;
+    currentAdhanTime = null;
+    currentIqamaTime = null;
+    currentPrayerEndsAt = null;
+    prayerCyclePhase = PrayerCyclePhase.ended;
+    setAzanBlackScreenVisible(false);
+    emit(AppChanged());
+  }
+
   NextAdhan? nextAdhan;
   Prayer? nextPrayerVar;
   void assignNextPrayerVar(Prayer? prayer) {
@@ -2218,6 +2271,8 @@ class AppCubit extends Cubit<AppState> {
 
   DateTime? currentAdhanTime;
   DateTime? currentIqamaTime;
+  DateTime? currentPrayerEndsAt;
+  PrayerCyclePhase prayerCyclePhase = PrayerCyclePhase.idle;
   bool isBetweenAdhanAndIqama = false;
   bool startAzanAtIqamaPhase = false;
 
@@ -2231,11 +2286,71 @@ class AppCubit extends Cubit<AppState> {
     currentIqamaTime = iqamaTime;
     isBetweenAdhanAndIqama = false; // يبدأ الأذان أولاً
     startAzanAtIqamaPhase = false;
+    currentPrayerEndsAt = null;
+    prayerCyclePhase = PrayerCyclePhase.adhan;
+    setAzanBlackScreenVisible(false);
   }
 
   void markBetweenAdhanAndIqama() {
     if (currentIqamaTime == null) return;
     isBetweenAdhanAndIqama = true;
+    startAzanAtIqamaPhase = false;
+    prayerCyclePhase = PrayerCyclePhase.betweenAdhanAndIqama;
+    emit(AppChanged());
+  }
+
+  void startIqamaPhase() {
+    if (currentPrayer == null || currentPrayer?.id == 2) return;
+    isBetweenAdhanAndIqama = false;
+    startAzanAtIqamaPhase = true;
+    showPrayerAzanPage = true;
+    prayerCyclePhase = PrayerCyclePhase.iqama;
+    emit(AppChanged());
+  }
+
+  void startPrayerPhase({required int durationMinutes, DateTime? startedAt}) {
+    final start = startedAt ?? DateTime.now();
+    showPrayerAzanPage = false;
+    startAzanAtIqamaPhase = false;
+    isBetweenAdhanAndIqama = false;
+    prayerCyclePhase = PrayerCyclePhase.prayerActive;
+    currentPrayerEndsAt = start.add(Duration(minutes: durationMinutes));
+
+    if (!isPrayerActiveNow(start)) {
+      finishPrayerAzanCycle();
+      return;
+    }
+
+    setAzanBlackScreenVisible(shouldShowPrayerHideScreen(start));
+    emit(AppChanged());
+  }
+
+  bool isPrayerActiveNow([DateTime? now]) {
+    final effectiveNow = now ?? DateTime.now();
+    return prayerCyclePhase == PrayerCyclePhase.prayerActive &&
+        currentPrayerEndsAt != null &&
+        effectiveNow.isBefore(currentPrayerEndsAt!);
+  }
+
+  bool shouldShowPrayerHideScreen([DateTime? now]) {
+    return CacheHelper.getEnableHidingScreenDuringPrayer() &&
+        isPrayerActiveNow(now);
+  }
+
+  void refreshPrayerCycle([DateTime? now]) {
+    final effectiveNow = now ?? DateTime.now();
+    if (prayerCyclePhase == PrayerCyclePhase.prayerActive &&
+        currentPrayerEndsAt != null &&
+        !effectiveNow.isBefore(currentPrayerEndsAt!)) {
+      finishPrayerAzanCycle();
+      return;
+    }
+    setAzanBlackScreenVisible(shouldShowPrayerHideScreen(effectiveNow));
+  }
+
+  void handleHideDuringPrayerSettingChanged(bool enabled, [DateTime? now]) {
+    setAzanBlackScreenVisible(enabled && isPrayerActiveNow(now));
+    emit(AppChanged());
   }
 
   Duration? remainingToIqama() {

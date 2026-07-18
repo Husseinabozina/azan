@@ -17,6 +17,7 @@ import 'package:azan/views/about_app/about_app_screen.dart';
 import 'package:azan/views/change_%20background_settings/change_background_settings_screen.dart';
 import 'package:azan/views/contact_us/contact_us_screen.dart';
 import 'package:azan/views/display_board/display_board_settings_screen.dart';
+import 'package:azan/views/friday_prayer_settings/friday_prayer_settings_screen.dart';
 import 'package:azan/views/home/components/display_direction_picker.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/managed_azkar/managed_azkar_screen.dart';
@@ -122,6 +123,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
             ),
             _DrawerEntry(
+              title: LocaleKeys.additional_settings.tr(),
+              onTap: () {
+                AppNavigator.push(context, AdditionalSettingsScreen());
+              },
+            ),
+            _DrawerEntry(
               title: LocaleKeys.morning_evening_adhkar.tr(),
               onTap: () {
                 AppNavigator.push(context, const ManagedAzkarScreen());
@@ -181,15 +188,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
 
             _DrawerEntry(
-              title: LocaleKeys.additional_settings.tr(),
-              onTap: () {
-                AppNavigator.push(context, AdditionalSettingsScreen());
-              },
-            ),
-            _DrawerEntry(
               title: LocaleKeys.iqama_azan_settings.tr(),
               onTap: () {
                 AppNavigator.push(context, AzanAdjustScreen());
+              },
+            ),
+            _DrawerEntry(
+              title: LocaleKeys.friday_prayer_settings.tr(),
+              onTap: () {
+                AppNavigator.push(context, const FridayPrayerSettingsScreen());
               },
             ),
             _DrawerEntry(
@@ -333,6 +340,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 : (LocalizationHelper.localCode() == 'bn'
                       ? 'বাংলা'
                       : LocaleKeys.english.tr()),
+            denseLandscape: isLandscape,
             onTap: () {
               showChangeLanguageDialog(
                 context,
@@ -621,18 +629,20 @@ class LanguageDrawerTile extends StatelessWidget {
     super.key,
     required this.r,
     required this.currentLanguage,
+    this.denseLandscape = false,
     this.onTap,
   });
 
   final R r;
   final String currentLanguage;
+  final bool denseLandscape;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final bool isLandscape = UiRotationCubit().isLandscape();
-
-    final double vPad = isLandscape ? 6.h : 10.h;
+    final double vPad = denseLandscape ? 4.h : 10.h;
+    final double fontSize = (denseLandscape ? 19 : 20).sp;
+    final double lineHeight = denseLandscape ? 1.12 : 1.2;
 
     return Material(
       color: Colors.transparent,
@@ -644,6 +654,7 @@ class LanguageDrawerTile extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.symmetric(vertical: vPad),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 height: 9.h,
@@ -664,32 +675,33 @@ class LanguageDrawerTile extends StatelessWidget {
                   TextSpan(
                     text: LocaleKeys.language.tr(),
                     style: TextStyle(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryTextColor.withValues(alpha: 0.85),
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryTextColor,
+                      height: lineHeight,
                     ),
                     children: [
                       TextSpan(
                         text: " : ",
                         style: TextStyle(
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryTextColor.withValues(
-                            alpha: 0.6,
-                          ),
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
+                          height: lineHeight,
                         ),
                       ),
                       TextSpan(
                         text: currentLanguage,
                         style: TextStyle(
-                          fontSize: 20.sp,
+                          fontSize: fontSize,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.secondaryTextColor,
+                          height: lineHeight,
                         ),
                       ),
                     ],
                   ),
-                  maxLines: 1,
+                  maxLines: denseLandscape ? 2 : 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

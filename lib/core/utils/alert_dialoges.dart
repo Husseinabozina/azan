@@ -263,6 +263,7 @@ Future<void> showEditDhikrDialog(
                   labelText: LocaleKeys.dhikr_text_label.tr(),
                   textAlign: TextAlign.right,
                   maxLines: sizing.isLandscape ? 3 : 4,
+                  enablePasteAction: true,
                   minFieldHeight: sizing.bodyFontSize * 4.8,
                   borderRadius: sizing.borderRadius,
                   contentPadding: EdgeInsets.symmetric(
@@ -989,6 +990,7 @@ class _ImprovedDhikrEditFormWidgetState
             DhikrVirtualKeyboardField(
               controller: _textController,
               maxLines: sizing.isLandscape ? 3 : 4,
+              enablePasteAction: true,
               hintText: LocaleKeys.dhikr_text_label.tr(),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: sizing.screenWidth * 0.015,

@@ -12,7 +12,6 @@ import 'package:azan/core/utils/constants.dart';
 import 'package:azan/gen/assets.gen.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
-import 'package:azan/views/home/components/black_screen_info_overlay.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +32,6 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
   bool _azanTerminat = false;
   bool _doaaTerminat = false;
   bool _isIqamaTime = false;
-  bool _isPrayerTime = false;
 
   late AppCubit appCubit;
   final SimpleSoundPlayer _soundPlayer = SimpleSoundPlayer();
@@ -43,14 +41,6 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
   Timer? _azanTimer;
   Timer? _doaaTimer;
   Timer? _iqamaWorkTimer;
-  Timer? _prayerWorkTimer;
-
-  void _syncAzanBlackScreenFlag(bool visible) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      appCubit.setAzanBlackScreenVisible(visible);
-    });
-  }
 
   Duration _resolveAzanPhaseDuration() {
     final configured = Duration(minutes: CacheHelper.getAzanDuration());
@@ -67,7 +57,7 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
 
       // بعد انتهاء الدعاء: نعلّم أن الفترة بين الأذان والإقامة بدأت ونغلق الشاشة
       appCubit.markBetweenAdhanAndIqama();
-      appCubit.togglePrayerAzanPage();
+      appCubit.closePrayerAzanPage();
     });
   }
 
@@ -84,7 +74,6 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
 
     // لو الفتح من الهوم عند وقت الإقامة مباشرة
     if (appCubit.startAzanAtIqamaPhase) {
-      appCubit.startAzanAtIqamaPhase = false;
       _azanTerminat = true;
       _doaaTerminat = true;
       _isIqamaTime = true;
@@ -104,31 +93,12 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
     _iqamaWorkTimer = Timer(const Duration(seconds: 7), () {
       if (!mounted) return;
 
-      if (!CacheHelper.getEnableHidingScreenDuringPrayer()) {
-        appCubit.togglePrayerAzanPage();
-      } else {
-        setState(() {
-          _isIqamaTime = false;
-          _isPrayerTime = true;
-          prayerWork();
-        });
-      }
+      appCubit.startPrayerPhase(
+        durationMinutes: appCubit.getPrayerDurationForId(
+          widget.currentPrayer.id,
+        ),
+      );
     });
-  }
-
-  void prayerWork() {
-    _prayerWorkTimer?.cancel();
-    if (!mounted) return;
-
-    _prayerWorkTimer = Timer(
-      Duration(
-        minutes: appCubit.getPrayerDurationForId(widget.currentPrayer.id),
-      ),
-      () {
-        if (!mounted) return;
-        appCubit.togglePrayerAzanPage();
-      },
-    );
   }
 
   @override
@@ -136,8 +106,6 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
     _azanTimer?.cancel();
     _doaaTimer?.cancel();
     _iqamaWorkTimer?.cancel();
-    _prayerWorkTimer?.cancel();
-    appCubit.setAzanBlackScreenVisible(false);
     super.dispose();
   }
 
@@ -153,15 +121,12 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
         (_isIqamaTime && CacheHelper.getEnableHidingScreenDuringPrayer())
         ? Colors.white
         : AppTheme.primaryTextColor;
-    final azanBlackScreenVisible =
-        CacheHelper.getEnableHidingScreenDuringPrayer() && _isPrayerTime;
-    _syncAzanBlackScreenFlag(azanBlackScreenVisible);
 
     return Scaffold(
       key: scaffoldKey,
       drawer: CustomDrawer(context: context),
       body: GestureDetector(
-        onTap: () => appCubit.togglePrayerAzanPage(),
+        onTap: () => appCubit.finishPrayerAzanCycle(),
         child: BlocConsumer<AppCubit, AppState>(
           listener: (context, state) {},
           builder: (context, state) {
@@ -194,15 +159,6 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
                     //     fit: BoxFit.fill,
                     //   ),
                     // ),
-
-                    // ✅ Black screen during prayer
-                    if (azanBlackScreenVisible)
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 1500),
-                        transitionBuilder: (child, anim) =>
-                            ScaleTransition(scale: anim, child: child),
-                        child: const BlackScreenInfoOverlay(),
-                      ),
 
                     // ✅ BEFORE adhan terminate
                     if (!_azanTerminat)

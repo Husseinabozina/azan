@@ -41,7 +41,7 @@ class PrayerTimesTable extends StatelessWidget {
       builder: (context, constraints) {
         final n = rows.length;
 
-        final headerH = showHeader ? 19.h : 0.0;
+        final headerH = showHeader ? 26.h : 0.0;
         final spaceAfterHeader = showHeader ? 3.h : 0.0;
 
         // ✅ خلي gap واحد فقط (من هنا)
@@ -75,12 +75,18 @@ class PrayerTimesTable extends StatelessWidget {
                     startAlignment: AlignmentDirectional.center,
                     centerAlignment: AlignmentDirectional.center,
 
-                    prayer: Padding(
-                      padding: EdgeInsetsDirectional.only(end: 0),
-                      child: Text(LocaleKeys.prayer.tr(), style: headerStyle),
+                    prayer: _PrayerHeaderCell(
+                      text: LocaleKeys.prayer.tr(),
+                      style: headerStyle,
                     ),
-                    adhan: Text(LocaleKeys.adhan_time.tr(), style: headerStyle),
-                    iqama: Text(LocaleKeys.iqama_time.tr(), style: headerStyle),
+                    adhan: _PrayerHeaderCell(
+                      text: LocaleKeys.adhan_time.tr(),
+                      style: headerStyle,
+                    ),
+                    iqama: _PrayerHeaderCell(
+                      text: LocaleKeys.iqama_time.tr(),
+                      style: headerStyle,
+                    ),
                   ),
                 ),
               ),
@@ -117,6 +123,35 @@ class PrayerTimesTable extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _PrayerHeaderCell extends StatelessWidget {
+  const _PrayerHeaderCell({required this.text, required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.visible,
+          textAlign: TextAlign.center,
+          style: style.copyWith(height: style.height ?? 1.15),
+          strutStyle: StrutStyle(
+            fontSize: style.fontSize,
+            height: style.height ?? 1.15,
+            forceStrutHeight: true,
+          ),
+        ),
+      ),
     );
   }
 }

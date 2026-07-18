@@ -66,8 +66,8 @@ class DisplayDirectionPicker extends StatelessWidget {
                     child: _DirectionOptionTile(
                       option: option,
                       selected: option.quarterTurns == selectedQuarterTurns,
-                      onTap: () {
-                        cubit.selectDisplayDirection(option.quarterTurns);
+                      onTap: () async {
+                        await cubit.selectDisplayDirection(option.quarterTurns);
                         onDirectionSelected?.call();
                       },
                     ),

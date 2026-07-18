@@ -17,7 +17,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     await EasyLocalization.ensureInitialized();
     await CacheHelper.init();
-    UiRotationCubit().selectDisplayDirection(0);
+    await UiRotationCubit().selectDisplayDirection(0);
     UiRotationCubit().syncDeviceOrientation(deviceIsLandscape: true);
   });
 
@@ -61,7 +61,7 @@ void main() {
   });
 
   testWidgets('marks the active direction when opened', (tester) async {
-    UiRotationCubit().selectDisplayDirection(2);
+    await UiRotationCubit().selectDisplayDirection(2);
 
     await tester.pumpWidget(_buildHarness());
     await tester.pumpAndSettle();

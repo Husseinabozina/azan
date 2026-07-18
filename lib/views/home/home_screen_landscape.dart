@@ -851,13 +851,17 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                     final shouldHide =
                         hideAfterCurrentPrayerEnabled &&
                         (snapshot.data == true);
+                    final shouldHideDuringPrayer = cubit
+                        .shouldShowPrayerHideScreen();
 
                     final azanActive =
                         (cubit.currentPrayer != null &&
                         cubit.currentPrayer!.id != 2 &&
                         cubit.showPrayerAzanPage);
                     final hideFooterOnBlack =
-                        shouldHide || cubit.isAzanBlackScreenVisible;
+                        shouldHide ||
+                        shouldHideDuringPrayer ||
+                        cubit.isAzanBlackScreenVisible;
                     _syncHomeBlackScreenFlag(hideFooterOnBlack);
 
                     return ValueListenableBuilder<AzkarWindow?>(
@@ -873,12 +877,18 @@ class HomeScreenLandscapeState extends State<HomeScreenLandscape> {
                           );
                         }
                         // 2) ثاني أولوية: black screen
+                        else if (shouldHideDuringPrayer) {
+                          overlay = BlackScreenInfoOverlay(
+                            key: const ValueKey('azan_prayer_black_screen'),
+                          );
+                        }
+                        // 3) ثالث أولوية: black screen
                         else if (shouldHide) {
                           overlay = BlackScreenInfoOverlay(
                             key: const ValueKey('black_screen'),
                           );
                         }
-                        // 3) ثالث أولوية: Azkar
+                        // 4) رابع أولوية: Azkar
                         else if (w != null) {
                           overlay = GestureDetector(
                             key: ValueKey(

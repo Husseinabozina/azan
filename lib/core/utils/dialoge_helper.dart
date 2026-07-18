@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 ThemeData buildAppDialogTheme(BuildContext context) {
   final baseTheme = Theme.of(context);
@@ -229,12 +230,14 @@ class UniversalDialogShell extends StatelessWidget {
     this.forceMaxHeight = false,
     this.customMaxWidth,
     this.customMaxHeight,
+    this.customInsetPadding,
   });
 
   final Widget child;
   final bool forceMaxHeight;
   final double? customMaxWidth;
   final double? customMaxHeight;
+  final EdgeInsets? customInsetPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +245,7 @@ class UniversalDialogShell extends StatelessWidget {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: sizing.dialogInset,
+      insetPadding: customInsetPadding ?? sizing.dialogInset,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final desiredMaxHeight =
@@ -495,6 +498,7 @@ class VirtualTextField extends StatelessWidget {
       ],
     ),
     this.obscureText = false,
+    this.enablePasteAction = false,
   });
 
   final TextEditingController controller;
@@ -515,6 +519,7 @@ class VirtualTextField extends StatelessWidget {
   final TextStyle? errorStyle;
   final VirtualKeyboardFieldTheme theme;
   final bool obscureText;
+  final bool enablePasteAction;
 
   @override
   Widget build(BuildContext context) {
@@ -538,6 +543,7 @@ class VirtualTextField extends StatelessWidget {
       theme: theme,
       kind: _VirtualKeyboardFieldKind.text,
       obscureText: obscureText,
+      enablePasteAction: enablePasteAction,
     );
   }
 }
@@ -852,6 +858,7 @@ class _VirtualKeyboardEditableField extends StatefulWidget {
     this.allowNegative = false,
     this.obscureText = false,
     this.maxKeyboardHeight,
+    this.enablePasteAction = false,
   });
 
   final TextEditingController controller;
@@ -875,6 +882,7 @@ class _VirtualKeyboardEditableField extends StatefulWidget {
   final bool allowNegative;
   final bool obscureText;
   final double? maxKeyboardHeight;
+  final bool enablePasteAction;
 
   @override
   State<_VirtualKeyboardEditableField> createState() =>
@@ -995,6 +1003,33 @@ class _VirtualKeyboardEditableFieldState
     setState(() {});
   }
 
+  Future<void> _pasteFromClipboard() async {
+    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    final pasted = _cleanPastedReligiousText(clipboardData?.text ?? '');
+    if (pasted.isEmpty) return;
+
+    widget.controller.value = TextEditingValue(
+      text: pasted,
+      selection: TextSelection.collapsed(offset: pasted.length),
+      composing: TextRange.empty,
+    );
+    _syncFieldValue(triggerChange: true);
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  String _cleanPastedReligiousText(String value) {
+    return value
+        .replaceAll('\r\n', '\n')
+        .replaceAll(
+          RegExp('[\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]'),
+          '',
+        )
+        .replaceAll(RegExp(r'[ \t]+\n'), '\n')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final sizing = DialogConfig.getSizing(context);
@@ -1025,13 +1060,19 @@ class _VirtualKeyboardEditableFieldState
           fontSize: sizing.bodyFontSize * 0.82,
           fontWeight: FontWeight.w600,
         );
-    // ارتفاع الكيبورد بُعد ergonomic ثابت (حجم اللمسة) — ميكبرش بلا حدود على
-    // الشاشات الكبيرة. في الـ dialogs الضيقة بنحدّه بـ maxKeyboardHeight.
+    // الارتفاع الافتراضي مناسب للدايلوجات العادية. لو الديالوج مرر مساحة
+    // متاحة أكبر، نستخدمها عشان شاشات المساجد والـ TV تكون مفاتيحها واضحة.
     final defaultKeyboardHeight = sizing.isLandscape
         ? (widget.kind == _VirtualKeyboardFieldKind.numeric ? 220.0 : 230.0)
         : (widget.kind == _VirtualKeyboardFieldKind.numeric ? 240.0 : 260.0);
+    final maxResponsiveKeyboardHeight = math.max(
+      120.0,
+      sizing.screenHeight * 0.62,
+    );
     final keyboardHeight = widget.maxKeyboardHeight != null
-        ? widget.maxKeyboardHeight!.clamp(120.0, defaultKeyboardHeight)
+        ? widget.maxKeyboardHeight!
+              .clamp(120.0, maxResponsiveKeyboardHeight)
+              .toDouble()
         : defaultKeyboardHeight;
 
     return FormField<String>(
@@ -1121,6 +1162,20 @@ class _VirtualKeyboardEditableFieldState
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: widget.suffix,
+                      ),
+                      SizedBox(width: sizing.screenWidth * 0.02),
+                    ],
+                    if (widget.enablePasteAction) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _pasteFromClipboard,
+                          child: Icon(
+                            Icons.content_paste_rounded,
+                            color: widget.theme.hintColor,
+                          ),
+                        ),
                       ),
                       SizedBox(width: sizing.screenWidth * 0.02),
                     ],
@@ -1357,14 +1412,25 @@ class DialogButton extends StatelessWidget {
     final sizing = DialogConfig.getSizing(context);
     final resolvedBackground = backgroundColor ?? _variantBackground();
     final resolvedTextColor = textColor ?? _variantTextColor();
+    final buttonHeight = math.max(
+      sizing.buttonSize.height,
+      sizing.bodyFontSize * 2.45,
+    );
 
     return SizedBox(
       width: sizing.buttonSize.width,
-      height: sizing.buttonSize.height,
+      height: buttonHeight,
       child: TextButton(
         style: TextButton.styleFrom(
           backgroundColor: resolvedBackground,
           foregroundColor: resolvedTextColor,
+          alignment: Alignment.center,
+          minimumSize: Size(sizing.buttonSize.width, buttonHeight),
+          padding: EdgeInsets.symmetric(
+            horizontal: sizing.screenWidth * 0.012,
+            vertical: 0,
+          ),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(sizing.borderRadius * 0.8),
           ),
@@ -1383,10 +1449,16 @@ class DialogButton extends StatelessWidget {
                 text,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                strutStyle: StrutStyle(
+                  fontSize: sizing.bodyFontSize,
+                  height: 1.25,
+                  forceStrutHeight: true,
+                ),
                 style: TextStyle(
                   color: resolvedTextColor,
                   fontWeight: fontWeight,
                   fontSize: sizing.bodyFontSize,
+                  height: 1.25,
                 ),
               ),
             ),

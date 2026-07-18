@@ -807,6 +807,8 @@ class AppTheme {
   // =========================
   static Color get accentColor => _p.accent;
   static Color get homeAccentColor => _homeTimedOverlayPack.accent;
+  static Color get nextPrayerHighlightColor =>
+      _highlightSurfaceFromAccent(accentColor);
 
   // =========================
   // BASE BACKGROUND (بديل darkBlue)
@@ -890,6 +892,16 @@ class AppTheme {
     fallback: _displayBoardAccentFallback,
     minContrast: 3.0,
   );
+
+  static Color get displayBoardNextPrayerHighlightColor =>
+      _highlightSurfaceFromAccent(displayBoardAccentColor);
+
+  static Color _highlightSurfaceFromAccent(Color accent) {
+    final hsl = HSLColor.fromColor(accent);
+    final saturation = hsl.saturation.clamp(0.45, 0.82).toDouble();
+    final lightness = hsl.lightness.clamp(0.30, 0.42).toDouble();
+    return hsl.withSaturation(saturation).withLightness(lightness).toColor();
+  }
 
   static Color _ensureDisplayBoardContrast(
     Color candidate, {

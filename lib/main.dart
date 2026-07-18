@@ -63,7 +63,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     cubit = UiRotationCubit();
-    cubit.changeIsLandscape(false);
 
     // widget ensure initialized
 

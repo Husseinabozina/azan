@@ -80,7 +80,18 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
 
     return UniversalDialogShell(
       forceMaxHeight: true,
-      customMaxWidth: sizing.isLandscape ? 620.w : sizing.dialogWidth,
+      customMaxWidth: sizing.isLandscape
+          ? sizing.screenWidth
+          : sizing.dialogWidth,
+      customMaxHeight: sizing.isLandscape
+          ? sizing.screenHeight
+          : sizing.dialogMaxHeight,
+      customInsetPadding: sizing.isLandscape
+          ? EdgeInsets.symmetric(
+              horizontal: sizing.screenWidth * 0.02,
+              vertical: sizing.screenHeight * 0.035,
+            )
+          : null,
       child: sizing.isLandscape
           ? LayoutBuilder(
               builder: (context, constraints) {
@@ -97,7 +108,7 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      flex: 4,
+                      flex: 5,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -123,7 +134,7 @@ class _SelectionDialogBodyState<T> extends State<_SelectionDialogBody<T>> {
                       ),
                     ),
                     SizedBox(width: sizing.verticalGap),
-                    Expanded(flex: 5, child: listView),
+                    Expanded(flex: 6, child: listView),
                   ],
                 );
               },

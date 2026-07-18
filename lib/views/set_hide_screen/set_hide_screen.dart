@@ -2,18 +2,14 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/horizontal_space.dart';
-import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/router/app_navigation.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
-import 'package:azan/core/utils/extenstions.dart';
 import 'package:azan/generated/locale_keys.g.dart';
 import 'package:azan/views/additional_settings/additional_settings_screen.dart';
 import 'package:azan/views/adhkar/components/custom_check_box.dart';
 import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/home_screen.dart';
-import 'package:azan/views/home/home_screen_landscape.dart';
-import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,6 +41,12 @@ class _SetHideScreenState extends State<SetHideScreen> {
   void _setAzanDuration(int v) {
     setState(() => azanDuration = v);
     CacheHelper.setAzanDuration(v);
+  }
+
+  Future<void> _setEnableHideDuringPrayer(bool value) async {
+    setState(() => enableHideDuringPrayer = value);
+    await CacheHelper.setEnableHidingScreenDuringPrayer(value);
+    appCubit.handleHideDuringPrayerSettingChanged(value);
   }
 
   @override
@@ -131,12 +133,8 @@ class _SetHideScreenState extends State<SetHideScreen> {
                                     hideAfterSunriseMinutes,
                                 hideAfterIshaa: hideAfterIshaa,
                                 hideAfterIshaaMinutes: hideAfterIshaaMinutes,
-                                onToggleEnableHideDuringPrayer: (v) async {
-                                  setState(() => enableHideDuringPrayer = v);
-                                  await CacheHelper.setEnableHidingScreenDuringPrayer(
-                                    v,
-                                  );
-                                },
+                                onToggleEnableHideDuringPrayer:
+                                    _setEnableHideDuringPrayer,
                                 onToggleShowTime: (v) async {
                                   setState(() => showTimeOnBlack = v);
                                   await CacheHelper.setShowTimeOnBlackScreen(v);
@@ -199,12 +197,8 @@ class _SetHideScreenState extends State<SetHideScreen> {
                                     hideAfterSunriseMinutes,
                                 hideAfterIshaa: hideAfterIshaa,
                                 hideAfterIshaaMinutes: hideAfterIshaaMinutes,
-                                onToggleEnableHideDuringPrayer: (v) async {
-                                  setState(() => enableHideDuringPrayer = v);
-                                  await CacheHelper.setEnableHidingScreenDuringPrayer(
-                                    v,
-                                  );
-                                },
+                                onToggleEnableHideDuringPrayer:
+                                    _setEnableHideDuringPrayer,
                                 onToggleShowTime: (v) async {
                                   setState(() => showTimeOnBlack = v);
                                   await CacheHelper.setShowTimeOnBlackScreen(v);
@@ -540,6 +534,9 @@ class _LandscapeRowBody extends StatelessWidget {
 
         // لو ارتفاع الشاشة صغير (موبايل لاندسكيب) نسمح بسكرول خفيف للـbody كله
         final needsScroll = constraints.maxHeight < 420.h;
+        final rowHeight = needsScroll
+            ? 420.h
+            : (constraints.maxHeight - 20.h).clamp(280.0, double.infinity);
 
         Widget panelHeader(String title, IconData icon) {
           final txt = Expanded(
@@ -569,15 +566,15 @@ class _LandscapeRowBody extends StatelessWidget {
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.22),
+              color: Colors.black.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(18.r),
               border: Border.all(
-                color: Colors.white.withOpacity(0.14),
+                color: Colors.white.withValues(alpha: 0.14),
                 width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.20),
+                  color: Colors.black.withValues(alpha: 0.20),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 ),
@@ -589,7 +586,7 @@ class _LandscapeRowBody extends StatelessWidget {
               children: [
                 header,
                 SizedBox(height: 10.h),
-                Divider(color: Colors.white.withOpacity(0.12), height: 1),
+                Divider(color: Colors.white.withValues(alpha: 0.12), height: 1),
                 SizedBox(height: 10.h),
                 child,
               ],
@@ -623,12 +620,8 @@ class _LandscapeRowBody extends StatelessWidget {
                 onChanged: onToggleShowDate,
               ),
               SizedBox(height: 12.h),
-              Container(
-                // color: Colors.red,
-                width: (contentMaxW / 2) * 0.65,
-                // color: Colors.red,
-                // width: 20.sw,
-                // color: Colors.red,
+              SizedBox(
+                width: double.infinity,
                 child: _TwoLineCheckboxDense(
                   value: hideAfterSunrise,
                   title: LocaleKeys.hide_screen_after_sunrise_by.tr(),
@@ -638,9 +631,8 @@ class _LandscapeRowBody extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 12.h),
-              Container(
-                // color: Colors.red,
-                width: (contentMaxW / 2) * 0.65,
+              SizedBox(
+                width: double.infinity,
                 child: _TwoLineCheckboxDense(
                   value: hideAfterIshaa,
                   title: LocaleKeys.hide_screen_after_Ishaa_by.tr(),
@@ -658,11 +650,10 @@ class _LandscapeRowBody extends StatelessWidget {
             LocaleKeys.prayer_duration_for_hiding_screen.tr(),
             Icons.timer_outlined,
           ),
-          child: Container(
-            // color: Colors.amber,
-            width: (contentMaxW / 2) * 0.50,
+          child: SizedBox(
+            width: double.infinity,
             child: Column(
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ...List.generate(prayerTitles.length, (i) {
                   return Padding(
@@ -682,6 +673,9 @@ class _LandscapeRowBody extends StatelessWidget {
                   value: azanDuration,
                   title: LocaleKeys.azan_duration.tr(),
                   mainAxisAlignment: MainAxisAlignment.start,
+                  layout: PlusMinusLayout.wrap,
+                  compact: true,
+                  titleMaxLines: 1,
                 ),
               ],
             ),
@@ -693,7 +687,8 @@ class _LandscapeRowBody extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: contentMaxW),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-              child: IntrinsicHeight(
+              child: SizedBox(
+                height: rowHeight,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -701,7 +696,7 @@ class _LandscapeRowBody extends StatelessWidget {
                     SizedBox(width: gap),
                     Container(
                       width: dividerW,
-                      color: Colors.white.withOpacity(0.10),
+                      color: Colors.white.withValues(alpha: 0.10),
                     ),
                     SizedBox(width: gap),
                     Expanded(child: leftSettings),
@@ -728,7 +723,7 @@ class _SectionDivider extends StatelessWidget {
       child: Divider(
         height: 18.h,
         thickness: 1,
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
       ),
     );
   }
@@ -790,8 +785,6 @@ class SettingTileDense extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = CacheHelper.getLang() == 'ar' ? true : false;
-
     final checkbox = CustomCheckbox(
       value: value,
       onChanged: onChanged,
@@ -812,11 +805,11 @@ class SettingTileDense extends StatelessWidget {
     );
 
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         checkbox,
         HorizontalSpace(width: 8.w),
-        label,
+        Expanded(child: label),
       ],
     );
   }
@@ -917,8 +910,7 @@ class _TwoLineCheckboxDense extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      // mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         CustomCheckbox(
           value: value,
@@ -974,7 +966,6 @@ class _TwoLineCheckboxDense extends StatelessWidget {
               icon: Icons.remove,
               onTap: () => onMinutesChanged((minutes - 1).clamp(0, 999)),
             ),
-            HorizontalSpace(width: 10.w),
           ],
         ),
         // Column(
@@ -1109,7 +1100,7 @@ class _StepperRow extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 1,
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
           ),
         ],
       ),
@@ -1158,22 +1149,22 @@ class _PrayerDurationRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      // textDirection: TextDirection.rtl,
       mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
-        Text(
-          title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.end,
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryTextColor,
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTextColor,
+            ),
           ),
         ),
-        Spacer(),
         SizedBox(width: 10.w),
         _SmallBtn(icon: Icons.add, onTap: onPlus),
         SizedBox(width: 8.w),

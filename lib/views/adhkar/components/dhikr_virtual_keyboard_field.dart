@@ -11,6 +11,7 @@ class DhikrVirtualKeyboardField extends StatelessWidget {
     this.maxLines = 3,
     this.textAlign = TextAlign.right,
     this.textDirection = TextDirection.rtl,
+    this.enablePasteAction = false,
   });
 
   final TextEditingController controller;
@@ -18,6 +19,7 @@ class DhikrVirtualKeyboardField extends StatelessWidget {
   final int maxLines;
   final TextAlign textAlign;
   final TextDirection textDirection;
+  final bool enablePasteAction;
   final EdgeInsetsGeometry contentPadding;
   final String? Function(String?)? validator;
 
@@ -32,6 +34,7 @@ class DhikrVirtualKeyboardField extends StatelessWidget {
       maxLines: maxLines,
       textAlign: textAlign,
       textDirection: textDirection,
+      enablePasteAction: enablePasteAction,
       contentPadding: contentPadding,
       borderRadius: sizing.borderRadius,
       minFieldHeight: sizing.bodyFontSize * maxLines * 1.45,

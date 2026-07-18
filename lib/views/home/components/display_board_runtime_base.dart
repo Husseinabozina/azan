@@ -202,15 +202,14 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
       _syncDisplayBoardMode(now);
       _checkAndPlayPrayerSound(now);
       performAdhanActions(context);
+      cubit.refreshPrayerCycle(now);
 
       final remainingToIqama = cubit.remainingToIqama();
       if (cubit.isBetweenAdhanAndIqama &&
           !cubit.startAzanAtIqamaPhase &&
           remainingToIqama != null &&
           remainingToIqama <= Duration.zero) {
-        cubit.isBetweenAdhanAndIqama = false;
-        cubit.startAzanAtIqamaPhase = true;
-        cubit.showPrayerAzanPage = true;
+        cubit.startIqamaPhase();
       }
 
       if (!_isSameDay(now, _lastDate)) {
@@ -515,6 +514,8 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
                     final shouldHide =
                         hideAfterCurrentPrayerEnabled &&
                         (snapshot.data == true);
+                    final shouldHideDuringPrayer = cubit
+                        .shouldShowPrayerHideScreen();
 
                     final azanActive =
                         CacheHelper.getShowAzanScreen() &&
@@ -530,6 +531,7 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
                         remainingToIqama <= const Duration(seconds: 60);
                     final hideFooterOnBlack =
                         shouldHide ||
+                        shouldHideDuringPrayer ||
                         showLastMinuteCountdown ||
                         cubit.isAzanBlackScreenVisible;
                     _syncHomeBlackScreenFlag(hideFooterOnBlack);
@@ -555,6 +557,10 @@ abstract class DisplayBoardRuntimeBase<T extends StatefulWidget>
                       overlay = IqamaLastMinuteCountdownOverlay(
                         secondsText: secondsText,
                         fontSizeOverride: isLandscapeBoard ? 300.sp : 240.sp,
+                      );
+                    } else if (shouldHideDuringPrayer) {
+                      overlay = BlackScreenInfoOverlay(
+                        key: const ValueKey('azan-prayer-black-screen'),
                       );
                     } else if (shouldHide) {
                       overlay = BlackScreenInfoOverlay(

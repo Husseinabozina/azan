@@ -239,9 +239,7 @@ class DisplayBoardAnnouncementStage extends StatelessWidget {
       } else {
         // Image only — no text overlay
         announcementContent = SizedBox.expand(
-          key: ValueKey(
-            '${announcement!.id}-${announcement!.sortOrder}-img',
-          ),
+          key: ValueKey('${announcement!.id}-${announcement!.sortOrder}-img'),
           child: Image.file(
             imageFile,
             fit: BoxFit.cover,
@@ -251,9 +249,7 @@ class DisplayBoardAnnouncementStage extends StatelessWidget {
       }
     } else if (hasText) {
       announcementContent = SingleChildScrollView(
-        key: ValueKey(
-          '${announcement!.id}-${announcement!.sortOrder}',
-        ),
+        key: ValueKey('${announcement!.id}-${announcement!.sortOrder}'),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -266,12 +262,8 @@ class DisplayBoardAnnouncementStage extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: titleFont,
                   fontSize: titleSize,
-                  fontWeight: titleBold
-                      ? FontWeight.w800
-                      : FontWeight.w500,
-                  fontStyle: titleItalic
-                      ? FontStyle.italic
-                      : FontStyle.normal,
+                  fontWeight: titleBold ? FontWeight.w800 : FontWeight.w500,
+                  fontStyle: titleItalic ? FontStyle.italic : FontStyle.normal,
                   color: titleColor,
                   height: 1.02,
                 ),
@@ -287,12 +279,8 @@ class DisplayBoardAnnouncementStage extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: bodyFont,
                   fontSize: bodySize,
-                  fontWeight: bodyBold
-                      ? FontWeight.w700
-                      : FontWeight.w400,
-                  fontStyle: bodyItalic
-                      ? FontStyle.italic
-                      : FontStyle.normal,
+                  fontWeight: bodyBold ? FontWeight.w700 : FontWeight.w400,
+                  fontStyle: bodyItalic ? FontStyle.italic : FontStyle.normal,
                   color: bodyColor,
                   height: 1.12,
                 ),
@@ -662,14 +650,24 @@ class _DisplayBoardPrayerCard extends StatelessWidget {
     final opacity = CacheHelper.getIsPreviousPrayersDimmed() && row.dimmed
         ? 0.46
         : 1.0;
-    final prayerColor = row.isSpecial
+    final prayerColor = row.isNextPrayer
+        ? Colors.white
+        : row.isSpecial
         ? AppTheme.displayBoardAccentColor
         : AppTheme.displayBoardSecondaryTextColor;
+    final timeAccentColor = row.isNextPrayer
+        ? Colors.white
+        : AppTheme.displayBoardAccentColor;
+    final iqamaColor = row.isNextPrayer
+        ? Colors.white
+        : AppTheme.displayBoardPrimaryTextColor;
 
     return Opacity(
       opacity: opacity,
       child: GlassPill(
         enabled: CacheHelper.getEnableGlassEffect(),
+        highlighted: row.isNextPrayer,
+        highlightColor: AppTheme.displayBoardNextPrayerHighlightColor,
         radius: isLandscape ? 18 : 16,
         padding: EdgeInsetsDirectional.symmetric(
           horizontal: isLandscape ? 4.w : 4.w,
@@ -707,7 +705,7 @@ class _DisplayBoardPrayerCard extends StatelessWidget {
                         fontFamily: CacheHelper.getTimesFontFamily(),
                         fontSize: timeFontSize,
                         fontWeight: FontWeight.w900,
-                        color: AppTheme.displayBoardAccentColor,
+                        color: timeAccentColor,
                         height: 1.0,
                       ),
                     ),
@@ -720,7 +718,7 @@ class _DisplayBoardPrayerCard extends StatelessWidget {
                         fontFamily: CacheHelper.getTimesFontFamily(),
                         fontSize: timeFontSize,
                         fontWeight: FontWeight.w900,
-                        color: AppTheme.displayBoardPrimaryTextColor,
+                        color: iqamaColor,
                         height: 1.0,
                       ),
                     ),

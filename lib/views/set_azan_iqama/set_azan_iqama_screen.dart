@@ -61,13 +61,10 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
   }
 
   Future<void> _saveIqama() async {
-    // ✅ اربطها بنفس cubit logic
-    appCubit.iqamaMinutes = List<int>.from(iqamaMinutes);
-
-    // الجمعة محفوظة في cache
-    CacheHelper.setFridayTime(friDaySermonMinutes);
-
-    await appCubit.saveIqamaTimes();
+    await appCubit.saveBaseIqamaTimes(
+      List<int>.from(iqamaMinutes),
+      fridayMinutes: friDaySermonMinutes,
+    );
   }
 
   // ========= UI helpers =========

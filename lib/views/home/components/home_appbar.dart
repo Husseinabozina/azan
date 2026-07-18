@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:azan/core/components/horizontal_space.dart';
+import 'package:azan/core/theme/background_region_contrast.dart';
 import 'package:azan/core/theme/app_theme.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
@@ -209,130 +210,150 @@ class _HomeAppBarState extends State<HomeAppBar> {
 
     final String titleText =
         CacheHelper.getMosqueName() ?? LocaleKeys.mosque_name_label.tr();
+    final selectedBackground = CacheHelper.getSelectedBackground();
+    final fallbackPalette = BackgroundRegionContrast.fallback(
+      AppTheme.appBarForegroundColor,
+    );
 
-    return LayoutBuilder(
-      builder: (context, outerConstraints) {
-        final double totalWidth = outerConstraints.maxWidth;
+    return FutureBuilder<BackgroundRegionPalette>(
+      future: BackgroundRegionContrast.appBarTitlePalette(
+        selectedBackground,
+        fallbackForeground: AppTheme.appBarForegroundColor,
+      ),
+      initialData: fallbackPalette,
+      builder: (context, paletteSnapshot) {
+        final titlePalette = paletteSnapshot.data ?? fallbackPalette;
 
-        final double maxGroupWidth = (totalWidth - menuButtonWidth).clamp(
-          0.0,
-          totalWidth,
-        );
+        return LayoutBuilder(
+          builder: (context, outerConstraints) {
+            final double totalWidth = outerConstraints.maxWidth;
 
-        final double maxTitleWidth =
-            (maxGroupWidth - startPadding - logoW - gap.w).clamp(
+            final double maxGroupWidth = (totalWidth - menuButtonWidth).clamp(
               0.0,
-              maxGroupWidth,
+              totalWidth,
             );
 
-        final TextPainter oneLineMeasure = TextPainter(
-          text: TextSpan(
-            text: titleText,
-            style: TextStyle(
-              fontSize: widget.titleFontSize ?? 20.sp,
-              fontWeight: FontWeight.bold,
-              fontFamily: CacheHelper.getTextsFontFamily(),
-              height: 1.15,
-            ),
-          ),
-          maxLines: 1,
-          textDirection: Directionality.of(context),
-        )..layout(maxWidth: double.infinity);
+            final double maxTitleWidth =
+                (maxGroupWidth - startPadding - logoW - gap.w).clamp(
+                  0.0,
+                  maxGroupWidth,
+                );
 
-        final double groupOneLineWidth =
-            startPadding + logoW + gap.w + oneLineMeasure.width;
-        final bool shouldCenterGroup = groupOneLineWidth <= maxGroupWidth;
+            final TextPainter oneLineMeasure = TextPainter(
+              text: TextSpan(
+                text: titleText,
+                style: TextStyle(
+                  fontSize: widget.titleFontSize ?? 20.sp,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: CacheHelper.getTextsFontFamily(),
+                  height: 1.15,
+                ),
+              ),
+              maxLines: 1,
+              textDirection: Directionality.of(context),
+            )..layout(maxWidth: double.infinity);
 
-        final TextPainter twoLinesMeasure = TextPainter(
-          text: TextSpan(
-            text: titleText,
-            style: TextStyle(
-              fontSize: widget.titleFontSize ?? 20.sp,
-              fontWeight: FontWeight.bold,
-              fontFamily: CacheHelper.getTextsFontFamily(),
-              height: 1.15,
-            ),
-          ),
-          maxLines: 2,
-          textDirection: Directionality.of(context),
-          ellipsis: '…',
-        )..layout(maxWidth: maxTitleWidth);
+            final double groupOneLineWidth =
+                startPadding + logoW + gap.w + oneLineMeasure.width;
+            final bool shouldCenterGroup = groupOneLineWidth <= maxGroupWidth;
 
-        final int neededLines = twoLinesMeasure.computeLineMetrics().length;
-        final bool needsTwoLines = neededLines > 1;
+            final TextPainter twoLinesMeasure = TextPainter(
+              text: TextSpan(
+                text: titleText,
+                style: TextStyle(
+                  fontSize: widget.titleFontSize ?? 20.sp,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: CacheHelper.getTextsFontFamily(),
+                  height: 1.15,
+                ),
+              ),
+              maxLines: 2,
+              textDirection: Directionality.of(context),
+              ellipsis: '…',
+            )..layout(maxWidth: maxTitleWidth);
 
-        final double barHeight = needsTwoLines ? (70.h) : baseBarHeight;
-        final double availableTitleHeight = needsTwoLines
-            ? twoLinesAvailableHeight
-            : oneLineAvailableHeight;
+            final int neededLines = twoLinesMeasure.computeLineMetrics().length;
+            final bool needsTwoLines = neededLines > 1;
 
-        return SizedBox(
-          width: double.infinity,
-          height: barHeight,
-          child: Stack(
-            children: [
-              PositionedDirectional(
-                start: 0,
-                end: menuButtonWidth,
-                top: 0,
-                bottom: 0,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxGroupWidth),
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.only(start: startPadding),
-                    child: Align(
-                      alignment: shouldCenterGroup
-                          ? AlignmentDirectional.center
-                          : AlignmentDirectional.centerStart,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: _pickLogoFromDevice,
-                            child: _buildLogo(logoH, logoW),
-                          ),
-                          HorizontalSpace(width: gap),
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: maxTitleWidth,
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 5.h),
-                              child: _AdaptiveTitleText(
-                                text: titleText,
-                                fontFamily: CacheHelper.getTextsFontFamily(),
-                                maxFontSize: 20.sp,
-                                minFontSize: 16.sp,
-                                availableHeight: availableTitleHeight,
-                                textAlign: TextAlign.center,
+            final double barHeight = needsTwoLines ? (70.h) : baseBarHeight;
+            final double availableTitleHeight = needsTwoLines
+                ? twoLinesAvailableHeight
+                : oneLineAvailableHeight;
+
+            return SizedBox(
+              width: double.infinity,
+              height: barHeight,
+              child: Stack(
+                children: [
+                  PositionedDirectional(
+                    start: 0,
+                    end: menuButtonWidth,
+                    top: 0,
+                    bottom: 0,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxGroupWidth),
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          start: startPadding,
+                        ),
+                        child: Align(
+                          alignment: shouldCenterGroup
+                              ? AlignmentDirectional.center
+                              : AlignmentDirectional.centerStart,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: _pickLogoFromDevice,
+                                child: _buildLogo(logoH, logoW),
                               ),
-                            ),
+                              HorizontalSpace(width: gap),
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: maxTitleWidth,
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 5.h),
+                                  child: _AdaptiveTitleText(
+                                    text: titleText,
+                                    fontFamily:
+                                        CacheHelper.getTextsFontFamily(),
+                                    maxFontSize: 20.sp,
+                                    minFontSize: 16.sp,
+                                    availableHeight: availableTitleHeight,
+                                    textAlign: TextAlign.center,
+                                    color: titlePalette.foreground,
+                                    shadows: titlePalette.shadows,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              PositionedDirectional(
-                end: 0,
-                top: 0,
-                bottom: 0,
-                child: SizedBox(
-                  width: menuButtonWidth,
-                  child: IconButton(
-                    onPressed: widget.onDrawerTap?.call,
-                    icon: Icon(
-                      Icons.menu,
-                      color: AppTheme.appBarForegroundColor,
-                      size: 30.r,
+                  PositionedDirectional(
+                    end: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: SizedBox(
+                      width: menuButtonWidth,
+                      child: IconButton(
+                        onPressed: widget.onDrawerTap?.call,
+                        icon: Icon(
+                          Icons.menu,
+                          color: titlePalette.foreground,
+                          size: 30.r,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -346,12 +367,16 @@ class _AdaptiveTitleText extends StatelessWidget {
   final double availableHeight;
   final String? fontFamily;
   final TextAlign textAlign;
+  final Color color;
+  final List<Shadow> shadows;
 
   const _AdaptiveTitleText({
     required this.text,
     required this.maxFontSize,
     required this.minFontSize,
     required this.availableHeight,
+    required this.color,
+    required this.shadows,
     this.fontFamily,
     this.textAlign = TextAlign.center,
   });
@@ -377,7 +402,8 @@ class _AdaptiveTitleText extends StatelessWidget {
               fontSize: currentFontSize,
               fontWeight: FontWeight.bold,
               fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
-              color: AppTheme.appBarForegroundColor,
+              color: color,
+              shadows: shadows,
               height: 1.15,
             ),
           );
@@ -401,7 +427,8 @@ class _AdaptiveTitleText extends StatelessWidget {
           style: TextStyle(
             fontSize: currentFontSize,
             fontWeight: FontWeight.bold,
-            color: AppTheme.appBarForegroundColor,
+            color: color,
+            shadows: shadows,
             fontFamily: fontFamily ?? CacheHelper.getAzkarFontFamily(),
             height: 1.15,
           ),

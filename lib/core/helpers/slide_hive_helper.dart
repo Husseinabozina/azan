@@ -86,7 +86,7 @@ class SlideHiveHelper {
 
     final newSlide = Dhikr(
       id: _generateNextId(current),
-      text: text,
+      text: _sanitizeStoredText(text),
       schedule: schedule,
     );
 
@@ -101,8 +101,20 @@ class SlideHiveHelper {
     final index = current.indexWhere((d) => d.id == updated.id);
     if (index == -1) return;
 
-    current[index] = updated;
+    current[index] = updated.copyWith(text: _sanitizeStoredText(updated.text));
     await _writeAllToBox(box, current);
+  }
+
+  static String _sanitizeStoredText(String value) {
+    return value
+        .replaceAll('\r\n', '\n')
+        .replaceAll(
+          RegExp('[\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]'),
+          '',
+        )
+        .replaceAll(RegExp(r'[ \t]+\n'), '\n')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
   }
 
   static Future<void> setActive(int id, bool active) async {

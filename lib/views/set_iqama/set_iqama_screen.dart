@@ -574,9 +574,9 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                 child: AppButton(
                                   color: AppTheme.primaryButtonBackground,
                                   onPressed: () {
-                                    appCubit.saveIqamaTimes();
-                                    CacheHelper.setFridayTime(
-                                      friDaySermonMinutes,
+                                    appCubit.saveBaseIqamaTimes(
+                                      List<int>.from(iqamaMinutes),
+                                      fridayMinutes: friDaySermonMinutes,
                                     );
                                   },
                                   child: state is saveIqamaTimesLoading

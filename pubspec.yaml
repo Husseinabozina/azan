@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   adhan: ^2.0.0+1
+  archive: ^4.0.7
   audioplayers: ^6.5.1
   auto_size_text: ^3.0.0
   bloc: ^9.1.0
@@ -57,6 +58,7 @@ dependencies:
   jhijri: ^1.0.0
   just_audio: ^0.10.5
   package_info_plus: ^8.3.1
+  path: ^1.9.1
   path_provider: ^2.1.5
   # prayers_times:
   #   path: ./packages/prayers_times-main
@@ -64,6 +66,7 @@ dependencies:
   timezone: ^0.9.4
   url_launcher: ^6.3.2
   virtual_keyboard_multi_language: ^1.1.2
+  xml: ^6.6.1
 dev_dependencies:
   build_runner: ^2.10.4
   flutter_gen_runner: ^5.12.0

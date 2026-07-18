@@ -26,6 +26,7 @@ import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
 import 'package:azan/views/home/components/landscape_iqama_countdown_panel.dart';
+import 'package:azan/views/home/components/next_prayer_row_highlight.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
 import 'package:azan/views/home/home_screen_mobile.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -189,6 +190,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
       _syncDisplayBoardMode(now);
+      cubit.refreshPrayerCycle(now);
 
       // ✅ تحقق من الوصول لوقت الإقامة لفتح شاشة الإقامة مباشرة
       final remainingToIqama = cubit.remainingToIqama();
@@ -196,9 +198,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
           !cubit.startAzanAtIqamaPhase &&
           remainingToIqama != null &&
           remainingToIqama <= Duration.zero) {
-        cubit.isBetweenAdhanAndIqama = false;
-        cubit.startAzanAtIqamaPhase = true;
-        cubit.showPrayerAzanPage = true;
+        cubit.startIqamaPhase();
       }
 
       // ✅ setState في الآخر (مش مهم لو أخذت وقت)
@@ -652,6 +652,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
               index,
             ) {
               final p = prayers[index];
+              final isNextPrayer = isNextPrayerRow(p, cubit.nextPrayerVar);
 
               final dimmed =
                   index < pastIqamaFlags.length && pastIqamaFlags[index];
@@ -684,6 +685,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                 iqamaTime: iqamaStr,
                 dimmed: dimmed,
                 nextFajrPrayer: nextFajrPrayer,
+                isNextPrayer: isNextPrayer,
               );
             });
 
@@ -1015,6 +1017,8 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                       final shouldHide =
                           hideAfterCurrentPrayerEnabled &&
                           (snapshot.data == true);
+                      final shouldHideDuringPrayer = cubit
+                          .shouldShowPrayerHideScreen();
 
                       final azanActive =
                           (cubit.currentPrayer != null &&
@@ -1029,6 +1033,7 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                           remainingToIqama <= const Duration(seconds: 60);
                       final hideFooterOnBlack =
                           shouldHide ||
+                          shouldHideDuringPrayer ||
                           showLastMinuteCountdown ||
                           cubit.isAzanBlackScreenVisible;
                       _syncHomeBlackScreenFlag(hideFooterOnBlack);
@@ -1063,12 +1068,18 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
                             );
                           }
                           // 3) ثالث أولوية: black screen
+                          else if (shouldHideDuringPrayer) {
+                            overlay = BlackScreenInfoOverlay(
+                              key: const ValueKey('azan_prayer_black_screen'),
+                            );
+                          }
+                          // 4) رابع أولوية: black screen
                           else if (shouldHide) {
                             overlay = BlackScreenInfoOverlay(
                               key: const ValueKey('black_screen'),
                             );
                           }
-                          // 4) رابع أولوية: Azkar
+                          // 5) خامس أولوية: Azkar
                           else if (w != null) {
                             overlay = GestureDetector(
                               key: ValueKey(
@@ -1175,6 +1186,8 @@ class PrayerLandScapeItem extends StatelessWidget {
   }
 
   Color _color(bool dimmed, Color color) {
+    if (row.isNextPrayer) return Colors.white;
+
     if (dimmed && CacheHelper.getIsPreviousPrayersDimmed()) {
       return color.withOpacity(0.5);
     }
@@ -1189,7 +1202,20 @@ class PrayerLandScapeItem extends StatelessWidget {
       height: height,
       width: width,
 
-      decoration: CacheHelper.getEnableGlassEffect()
+      decoration: row.isNextPrayer
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
+                colors: [
+                  AppTheme.nextPrayerHighlightColor.withValues(alpha: 0.94),
+                  AppTheme.nextPrayerHighlightColor.withValues(alpha: 0.76),
+                ],
+              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+            )
+          : CacheHelper.getEnableGlassEffect()
           ? BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,

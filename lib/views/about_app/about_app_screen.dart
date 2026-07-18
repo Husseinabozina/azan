@@ -17,6 +17,8 @@ class AboutAppScreen extends StatefulWidget {
 }
 
 class _AboutAppScreenState extends State<AboutAppScreen> {
+  static const String _websiteQrAsset = 'assets/images/rawayie_website_qr.png';
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Future<void> _openSite() async {
@@ -32,6 +34,10 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final qrSize = isLandscape ? 112.r : 148.r;
+
     return Scaffold(
       extendBody: true,
       bottomNavigationBar: const GlobalCopyrightFooter(cityOnly: true),
@@ -116,6 +122,34 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                   decoration: TextDecoration.underline,
                                   color: AppTheme.secondaryTextColor,
                                   fontFamily: CacheHelper.getTextsFontFamily(),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            Semantics(
+                              label: 'rawayie.sa QR code',
+                              button: true,
+                              child: GestureDetector(
+                                onTap: _openSite,
+                                child: Container(
+                                  padding: EdgeInsets.all(8.r),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    border: Border.all(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.08,
+                                      ),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Image.asset(
+                                    _websiteQrAsset,
+                                    width: qrSize,
+                                    height: qrSize,
+                                    fit: BoxFit.contain,
+                                    filterQuality: FilterQuality.none,
+                                  ),
                                 ),
                               ),
                             ),

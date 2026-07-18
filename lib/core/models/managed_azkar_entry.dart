@@ -1,4 +1,5 @@
 import 'package:azan/core/models/azkar_type.dart';
+import 'package:azan/core/helpers/azkar_prayer_scope_helper.dart';
 
 class ManagedAzkarEntry {
   const ManagedAzkarEntry({
@@ -83,12 +84,10 @@ class ManagedAzkarEntry {
       orElse: () => AzkarType.morning,
     );
 
-    final rawPrayerIds =
-        (map['applicablePrayerIds'] as List<dynamic>? ?? const <dynamic>[])
-            .map((value) => value as int)
-            .toSet()
-            .toList()
-          ..sort();
+    final rawPrayerIds = AzkarPrayerScopeHelper.normalizePrayerIds(
+      (map['applicablePrayerIds'] as List<dynamic>? ?? const <dynamic>[])
+          .whereType<int>(),
+    );
 
     return ManagedAzkarEntry(
       id: map['id'] as int,

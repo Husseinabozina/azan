@@ -2,6 +2,7 @@ import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/utils/cache_helper.dart';
 import 'package:azan/generated/locale_keys.g.dart';
+import 'package:azan/views/home/components/next_prayer_row_highlight.dart';
 import 'package:azan/views/home/components/prayer_row_data.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -88,6 +89,7 @@ List<PrayerRowData> buildDisplayBoardPrayerRows(
   final rows = List<PrayerRowData>.generate(prayers.length, (index) {
     final p = prayers[index];
     final dimmed = index < pastIqamaFlags.length && pastIqamaFlags[index];
+    final isNextPrayer = isNextPrayerRow(p, cubit.nextPrayerVar);
 
     final baseTimeStr = CacheHelper.getUse24HoursFormat()
         ? (p.time24 ?? p.time)
@@ -116,6 +118,7 @@ List<PrayerRowData> buildDisplayBoardPrayerRows(
       iqamaTime: iqamaStr,
       dimmed: dimmed,
       nextFajrPrayer: nextFajrPrayer,
+      isNextPrayer: isNextPrayer,
     );
   });
 

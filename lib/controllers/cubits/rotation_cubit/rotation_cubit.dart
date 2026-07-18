@@ -18,25 +18,25 @@ class UiRotationCubit extends Cubit<int> {
     _deviceIsLandscape = deviceIsLandscape;
   }
 
-  void rotateClockwise() {
-    setQuarterTurns(quarterTurns + 1);
+  Future<void> rotateClockwise() {
+    return setQuarterTurns(quarterTurns + 1);
   }
 
-  void selectDisplayDirection(int value) {
-    setQuarterTurns(value);
+  Future<void> selectDisplayDirection(int value) {
+    return setQuarterTurns(value);
   }
 
-  void setQuarterTurns(int value) {
+  Future<void> setQuarterTurns(int value) async {
     final normalized = _normalizeQuarterTurns(value);
-    CacheHelper.setUiRotationQuarterTurns(normalized);
+    await CacheHelper.setUiRotationQuarterTurns(normalized);
     if (normalized == state) return;
     emit(normalized);
   }
 
-  void changeIsLandscape(bool v) {
+  Future<void> changeIsLandscape(bool v) async {
     final nextQuarterTurns = v == _deviceIsLandscape ? 0 : 1;
-    CacheHelper.setIsLandscape(v);
-    setQuarterTurns(nextQuarterTurns);
+    await CacheHelper.setIsLandscape(v);
+    await setQuarterTurns(nextQuarterTurns);
   }
 
   bool isLandscape() {

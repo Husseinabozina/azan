@@ -1,3 +1,4 @@
+import 'package:azan/core/helpers/azkar_prayer_scope_helper.dart';
 import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/core/models/managed_azkar_entry.dart';
 import 'package:azan/data/data/after_prayers_azkar.dart';
@@ -102,6 +103,40 @@ class ManagedAzkarHiveHelper {
     _insertAfterLastEntryOfType(current, entry);
     await _writeAllToBox(box, current);
     return entry;
+  }
+
+  static Future<int> importEntries({
+    required AzkarType type,
+    required List<ManagedAzkarEntry> drafts,
+  }) async {
+    final box = await _openBox();
+    final current = _readAllFromBox(box);
+    var nextId = _generateNextId(current);
+    var imported = 0;
+
+    for (final draft in drafts) {
+      final text = _sanitizeStoredText(draft.text);
+      if (text.isEmpty) continue;
+
+      final entry = ManagedAzkarEntry(
+        id: nextId++,
+        setType: type,
+        text: text,
+        reference: _readOptional(draft.reference),
+        description: _readOptional(draft.description),
+        count: _readOptional(draft.count),
+        applicablePrayerIds: _normalizePrayerIds(draft.applicablePrayerIds),
+        active: draft.active,
+      );
+      _insertAfterLastEntryOfType(current, entry);
+      imported++;
+    }
+
+    if (imported > 0) {
+      await _writeAllToBox(box, current);
+    }
+
+    return imported;
   }
 
   static Future<void> updateEntry(ManagedAzkarEntry updated) async {
@@ -448,7 +483,6 @@ class ManagedAzkarHiveHelper {
   }
 
   static List<int> _normalizePrayerIds(List<int> prayerIds) {
-    final normalized = prayerIds.toSet().toList()..sort();
-    return normalized;
+    return AzkarPrayerScopeHelper.normalizePrayerIds(prayerIds);
   }
 }

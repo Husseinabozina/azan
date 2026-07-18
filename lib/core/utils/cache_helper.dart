@@ -811,7 +811,8 @@ class CacheHelper {
   }
 
   static String getAzkarFontFamily() {
-    return sharedPreferences.getString(_azkarFontFamily) ?? ksaFont;
+    final value = sharedPreferences.getString(_azkarFontFamily);
+    return allAppFonts.contains(value) ? value! : sultanFont;
   }
 
   static removeAzkarFontFamily() {
@@ -823,7 +824,8 @@ class CacheHelper {
   }
 
   static String getTimeFontFamily() {
-    return sharedPreferences.getString(_timeFontFamily) ?? freeSerifBoldFont;
+    final value = sharedPreferences.getString(_timeFontFamily);
+    return allAppFonts.contains(value) ? value! : freeSerifBoldFont;
   }
 
   static removeTimeFontFamily() {
@@ -835,7 +837,8 @@ class CacheHelper {
   }
 
   static String getTimesFontFamily() {
-    return sharedPreferences.getString(_timesFontFamily) ?? freeSerifBoldFont;
+    final value = sharedPreferences.getString(_timesFontFamily);
+    return allAppFonts.contains(value) ? value! : freeSerifBoldFont;
   }
 
   static removeTimesFontFamily() {
@@ -847,7 +850,8 @@ class CacheHelper {
   }
 
   static String getTextsFontFamily() {
-    return sharedPreferences.getString(_textsFontFamily) ?? amiriFont;
+    final value = sharedPreferences.getString(_textsFontFamily);
+    return allAppFonts.contains(value) ? value! : amiriBoldFont;
   }
 
   static removeTextsFontFamily() {
@@ -1024,8 +1028,8 @@ class CacheHelper {
   }
 
   static String getDisplayBoardBodyFontFamily() {
-    return sharedPreferences.getString(_displayBoardBodyFontFamily) ??
-        amiriFont;
+    final value = sharedPreferences.getString(_displayBoardBodyFontFamily);
+    return allAppFonts.contains(value) ? value! : amiriBoldFont;
   }
 
   static Future<void> setDisplayBoardTitleBold(bool value) async {

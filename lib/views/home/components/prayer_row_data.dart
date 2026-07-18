@@ -14,6 +14,7 @@ class PrayerRowData {
   final String iqamaTime;
   final bool dimmed;
   final String nextFajrPrayer;
+  final bool isNextPrayer;
   final bool isSpecial; // للعيد/حدث خاص
 
   PrayerRowData({
@@ -22,6 +23,7 @@ class PrayerRowData {
     required this.iqamaTime,
     required this.dimmed,
     required this.nextFajrPrayer,
+    this.isNextPrayer = false,
     this.isSpecial = false,
   });
 }
@@ -73,13 +75,27 @@ class PrayerGlassRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final opacity = CacheHelper.getIsPreviousPrayersDimmed()
+    final opacity = data.isNextPrayer
+        ? 1.0
+        : CacheHelper.getIsPreviousPrayersDimmed()
         ? data.dimmed
               ? 0.45
               : 1.0
         : 1.0;
 
     Widget cellText(String s, TextStyle st, {String? nextTime}) {
+      final effectiveStyle = data.isNextPrayer
+          ? st.copyWith(
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.28),
+                  offset: const Offset(0, 1),
+                  blurRadius: 3,
+                ),
+              ],
+            )
+          : st;
       return GestureDetector(
         onTap: () async => _handleBackgroundChange(s),
         child: Opacity(
@@ -90,7 +106,7 @@ class PrayerGlassRow extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                Text(s, style: st, maxLines: 1),
+                Text(s, style: effectiveStyle, maxLines: 1),
                 if (nextTime != null && data.prayerName == LocaleKeys.fajr.tr())
                   PositionedDirectional(
                     bottom: UiRotationCubit().isLandscape() ? -5.h : -3.h,
@@ -99,7 +115,9 @@ class PrayerGlassRow extends StatelessWidget {
                       nextTime,
                       style: TextStyle(
                         fontSize: 11.sp,
-                        color: AppTheme.secondaryTextColor,
+                        color: data.isNextPrayer
+                            ? Colors.white.withValues(alpha: 0.86)
+                            : AppTheme.secondaryTextColor,
                       ),
                       maxLines: 1,
                     ),
@@ -120,6 +138,8 @@ class PrayerGlassRow extends StatelessWidget {
         height: rowHeight,
         margin: outerMargin ?? EdgeInsetsDirectional.zero, // ✅ هنا
         padding: EdgeInsetsDirectional.only(start: 12.w, end: 12.w),
+        highlighted: data.isNextPrayer,
+        highlightColor: AppTheme.nextPrayerHighlightColor,
         child: Prayer3Cols(
           centerPrayerColumn: centerPrayerColumn,
           prayer: cellText(
@@ -159,18 +179,28 @@ class Prayer3Cols extends StatelessWidget {
   Widget build(BuildContext context) {
     final children = centerPrayerColumn
         ? <Widget>[
-            Expanded(child: Align(alignment: startAlignment, child: adhan)),
-            Expanded(child: Align(alignment: centerAlignment, child: prayer)),
-            Expanded(child: Align(alignment: endAlignment, child: iqama)),
+            Expanded(
+              child: Align(alignment: startAlignment, child: adhan),
+            ),
+            Expanded(
+              child: Align(alignment: centerAlignment, child: prayer),
+            ),
+            Expanded(
+              child: Align(alignment: endAlignment, child: iqama),
+            ),
           ]
         : <Widget>[
-            Expanded(child: Align(alignment: startAlignment, child: prayer)),
-            Expanded(child: Align(alignment: centerAlignment, child: adhan)),
-            Expanded(child: Align(alignment: endAlignment, child: iqama)),
+            Expanded(
+              child: Align(alignment: startAlignment, child: prayer),
+            ),
+            Expanded(
+              child: Align(alignment: centerAlignment, child: adhan),
+            ),
+            Expanded(
+              child: Align(alignment: endAlignment, child: iqama),
+            ),
           ];
 
-    return Row(
-      children: children,
-    );
+    return Row(children: children);
   }
 }

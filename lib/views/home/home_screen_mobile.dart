@@ -33,6 +33,7 @@ import 'package:azan/views/home/components/cusotm_drawer.dart';
 import 'package:azan/views/home/components/home_appbar.dart';
 import 'package:azan/views/home/components/home_star_hint.dart';
 import 'package:azan/views/home/components/iqama_last_minute_countdown_overlay.dart';
+import 'package:azan/views/home/components/next_prayer_row_highlight.dart';
 import 'package:azan/views/home/components/iqama_focus_section.dart';
 import 'package:azan/views/home/components/legacy_mosque_top_cluster.dart';
 import 'package:azan/views/home/components/live_clock_row.dart';
@@ -240,6 +241,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
       performAdhanActions(context);
       _azkarOverlay.tick(now: now);
       _syncDisplayBoardMode(now);
+      cubit.refreshPrayerCycle(now);
 
       // ✅ تحقق من الوصول لوقت الإقامة لفتح شاشة الإقامة مباشرة
       final remainingToIqama = cubit.remainingToIqama();
@@ -247,9 +249,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
           !cubit.startAzanAtIqamaPhase &&
           remainingToIqama != null &&
           remainingToIqama <= Duration.zero) {
-        cubit.isBetweenAdhanAndIqama = false;
-        cubit.startAzanAtIqamaPhase = true;
-        cubit.showPrayerAzanPage = true;
+        cubit.startIqamaPhase();
       }
 
       // ✅ setState في الآخر (مش مهم لو أخذت وقت)
@@ -551,10 +551,11 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
               CacheHelper.getEnableGlassEffect(); // 👈 لو عايزه “true = glass شغال”
 
           final headerStyle = TextStyle(
-            fontSize: 13.sp,
+            fontSize: 15.sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryTextColor,
             fontFamily: CacheHelper.getTextsFontFamily(),
+            height: 1.15,
           );
 
           final prayerStyle = TextStyle(
@@ -580,6 +581,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
 
           final rows = List.generate(cubit.prayers(context).length, (index) {
             final p = cubit.prayers(context)[index];
+            final isNextPrayer = isNextPrayerRow(p, cubit.nextPrayerVar);
 
             final dimmed =
                 index < pastIqamaFlags.length && pastIqamaFlags[index];
@@ -619,6 +621,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
               iqamaTime: iqamaStr,
               dimmed: dimmed,
               nextFajrPrayer: nextFajrPrayer!,
+              isNextPrayer: isNextPrayer,
             );
           });
           final selectedBackground = CacheHelper.getSelectedBackground();
@@ -784,7 +787,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                                         tablePreferredMinRowHeight:
                                             tableMinRowHeight ?? 58.h,
                                         tableHeaderHeight: showPrayerTableHeader
-                                            ? 19.h
+                                            ? 26.h
                                             : 0.0,
                                         tableHeaderSpacing:
                                             showPrayerTableHeader ? 3.h : 0.0,
@@ -1429,6 +1432,8 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                       : false;
                   final shouldHide =
                       hideAfterCurrentPrayerEnabled && (snapshot.data == true);
+                  final shouldHideDuringPrayer = cubit
+                      .shouldShowPrayerHideScreen();
 
                   final azanActive =
                       (cubit.currentPrayer != null &&
@@ -1443,6 +1448,7 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                       remainingToIqama <= const Duration(seconds: 60);
                   final hideFooterOnBlack =
                       shouldHide ||
+                      shouldHideDuringPrayer ||
                       showLastMinuteCountdown ||
                       cubit.isAzanBlackScreenVisible;
                   _syncHomeBlackScreenFlag(hideFooterOnBlack);
@@ -1485,12 +1491,18 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
                         );
                       }
                       // 3) ثالث أولوية: black screen
+                      else if (shouldHideDuringPrayer) {
+                        overlay = BlackScreenInfoOverlay(
+                          key: const ValueKey('azan_prayer_black_screen'),
+                        );
+                      }
+                      // 4) رابع أولوية: black screen
                       else if (shouldHide) {
                         overlay = BlackScreenInfoOverlay(
                           key: const ValueKey('black_screen'),
                         );
                       }
-                      // 4) رابع أولوية: Azkar
+                      // 5) خامس أولوية: Azkar
                       else if (w != null) {
                         overlay = SizedBox.expand(
                           child: GestureDetector(

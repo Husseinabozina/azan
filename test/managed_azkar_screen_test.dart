@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
-import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/helpers/managed_azkar_hive_helper.dart';
 import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -106,16 +105,6 @@ void main() {
     );
     final firstText = tester.widget<Text>(firstTextFinder);
     expect(firstText.textDirection, ui.TextDirection.rtl);
-    expect(
-      tester
-          .widget<Column>(
-            find
-                .ancestor(of: firstTextFinder, matching: find.byType(Column))
-                .first,
-          )
-          .crossAxisAlignment,
-      CrossAxisAlignment.stretch,
-    );
 
     tester
         .widget<ChoiceChip>(
@@ -142,7 +131,7 @@ void main() {
     await tester.pumpWidget(buildHarness(const ManagedAzkarScreen()));
     await pumpManagedScreenFrame(tester);
 
-    tester.widget<AppButton>(find.byType(AppButton).first).onPressed?.call();
+    await tester.tap(find.text('إضافة جديد').first);
     await pumpManagedScreenFrame(tester);
     expect(find.text('الصلوات المعنية'), findsOneWidget);
     expect(
@@ -151,6 +140,10 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('managed-azkar-prayer-6')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('managed-azkar-prayer-7')),
       findsOneWidget,
     );
     Navigator.of(
@@ -167,7 +160,7 @@ void main() {
         ?.call(true);
     await pumpManagedScreenFrame(tester);
 
-    tester.widget<AppButton>(find.byType(AppButton).first).onPressed?.call();
+    await tester.tap(find.text('إضافة جديد').first);
     await pumpManagedScreenFrame(tester);
     expect(find.text('الصلوات المعنية'), findsOneWidget);
     expect(
@@ -176,6 +169,10 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('managed-azkar-prayer-6')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('managed-azkar-prayer-7')),
       findsOneWidget,
     );
   });

@@ -1,4 +1,5 @@
 import 'package:azan/controllers/cubits/appcubit/app_cubit.dart';
+import 'package:azan/core/helpers/azkar_prayer_scope_helper.dart';
 import 'package:azan/core/helpers/managed_azkar_hive_helper.dart';
 import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/core/utils/cache_helper.dart';
@@ -15,15 +16,15 @@ class AzkarTimeHelper {
   static const int asrId = 4;
   static const int maghribId = 5;
   static const int ishaId = 6;
-  static const List<int> azkarPrayerIds = [
-    fajrId,
-    dhuhrId,
-    asrId,
-    maghribId,
-    ishaId,
-  ];
+  static const int fridayId = AzkarPrayerScopeHelper.fridayId;
 
-  static DateTime? _adhanTime(int id) => AppCubit().adjustedPrayerTimeById(id);
+  static List<int> _azkarPrayerIds(DateTime date) {
+    return AzkarPrayerScopeHelper.prayerIdsForDate(date);
+  }
+
+  static DateTime? _adhanTime(int id) => AppCubit().adjustedPrayerTimeById(
+    AzkarPrayerScopeHelper.schedulePrayerId(id),
+  );
   static DateTime? _startAfterPrayerThenAfterAfterPrayerAzkar(int prayerId) {
     final base = _startAfterPrayer(prayerId);
     if (base == null) return null;
@@ -41,10 +42,23 @@ class AzkarTimeHelper {
     iqama.add(_prayerHideDuration(prayerId));
   }
 
-  static int _iqamaOffsetMinutes(int prayerId) {
+  static bool _isFridayDhuhr(int prayerId, DateTime date) {
+    return AzkarPrayerScopeHelper.isFridayScope(prayerId);
+  }
+
+  static int _baseIqamaOffsetMinutes(int prayerId) {
     final m = AppCubit().iqamaMinutes;
-    if (m == null || m.length < prayerId) return 0;
-    return m[prayerId - 1];
+    final schedulePrayerId = AzkarPrayerScopeHelper.schedulePrayerId(prayerId);
+    if (m == null || m.length < schedulePrayerId) return 0;
+    return m[schedulePrayerId - 1];
+  }
+
+  static int _iqamaOffsetMinutes(int prayerId, {DateTime? date}) {
+    final targetDate = date ?? DateTime.now();
+    if (_isFridayDhuhr(prayerId, targetDate)) {
+      return CacheHelper.getFridayTime();
+    }
+    return _baseIqamaOffsetMinutes(prayerId);
   }
 
   static int? durationIndexForPrayerId(int prayerId) {
@@ -52,6 +66,7 @@ class AzkarTimeHelper {
       case fajrId:
         return 0;
       case dhuhrId:
+      case fridayId:
         return 1;
       case asrId:
         return 2;
@@ -76,13 +91,35 @@ class AzkarTimeHelper {
     return Duration(minutes: AppCubit().getPrayerDurationForId(prayerId));
   }
 
+  @visibleForTesting
+  static DateTime startAfterPrayerTime({
+    required DateTime adhanTime,
+    required int prayerId,
+    required int baseIqamaOffsetMinutes,
+    required int fridayIqamaOffsetMinutes,
+    required int prayerDurationMinutes,
+  }) {
+    final iqamaOffset = _isFridayDhuhr(prayerId, adhanTime)
+        ? fridayIqamaOffsetMinutes
+        : baseIqamaOffsetMinutes;
+
+    return adhanTime.add(
+      Duration(minutes: iqamaOffset + prayerDurationMinutes),
+    );
+  }
+
   /// ✅ بداية نافذة الأذكار بعد الإقامة + مدة الصلاة
   static DateTime? _startAfterPrayer(int prayerId) {
     final adhan = _adhanTime(prayerId);
     if (adhan == null) return null;
 
-    final iqama = adhan.add(Duration(minutes: _iqamaOffsetMinutes(prayerId)));
-    return iqama.add(_prayerHideDuration(prayerId));
+    return startAfterPrayerTime(
+      adhanTime: adhan,
+      prayerId: prayerId,
+      baseIqamaOffsetMinutes: _baseIqamaOffsetMinutes(prayerId),
+      fridayIqamaOffsetMinutes: CacheHelper.getFridayTime(),
+      prayerDurationMinutes: _prayerHideDuration(prayerId).inMinutes,
+    );
   }
 
   static AzkarWindow? _morningWindow(DateTime n) {
@@ -108,15 +145,15 @@ class AzkarTimeHelper {
   static AzkarWindow? _afterPrayerWindow(DateTime n) {
     if (!CacheHelper.getAfterPrayerAzkarEnabled()) return null;
 
-    for (final id in azkarPrayerIds) {
+    for (final id in _azkarPrayerIds(n)) {
       final w = _afterPrayerWindowForId(n, id);
       if (w != null) return w;
     }
     return null;
   }
 
-  static int? boolTest() {
-    for (final id in azkarPrayerIds) {
+  static int? boolTest({DateTime? now}) {
+    for (final id in _azkarPrayerIds(now ?? DateTime.now())) {
       return id;
     }
     return null;
@@ -127,7 +164,7 @@ class AzkarTimeHelper {
     required AzkarType type,
     required int windowMinutes,
   }) {
-    for (final id in azkarPrayerIds) {
+    for (final id in _azkarPrayerIds(n)) {
       if (!ManagedAzkarHiveHelper.hasActiveEntriesForTypeAndPrayerSync(
         type,
         id,
@@ -193,13 +230,16 @@ class AzkarTimeHelper {
   static AzkarWindow? currentWindow({DateTime? now}) {
     final n = now ?? DateTime.now();
 
+    final afterPrayer = _afterPrayerWindow(n);
+    if (afterPrayer != null) return afterPrayer;
+
     final m = _morningWindow(n);
     if (m != null) return m;
 
     final e = _eveningWindow(n);
     if (e != null) return e;
 
-    return _afterPrayerWindow(n);
+    return null;
   }
 }
 

@@ -103,6 +103,7 @@ class _ImprovedDhikrFormWidgetState extends State<ImprovedDhikrFormWidget> {
               DhikrVirtualKeyboardField(
                 controller: _textController,
                 hintText: LocaleKeys.dhikr_add_new_title.tr(),
+                enablePasteAction: true,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: sizing.screenWidth * 0.04,
                   vertical: sizing.screenHeight * 0.015,

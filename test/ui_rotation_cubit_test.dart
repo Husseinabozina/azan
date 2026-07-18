@@ -9,82 +9,91 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     await CacheHelper.init();
-    UiRotationCubit().setQuarterTurns(0);
+    await UiRotationCubit().setQuarterTurns(0);
     UiRotationCubit().syncDeviceOrientation(deviceIsLandscape: true);
   });
 
-  test('rotateClockwise cycles through four quarter turns', () {
+  test('rotateClockwise cycles through four quarter turns', () async {
     final cubit = UiRotationCubit();
 
     expect(cubit.quarterTurns, 0);
     expect(cubit.isLandscape(), isTrue);
 
-    cubit.rotateClockwise();
+    await cubit.rotateClockwise();
     expect(cubit.quarterTurns, 1);
     expect(cubit.isLandscape(), isFalse);
 
-    cubit.rotateClockwise();
+    await cubit.rotateClockwise();
     expect(cubit.quarterTurns, 2);
     expect(cubit.isLandscape(), isTrue);
 
-    cubit.rotateClockwise();
+    await cubit.rotateClockwise();
     expect(cubit.quarterTurns, 3);
     expect(cubit.isLandscape(), isFalse);
 
-    cubit.rotateClockwise();
+    await cubit.rotateClockwise();
     expect(cubit.quarterTurns, 0);
     expect(cubit.isLandscape(), isTrue);
   });
 
-  test('portrait physical screens flip layout orientation on odd turns', () {
+  test(
+    'portrait physical screens flip layout orientation on odd turns',
+    () async {
+      final cubit = UiRotationCubit();
+      cubit.syncDeviceOrientation(deviceIsLandscape: false);
+
+      await cubit.setQuarterTurns(0);
+      expect(cubit.isLandscape(), isFalse);
+
+      await cubit.setQuarterTurns(1);
+      expect(cubit.isLandscape(), isTrue);
+
+      await cubit.setQuarterTurns(2);
+      expect(cubit.isLandscape(), isFalse);
+
+      await cubit.setQuarterTurns(3);
+      expect(cubit.isLandscape(), isTrue);
+    },
+  );
+
+  test(
+    'zero rotation keeps mobile following the real device orientation',
+    () async {
+      final cubit = UiRotationCubit();
+
+      await cubit.setQuarterTurns(0);
+      cubit.syncDeviceOrientation(deviceIsLandscape: false);
+      expect(cubit.isLandscape(), isFalse);
+
+      cubit.syncDeviceOrientation(deviceIsLandscape: true);
+      expect(cubit.isLandscape(), isTrue);
+    },
+  );
+
+  test(
+    'manual quarter turns are honored after pressing rotate on mobile',
+    () async {
+      final cubit = UiRotationCubit();
+
+      await cubit.setQuarterTurns(1);
+      cubit.syncDeviceOrientation(deviceIsLandscape: false);
+      expect(cubit.isLandscape(), isTrue);
+
+      await cubit.setQuarterTurns(2);
+      expect(cubit.isLandscape(), isFalse);
+    },
+  );
+
+  test('selectDisplayDirection jumps directly to target direction', () async {
     final cubit = UiRotationCubit();
-    cubit.syncDeviceOrientation(deviceIsLandscape: false);
 
-    cubit.setQuarterTurns(0);
-    expect(cubit.isLandscape(), isFalse);
-
-    cubit.setQuarterTurns(1);
-    expect(cubit.isLandscape(), isTrue);
-
-    cubit.setQuarterTurns(2);
-    expect(cubit.isLandscape(), isFalse);
-
-    cubit.setQuarterTurns(3);
-    expect(cubit.isLandscape(), isTrue);
-  });
-
-  test('zero rotation keeps mobile following the real device orientation', () {
-    final cubit = UiRotationCubit();
-
-    cubit.setQuarterTurns(0);
-    cubit.syncDeviceOrientation(deviceIsLandscape: false);
-    expect(cubit.isLandscape(), isFalse);
-
-    cubit.syncDeviceOrientation(deviceIsLandscape: true);
-    expect(cubit.isLandscape(), isTrue);
-  });
-
-  test('manual quarter turns are honored after pressing rotate on mobile', () {
-    final cubit = UiRotationCubit();
-
-    cubit.setQuarterTurns(1);
-    cubit.syncDeviceOrientation(deviceIsLandscape: false);
-    expect(cubit.isLandscape(), isTrue);
-
-    cubit.setQuarterTurns(2);
-    expect(cubit.isLandscape(), isFalse);
-  });
-
-  test('selectDisplayDirection jumps directly to target direction', () {
-    final cubit = UiRotationCubit();
-
-    cubit.selectDisplayDirection(3);
+    await cubit.selectDisplayDirection(3);
     expect(cubit.quarterTurns, 3);
 
-    cubit.selectDisplayDirection(1);
+    await cubit.selectDisplayDirection(1);
     expect(cubit.quarterTurns, 1);
 
-    cubit.selectDisplayDirection(6);
+    await cubit.selectDisplayDirection(6);
     expect(cubit.quarterTurns, 2);
   });
 
@@ -92,8 +101,7 @@ void main() {
     final cubit = UiRotationCubit();
 
     for (final quarterTurns in <int>[0, 1, 2, 3]) {
-      cubit.selectDisplayDirection(quarterTurns);
-      await Future<void>.delayed(Duration.zero);
+      await cubit.selectDisplayDirection(quarterTurns);
 
       expect(CacheHelper.getUiRotationQuarterTurns(), quarterTurns);
     }
@@ -103,12 +111,11 @@ void main() {
     'selecting the current direction does not emit a duplicate state',
     () async {
       final cubit = UiRotationCubit();
-      cubit.selectDisplayDirection(2);
+      await cubit.selectDisplayDirection(2);
 
       var emitted = false;
       final subscription = cubit.stream.listen((_) => emitted = true);
-      cubit.selectDisplayDirection(2);
-      await Future<void>.delayed(Duration.zero);
+      await cubit.selectDisplayDirection(2);
 
       expect(emitted, isFalse);
       await subscription.cancel();

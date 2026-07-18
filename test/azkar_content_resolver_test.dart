@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:azan/core/helpers/azkar_prayer_scope_helper.dart';
 import 'package:azan/core/helpers/managed_azkar_hive_helper.dart';
 import 'package:azan/core/models/azkar_type.dart';
 import 'package:azan/views/home/components/azkar_content.dart';
@@ -170,6 +171,51 @@ void main() {
         );
         expect(
           resolved.entries.any((entry) => entry.reference == 'ابن ماجه'),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'after-prayer loader separates friday from dhuhr-specific entries',
+      () async {
+        const dhuhrText = 'ذكر خاص بالظهر فقط';
+        const fridayText = 'ذكر خاص بالجمعة فقط';
+
+        await ManagedAzkarHiveHelper.addEntry(
+          type: AzkarType.afterPrayer,
+          text: dhuhrText,
+          applicablePrayerIds: const [AzkarPrayerScopeHelper.dhuhrId],
+        );
+        await ManagedAzkarHiveHelper.addEntry(
+          type: AzkarType.afterPrayer,
+          text: fridayText,
+          applicablePrayerIds: const [AzkarPrayerScopeHelper.fridayId],
+        );
+
+        final dhuhrResolved = await loadAzkarSet(
+          AzkarType.afterPrayer,
+          prayerId: AzkarPrayerScopeHelper.dhuhrId,
+        );
+        final fridayResolved = await loadAzkarSet(
+          AzkarType.afterPrayer,
+          prayerId: AzkarPrayerScopeHelper.fridayId,
+        );
+
+        expect(
+          dhuhrResolved.entries.any((entry) => entry.text == dhuhrText),
+          isTrue,
+        );
+        expect(
+          dhuhrResolved.entries.any((entry) => entry.text == fridayText),
+          isFalse,
+        );
+        expect(
+          fridayResolved.entries.any((entry) => entry.text == fridayText),
+          isTrue,
+        );
+        expect(
+          fridayResolved.entries.any((entry) => entry.text == dhuhrText),
           isFalse,
         );
       },
