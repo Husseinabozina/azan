@@ -136,19 +136,21 @@ class _PrayerHeaderCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox.expand(
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          maxLines: 1,
-          overflow: TextOverflow.visible,
-          textAlign: TextAlign.center,
-          style: style.copyWith(height: style.height ?? 1.15),
-          strutStyle: StrutStyle(
-            fontSize: style.fontSize,
-            height: style.height ?? 1.15,
-            forceStrutHeight: true,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 1.h),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.visible,
+            textAlign: TextAlign.center,
+            style: style.copyWith(height: style.height ?? 1.22),
+            textHeightBehavior: const TextHeightBehavior(
+              applyHeightToFirstAscent: true,
+              applyHeightToLastDescent: true,
+            ),
           ),
         ),
       ),

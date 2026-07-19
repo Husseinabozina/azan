@@ -84,9 +84,10 @@ class PrayerGlassRow extends StatelessWidget {
         : 1.0;
 
     Widget cellText(String s, TextStyle st, {String? nextTime}) {
+      final highlightTextColor = AppTheme.nextPrayerHighlightTextColor;
       final effectiveStyle = data.isNextPrayer
           ? st.copyWith(
-              color: Colors.white,
+              color: highlightTextColor,
               shadows: [
                 Shadow(
                   color: Colors.black.withValues(alpha: 0.28),
@@ -116,7 +117,7 @@ class PrayerGlassRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11.sp,
                         color: data.isNextPrayer
-                            ? Colors.white.withValues(alpha: 0.86)
+                            ? highlightTextColor.withValues(alpha: 0.86)
                             : AppTheme.secondaryTextColor,
                       ),
                       maxLines: 1,
@@ -140,6 +141,7 @@ class PrayerGlassRow extends StatelessWidget {
         padding: EdgeInsetsDirectional.only(start: 12.w, end: 12.w),
         highlighted: data.isNextPrayer,
         highlightColor: AppTheme.nextPrayerHighlightColor,
+        highlightOpacity: AppTheme.nextPrayerHighlightOpacity,
         child: Prayer3Cols(
           centerPrayerColumn: centerPrayerColumn,
           prayer: cellText(

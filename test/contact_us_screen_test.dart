@@ -118,7 +118,7 @@ void main() {
 
     final uri = Uri.parse(fakeUrlLauncher.lastLaunchedUrl!);
     expect(uri.scheme, 'mailto');
-    expect(uri.path, 'sajdh1447@gmail.com');
+    expect(uri.path, 'rawayie1448@gmail.com');
     expect(
       uri.queryParameters['subject'],
       LocaleKeys.contact_us_email_subject.tr(),

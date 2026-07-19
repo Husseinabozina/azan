@@ -151,7 +151,9 @@ class _DirectionOptionTile extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w800,
-                        color: Colors.black,
+                        color: selected
+                            ? DialogPalette.titleTextColor
+                            : DialogPalette.bodyTextColor,
                       ),
                     ),
                     SizedBox(height: 3.h),
@@ -162,7 +164,9 @@ class _DirectionOptionTile extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12.sp,
                         height: 1.25,
-                        color: Colors.grey[800],
+                        color: selected
+                            ? DialogPalette.bodyTextColor
+                            : DialogPalette.mutedTextColor,
                       ),
                     ),
                   ],

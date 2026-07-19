@@ -19,6 +19,7 @@ import 'package:azan/views/contact_us/contact_us_screen.dart';
 import 'package:azan/views/display_board/display_board_settings_screen.dart';
 import 'package:azan/views/friday_prayer_settings/friday_prayer_settings_screen.dart';
 import 'package:azan/views/home/components/display_direction_picker.dart';
+import 'package:azan/views/home/components/next_prayer_highlight_settings_dialog.dart';
 import 'package:azan/views/home/home_screen.dart';
 import 'package:azan/views/managed_azkar/managed_azkar_screen.dart';
 import 'package:azan/views/prayer_calendar/hijri_prayer_calendar_screen.dart';
@@ -291,6 +292,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 //     });
                 //   },
                 // );
+              },
+            ),
+            _DrawerEntry(
+              title: LocaleKeys.next_prayer_highlight_settings.tr(),
+              onTap: () {
+                showNextPrayerHighlightSettingsDialog(context);
               },
             ),
 

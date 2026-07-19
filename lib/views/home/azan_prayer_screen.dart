@@ -272,34 +272,21 @@ class _AzanPrayerScreenState extends State<AzanPrayerScreen> {
                                 right: m.iqamaPadX,
                                 bottom: m.centerBottomPad,
                               ),
-                              child: isLandscape
-                                  ? FittedBox(
-                                      // FittedBox للـ text عشان ميتجاوزش
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        LocaleKeys.iqama_time_has_begun_now
-                                            .tr(),
-                                        style: TextStyle(
-                                          fontSize: m.iqamaTextSize,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppTheme.primaryTextColor,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    )
-                                  : Text(
-                                      LocaleKeys.iqama_time_has_begun_now.tr(),
-                                      style: TextStyle(
-                                        fontSize: m.iqamaTextSize,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.primaryTextColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  LocaleKeys.iqama_time_has_begun_now.tr(),
+                                  style: TextStyle(
+                                    fontSize: m.iqamaTextSize,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryTextColor,
+                                    height: 1.12,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.visible,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -454,7 +441,7 @@ class _AzanMetrics {
       menuIconSize: 32.r,
 
       iqamaPadX: 24.w,
-      iqamaTextSize: 98.sp,
+      iqamaTextSize: 84.sp,
 
       closeImg: 120.r,
       closeBottom: 20.h,

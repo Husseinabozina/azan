@@ -85,11 +85,18 @@ List<PrayerRowData> buildDisplayBoardPrayerRows(
   final prayers = cubit.prayers(context);
   final iqamaMinutes = cubit.iqamaMinutes;
   final nextFajrPrayer = cubit.nextFajrPrayer?.time24 ?? '--:--';
+  final remainingToIqama = cubit.remainingToIqama();
 
   final rows = List<PrayerRowData>.generate(prayers.length, (index) {
     final p = prayers[index];
     final dimmed = index < pastIqamaFlags.length && pastIqamaFlags[index];
-    final isNextPrayer = isNextPrayerRow(p, cubit.nextPrayerVar);
+    final isNextPrayer = isHighlightedPrayerRow(
+      prayer: p,
+      nextPrayer: cubit.nextPrayerVar,
+      currentPrayer: cubit.currentPrayer,
+      isBetweenAdhanAndIqama: cubit.isBetweenAdhanAndIqama,
+      remainingToIqama: remainingToIqama,
+    );
 
     final baseTimeStr = CacheHelper.getUse24HoursFormat()
         ? (p.time24 ?? p.time)

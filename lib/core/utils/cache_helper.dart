@@ -112,6 +112,12 @@ class CacheHelper {
 
   static const String _hijriOffsetDir = "_hijriOffsetDir"; // int: 1 or -1
   static const String _enableGlassPrayerRows = "_enableGlassPrayerRows";
+  static const String _nextPrayerHighlightUseCustomColor =
+      "_nextPrayerHighlightUseCustomColor";
+  static const String _nextPrayerHighlightColorValue =
+      "_nextPrayerHighlightColorValue";
+  static const String _nextPrayerHighlightOpacity =
+      "_nextPrayerHighlightOpacity";
   static const String _kAzanAdjustV1 = "_azanAdjustV1"; // json
   static const String _azanDuration = "_azanDuration";
   static const String _kMorningAzkarEnabled = 'morning_azkar_enabled';
@@ -1344,6 +1350,45 @@ class CacheHelper {
       sharedPreferences.getBool(_enableGlassPrayerRows) ?? false;
   static Future<void> setEnableGlassEffect(bool v) =>
       sharedPreferences.setBool(_enableGlassPrayerRows, v);
+
+  static bool getNextPrayerHighlightUseCustomColor() {
+    return sharedPreferences.getBool(_nextPrayerHighlightUseCustomColor) ??
+        false;
+  }
+
+  static Future<void> setNextPrayerHighlightUseCustomColor(bool value) {
+    return sharedPreferences.setBool(_nextPrayerHighlightUseCustomColor, value);
+  }
+
+  static int? getNextPrayerHighlightColorValue() {
+    return sharedPreferences.getInt(_nextPrayerHighlightColorValue);
+  }
+
+  static Future<void> setNextPrayerHighlightColorValue(int value) {
+    return sharedPreferences.setInt(_nextPrayerHighlightColorValue, value);
+  }
+
+  static Future<void> clearNextPrayerHighlightColorValue() {
+    return sharedPreferences.remove(_nextPrayerHighlightColorValue);
+  }
+
+  static double getNextPrayerHighlightOpacity() {
+    final value = sharedPreferences.getDouble(_nextPrayerHighlightOpacity);
+    return (value ?? 0.72).clamp(0.20, 1.0).toDouble();
+  }
+
+  static Future<void> setNextPrayerHighlightOpacity(double value) {
+    return sharedPreferences.setDouble(
+      _nextPrayerHighlightOpacity,
+      value.clamp(0.20, 1.0).toDouble(),
+    );
+  }
+
+  static Future<void> resetNextPrayerHighlightStyle() async {
+    await setNextPrayerHighlightUseCustomColor(false);
+    await clearNextPrayerHighlightColorValue();
+    await sharedPreferences.remove(_nextPrayerHighlightOpacity);
+  }
 
   // get slidertime
   static int getSliderTime() {

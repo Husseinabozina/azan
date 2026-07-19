@@ -34,7 +34,6 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
 
   // ===== Iqama local state (نفس منطق SetIqamaScreen) =====
   late List<int> iqamaMinutes;
-  late int friDaySermonMinutes;
 
   @override
   void initState() {
@@ -42,7 +41,6 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
     appCubit = AppCubit.get(context);
 
     // default
-    friDaySermonMinutes = CacheHelper.getFridayTime();
     iqamaMinutes = List<int>.filled(6, 10);
 
     _loadIqamaOnce();
@@ -56,15 +54,11 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
       if (storedIqama.isNotEmpty) {
         iqamaMinutes = List<int>.from(storedIqama);
       }
-      friDaySermonMinutes = CacheHelper.getFridayTime();
     });
   }
 
   Future<void> _saveIqama() async {
-    await appCubit.saveBaseIqamaTimes(
-      List<int>.from(iqamaMinutes),
-      fridayMinutes: friDaySermonMinutes,
-    );
+    await appCubit.saveBaseIqamaTimes(List<int>.from(iqamaMinutes));
   }
 
   // ========= UI helpers =========
@@ -143,13 +137,6 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
     setState(() {
       final next = (iqamaMinutes[index] + delta).clamp(_minIqama, _maxIqama);
       iqamaMinutes[index] = next;
-    });
-  }
-
-  void _stepFriday(int delta) {
-    setState(() {
-      final next = (friDaySermonMinutes + delta).clamp(_minIqama, _maxIqama);
-      friDaySermonMinutes = next;
     });
   }
 
@@ -505,21 +492,6 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                                   );
                                                 }),
 
-                                                VerticalSpace(height: 10),
-
-                                                _FridayRowInline(
-                                                  title: LocaleKeys
-                                                      .friday_sermon_time
-                                                      .tr(),
-                                                  value: friDaySermonMinutes,
-                                                  onMinus: () =>
-                                                      _stepFriday(-1),
-                                                  onPlus: () => _stepFriday(1),
-                                                  onMinus5: () =>
-                                                      _stepFriday(-5),
-                                                  onPlus5: () => _stepFriday(5),
-                                                ),
-
                                                 VerticalSpace(height: 12),
 
                                                 AppButton(
@@ -809,18 +781,6 @@ class _AzanAdjustScreenState extends State<AzanAdjustScreen> {
                                             );
                                           }),
 
-                                          VerticalSpace(height: 10),
-
-                                          _FridayRowInline(
-                                            title: LocaleKeys.friday_sermon_time
-                                                .tr(),
-                                            value: friDaySermonMinutes,
-                                            onMinus: () => _stepFriday(-1),
-                                            onPlus: () => _stepFriday(1),
-                                            onMinus5: () => _stepFriday(-5),
-                                            onPlus5: () => _stepFriday(5),
-                                          ),
-
                                           VerticalSpace(height: 12),
 
                                           AppButton(
@@ -1093,62 +1053,6 @@ class _InlineStepper extends StatelessWidget {
   }
 }
 
-class _FridayRowInline extends StatelessWidget {
-  const _FridayRowInline({
-    required this.title,
-    required this.value,
-    required this.onMinus,
-    required this.onPlus,
-    required this.onMinus5,
-    required this.onPlus5,
-  });
-
-  final String title;
-  final int value;
-  final VoidCallback onMinus;
-  final VoidCallback onPlus;
-  final VoidCallback onMinus5;
-  final VoidCallback onPlus5;
-
-  @override
-  Widget build(BuildContext context) {
-    final vText = LocalizationHelper.isArAndArNumberEnable()
-        ? DateHelper.toArabicDigits('$value')
-        : '$value';
-
-    return LayoutBuilder(
-      builder: (context, c) {
-        final showFast = c.maxWidth >= 320;
-
-        return Row(
-          children: [
-            _InlineStepper(
-              valueText: '$vText ${LocaleKeys.min.tr()}',
-              showFast: showFast,
-              onMinus: onMinus,
-              onPlus: onPlus,
-              onMinus5: onMinus5,
-              onPlus5: onPlus5,
-            ),
-            HorizontalSpace(width: 10.w),
-            Expanded(
-              child: Text(
-                title,
-                // textAlign: TextAlign.right,
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13.sp,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
 class _IqamaRowInline extends StatelessWidget {
   const _IqamaRowInline({
     required this.prayerTitle,
@@ -1404,138 +1308,6 @@ class _AdjustRowPortrait extends StatelessWidget {
             color: AppTheme.primaryTextColor,
             fontSize: 13.sp,
             fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _IqamaRow extends StatelessWidget {
-  const _IqamaRow({
-    required this.prayerTitle,
-    required this.adhanTime,
-    required this.iqamaValue,
-    required this.onTap,
-  });
-
-  final String prayerTitle;
-  final String adhanTime;
-  final int iqamaValue;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final vText = LocalizationHelper.isArAndArNumberEnable()
-        ? DateHelper.toArabicDigits('$iqamaValue')
-        : '$iqamaValue';
-
-    return Row(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
-          child: Container(
-            width: 120.w,
-            height: 40.h,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.22),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Colors.white.withOpacity(0.12)),
-            ),
-            child: Text(
-              '$vText ${LocaleKeys.min.tr()}',
-              style: TextStyle(
-                color: AppTheme.primaryTextColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 13.sp,
-              ),
-            ),
-          ),
-        ),
-        HorizontalSpace(width: 10.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                prayerTitle,
-                // textAlign: TextAlign.right,
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13.sp,
-                ),
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                '${LocaleKeys.adhan_time_label.tr()}: $adhanTime',
-                // textAlign: TextAlign.right,
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor.withOpacity(0.75),
-                  fontSize: 11.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FridayRow extends StatelessWidget {
-  const _FridayRow({
-    required this.title,
-    required this.value,
-    required this.onTap,
-  });
-
-  final String title;
-  final int value;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final vText = LocalizationHelper.isArAndArNumberEnable()
-        ? DateHelper.toArabicDigits('$value')
-        : '$value';
-
-    return Row(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
-          child: Container(
-            width: 120.w,
-            height: 40.h,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.22),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Colors.white.withOpacity(0.12)),
-            ),
-            child: Text(
-              '$vText ${LocaleKeys.min.tr()}',
-              style: TextStyle(
-                color: AppTheme.primaryTextColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 13.sp,
-              ),
-            ),
-          ),
-        ),
-        HorizontalSpace(width: 10.w),
-        Expanded(
-          child: Text(
-            title,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              color: AppTheme.primaryTextColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 13.sp,
-            ),
           ),
         ),
       ],

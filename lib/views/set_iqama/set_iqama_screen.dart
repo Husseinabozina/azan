@@ -4,7 +4,6 @@ import 'package:azan/controllers/cubits/appcubit/app_state.dart';
 import 'package:azan/controllers/cubits/rotation_cubit/rotation_cubit.dart';
 import 'package:azan/core/components/appbutton.dart';
 import 'package:azan/core/components/flash_dialoge.dart';
-import 'package:azan/core/components/horizontal_space.dart';
 import 'package:azan/core/components/vertical_space.dart';
 import 'package:azan/core/helpers/date_helper.dart';
 import 'package:azan/core/helpers/localizationHelper.dart';
@@ -33,13 +32,11 @@ class SetIqamaScreen extends StatefulWidget {
 class _SetIqamaScreenState extends State<SetIqamaScreen> {
   late AppCubit appCubit;
   late List<int> iqamaMinutes; // لكل صلاة
-  late int friDaySermonMinutes;
 
   @override
   void initState() {
     super.initState();
     appCubit = AppCubit.get(context);
-    friDaySermonMinutes = CacheHelper.getFridayTime();
     iqamaMinutes = List<int>.filled(prayers.length, 10);
 
     appCubit.getStoredIqamaMinutes().then((storedIqama) {
@@ -60,17 +57,6 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
 
     if (result != null && mounted) {
       setState(() => iqamaMinutes[index] = result);
-    }
-  }
-
-  Future<void> _editFridaySermonMinutes() async {
-    final result = await _showMinutesEditorDialog(
-      title: LocaleKeys.friday_sermon_time.tr(),
-      current: friDaySermonMinutes,
-    );
-
-    if (result != null && mounted) {
-      setState(() => friDaySermonMinutes = result);
     }
   }
 
@@ -501,71 +487,6 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                 ],
                               ),
 
-                              VerticalSpace(height: 20.h),
-
-                              // Friday Sermon
-                              Padding(
-                                padding: EdgeInsets.only(left: 8.w, right: 8.w),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: AutoSizeText(
-                                        LocaleKeys.friday_sermon_time.tr(),
-                                        maxLines: 1,
-                                        minFontSize: 10,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: isLandscape ? 18.sp : 16.sp,
-                                          color: AppTheme.primaryTextColor,
-                                        ),
-                                      ),
-                                    ),
-                                    HorizontalSpace(width: 10.w),
-                                    Align(
-                                      alignment: Alignment.center,
-                                      child: InkWell(
-                                        onTap: _editFridaySermonMinutes,
-                                        child: ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            minWidth: 90.w,
-                                          ),
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 12.w,
-                                              vertical: 6.h,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(
-                                                0.15,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(16.r),
-                                              border: Border.all(
-                                                color:
-                                                    AppTheme.primaryTextColor,
-                                                width: 1.5,
-                                              ),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                '${LocalizationHelper.isArAndArNumberEnable() ? DateHelper.toArabicDigits(friDaySermonMinutes.toString()) : friDaySermonMinutes} ${LocaleKeys.min.tr()}',
-                                                style: TextStyle(
-                                                  fontSize: 18.sp,
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      AppTheme.primaryTextColor,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
                               VerticalSpace(height: 10.h),
 
                               // Save Button
@@ -576,7 +497,6 @@ class _SetIqamaScreenState extends State<SetIqamaScreen> {
                                   onPressed: () {
                                     appCubit.saveBaseIqamaTimes(
                                       List<int>.from(iqamaMinutes),
-                                      fridayMinutes: friDaySermonMinutes,
                                     );
                                   },
                                   child: state is saveIqamaTimesLoading

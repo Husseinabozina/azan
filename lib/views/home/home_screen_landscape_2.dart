@@ -646,13 +646,20 @@ class _HomeScreenLandscape2State extends State<HomeScreenLandscape2> {
             final prayers = cubit.prayers(context);
             final iqamaMinutes = cubit.iqamaMinutes;
             final nextFajrPrayer = cubit.nextFajrPrayer?.time24 ?? '--:--';
+            final remainingToIqama = cubit.remainingToIqama();
 
             // 1) الصفوف الأساسية (الصلوات المعتادة)
             final List<PrayerRowData> rows = List.generate(prayers.length, (
               index,
             ) {
               final p = prayers[index];
-              final isNextPrayer = isNextPrayerRow(p, cubit.nextPrayerVar);
+              final isNextPrayer = isHighlightedPrayerRow(
+                prayer: p,
+                nextPrayer: cubit.nextPrayerVar,
+                currentPrayer: cubit.currentPrayer,
+                isBetweenAdhanAndIqama: cubit.isBetweenAdhanAndIqama,
+                remainingToIqama: remainingToIqama,
+              );
 
               final dimmed =
                   index < pastIqamaFlags.length && pastIqamaFlags[index];
@@ -1186,14 +1193,16 @@ class PrayerLandScapeItem extends StatelessWidget {
   }
 
   Color _color(bool dimmed, Color color) {
-    if (row.isNextPrayer) return Colors.white;
+    if (row.isNextPrayer) return AppTheme.nextPrayerHighlightTextColor;
 
     if (dimmed && CacheHelper.getIsPreviousPrayersDimmed()) {
-      return color.withOpacity(0.5);
+      return color.withValues(alpha: 0.5);
     }
 
     return color;
   }
+
+  double get _highlightOpacity => AppTheme.nextPrayerHighlightOpacity;
 
   @override
   Widget build(BuildContext context) {
@@ -1209,8 +1218,14 @@ class PrayerLandScapeItem extends StatelessWidget {
                 begin: AlignmentDirectional.topStart,
                 end: AlignmentDirectional.bottomEnd,
                 colors: [
-                  AppTheme.nextPrayerHighlightColor.withValues(alpha: 0.94),
-                  AppTheme.nextPrayerHighlightColor.withValues(alpha: 0.76),
+                  AppTheme.nextPrayerHighlightColor.withValues(
+                    alpha: _highlightOpacity,
+                  ),
+                  AppTheme.nextPrayerHighlightColor.withValues(
+                    alpha: (_highlightOpacity * 0.82)
+                        .clamp(0.16, 1.0)
+                        .toDouble(),
+                  ),
                 ],
               ),
               border: Border.all(color: Colors.white.withValues(alpha: 0.22)),

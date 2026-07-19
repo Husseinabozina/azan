@@ -579,9 +579,16 @@ class HomeScreenMobileState extends State<HomeScreenMobile> {
             color: AppTheme.primaryTextColor,
           );
 
+          final remainingToIqama = cubit.remainingToIqama();
           final rows = List.generate(cubit.prayers(context).length, (index) {
             final p = cubit.prayers(context)[index];
-            final isNextPrayer = isNextPrayerRow(p, cubit.nextPrayerVar);
+            final isNextPrayer = isHighlightedPrayerRow(
+              prayer: p,
+              nextPrayer: cubit.nextPrayerVar,
+              currentPrayer: cubit.currentPrayer,
+              isBetweenAdhanAndIqama: cubit.isBetweenAdhanAndIqama,
+              remainingToIqama: remainingToIqama,
+            );
 
             final dimmed =
                 index < pastIqamaFlags.length && pastIqamaFlags[index];

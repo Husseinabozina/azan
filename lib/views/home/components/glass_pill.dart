@@ -8,6 +8,7 @@ class GlassPill extends StatelessWidget {
     this.enabled = true,
     this.highlighted = false,
     this.highlightColor,
+    this.highlightOpacity = 0.72,
     this.height,
     this.radius = 22,
     this.blurSigma = 14,
@@ -20,6 +21,7 @@ class GlassPill extends StatelessWidget {
   final bool enabled;
   final bool highlighted;
   final Color? highlightColor;
+  final double highlightOpacity;
   final double? height;
   final double radius;
   final double blurSigma;
@@ -33,14 +35,21 @@ class GlassPill extends StatelessWidget {
         ? null
         : (scaleHeight ? height!.h : height);
     final effectiveHighlightColor = highlightColor ?? const Color(0xFF1FC767);
+    final effectiveHighlightOpacity = highlightOpacity
+        .clamp(0.20, 1.0)
+        .toDouble();
     final highlightDecoration = BoxDecoration(
       borderRadius: BorderRadius.circular(radius.r),
       gradient: LinearGradient(
         begin: AlignmentDirectional.topStart,
         end: AlignmentDirectional.bottomEnd,
         colors: [
-          effectiveHighlightColor.withValues(alpha: 0.94),
-          effectiveHighlightColor.withValues(alpha: 0.76),
+          effectiveHighlightColor.withValues(alpha: effectiveHighlightOpacity),
+          effectiveHighlightColor.withValues(
+            alpha: (effectiveHighlightOpacity * 0.82)
+                .clamp(0.16, 1.0)
+                .toDouble(),
+          ),
         ],
       ),
       border: Border.all(

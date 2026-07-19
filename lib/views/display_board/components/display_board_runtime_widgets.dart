@@ -651,15 +651,15 @@ class _DisplayBoardPrayerCard extends StatelessWidget {
         ? 0.46
         : 1.0;
     final prayerColor = row.isNextPrayer
-        ? Colors.white
+        ? AppTheme.displayBoardNextPrayerHighlightTextColor
         : row.isSpecial
         ? AppTheme.displayBoardAccentColor
         : AppTheme.displayBoardSecondaryTextColor;
     final timeAccentColor = row.isNextPrayer
-        ? Colors.white
+        ? AppTheme.displayBoardNextPrayerHighlightTextColor
         : AppTheme.displayBoardAccentColor;
     final iqamaColor = row.isNextPrayer
-        ? Colors.white
+        ? AppTheme.displayBoardNextPrayerHighlightTextColor
         : AppTheme.displayBoardPrimaryTextColor;
 
     return Opacity(
@@ -668,6 +668,7 @@ class _DisplayBoardPrayerCard extends StatelessWidget {
         enabled: CacheHelper.getEnableGlassEffect(),
         highlighted: row.isNextPrayer,
         highlightColor: AppTheme.displayBoardNextPrayerHighlightColor,
+        highlightOpacity: AppTheme.nextPrayerHighlightOpacity,
         radius: isLandscape ? 18 : 16,
         padding: EdgeInsetsDirectional.symmetric(
           horizontal: isLandscape ? 4.w : 4.w,

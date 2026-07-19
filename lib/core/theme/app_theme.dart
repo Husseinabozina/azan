@@ -807,8 +807,17 @@ class AppTheme {
   // =========================
   static Color get accentColor => _p.accent;
   static Color get homeAccentColor => _homeTimedOverlayPack.accent;
-  static Color get nextPrayerHighlightColor =>
+  static const double defaultNextPrayerHighlightOpacity = 0.72;
+  static Color get defaultNextPrayerHighlightColor =>
       _highlightSurfaceFromAccent(accentColor);
+  static bool get useCustomNextPrayerHighlightColor =>
+      CacheHelper.getNextPrayerHighlightUseCustomColor();
+  static double get nextPrayerHighlightOpacity =>
+      CacheHelper.getNextPrayerHighlightOpacity();
+  static Color get nextPrayerHighlightColor =>
+      _resolveNextPrayerHighlightColor(defaultNextPrayerHighlightColor);
+  static Color get nextPrayerHighlightTextColor =>
+      _highlightTextColorFor(_p.baseBg, nextPrayerHighlightColor);
 
   // =========================
   // BASE BACKGROUND (بديل darkBlue)
@@ -894,7 +903,31 @@ class AppTheme {
   );
 
   static Color get displayBoardNextPrayerHighlightColor =>
-      _highlightSurfaceFromAccent(displayBoardAccentColor);
+      _resolveNextPrayerHighlightColor(
+        _highlightSurfaceFromAccent(displayBoardAccentColor),
+      );
+  static Color get displayBoardNextPrayerHighlightTextColor =>
+      _highlightTextColorFor(
+        _displayBoardSurfaceReference,
+        displayBoardNextPrayerHighlightColor,
+      );
+
+  static Color _resolveNextPrayerHighlightColor(Color defaultColor) {
+    if (!useCustomNextPrayerHighlightColor) return defaultColor;
+    final stored = CacheHelper.getNextPrayerHighlightColorValue();
+    if (stored == null) return defaultColor;
+    return Color(stored);
+  }
+
+  static Color _highlightTextColorFor(Color surface, Color highlightColor) {
+    final highlightSurface = highlightColor.withValues(
+      alpha: nextPrayerHighlightOpacity,
+    );
+    final blended = Color.alphaBlend(highlightSurface, surface);
+    return blended.computeLuminance() > 0.46
+        ? const Color(0xFF1C150A)
+        : Colors.white;
+  }
 
   static Color _highlightSurfaceFromAccent(Color accent) {
     final hsl = HSLColor.fromColor(accent);

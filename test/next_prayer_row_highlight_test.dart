@@ -3,40 +3,40 @@ import 'package:azan/views/home/components/next_prayer_row_highlight.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  Prayer prayer({
+    required int id,
+    required String title,
+    required DateTime dateTime,
+  }) {
+    return Prayer(id: id, title: title, time: '00:00', dateTime: dateTime);
+  }
+
   test('matches the next prayer when id and day are the same', () {
-    final prayer = Prayer(
+    final isha = prayer(
       id: 6,
       title: 'العشاء',
-      time: '08:06 PM',
-      time24: '20:06',
       dateTime: DateTime(2026, 6, 20, 20, 6),
     );
 
-    final nextPrayer = Prayer(
+    final nextIsha = prayer(
       id: 6,
       title: 'العشاء',
-      time: '08:06 PM',
-      time24: '20:06',
       dateTime: DateTime(2026, 6, 20, 20, 6),
     );
 
-    expect(isNextPrayerRow(prayer, nextPrayer), isTrue);
+    expect(isNextPrayerRow(isha, nextIsha), isTrue);
   });
 
   test('matches tomorrow fajr against the visible fajr row after isha', () {
-    final todayFajr = Prayer(
+    final todayFajr = prayer(
       id: 1,
       title: 'الفجر',
-      time: '03:14 AM',
-      time24: '03:14',
       dateTime: DateTime(2026, 6, 20, 3, 14),
     );
 
-    final tomorrowFajr = Prayer(
+    final tomorrowFajr = prayer(
       id: 1,
       title: 'الفجر',
-      time: '03:15 AM',
-      time24: '03:15',
       dateTime: DateTime(2026, 6, 21, 3, 15),
     );
 
@@ -44,22 +44,74 @@ void main() {
   });
 
   test('does not wrap non-fajr prayers across days', () {
-    final todayIsha = Prayer(
+    final todayIsha = prayer(
       id: 6,
       title: 'العشاء',
-      time: '08:06 PM',
-      time24: '20:06',
       dateTime: DateTime(2026, 6, 20, 20, 6),
     );
 
-    final tomorrowIsha = Prayer(
+    final tomorrowIsha = prayer(
       id: 6,
       title: 'العشاء',
-      time: '08:07 PM',
-      time24: '20:07',
       dateTime: DateTime(2026, 6, 21, 20, 7),
     );
 
     expect(isNextPrayerRow(todayIsha, tomorrowIsha), isFalse);
+  });
+
+  test('keeps current prayer highlighted while iqama is still pending', () {
+    final ishaTime = DateTime(2026, 7, 19, 20, 29);
+    final fajrTomorrow = DateTime(2026, 7, 20, 4, 31);
+    final isha = prayer(id: 6, title: 'العشاء', dateTime: ishaTime);
+    final fajr = prayer(id: 1, title: 'الفجر', dateTime: fajrTomorrow);
+
+    expect(
+      isHighlightedPrayerRow(
+        prayer: isha,
+        nextPrayer: fajr,
+        currentPrayer: isha,
+        isBetweenAdhanAndIqama: true,
+        remainingToIqama: const Duration(minutes: 7),
+      ),
+      isTrue,
+    );
+    expect(
+      isHighlightedPrayerRow(
+        prayer: fajr,
+        nextPrayer: fajr,
+        currentPrayer: isha,
+        isBetweenAdhanAndIqama: true,
+        remainingToIqama: const Duration(minutes: 7),
+      ),
+      isFalse,
+    );
+  });
+
+  test('falls back to next prayer after iqama window ends', () {
+    final ishaTime = DateTime(2026, 7, 19, 20, 29);
+    final fajrTomorrow = DateTime(2026, 7, 20, 4, 31);
+    final isha = prayer(id: 6, title: 'العشاء', dateTime: ishaTime);
+    final fajr = prayer(id: 1, title: 'الفجر', dateTime: fajrTomorrow);
+
+    expect(
+      isHighlightedPrayerRow(
+        prayer: isha,
+        nextPrayer: fajr,
+        currentPrayer: isha,
+        isBetweenAdhanAndIqama: false,
+        remainingToIqama: Duration.zero,
+      ),
+      isFalse,
+    );
+    expect(
+      isHighlightedPrayerRow(
+        prayer: fajr,
+        nextPrayer: fajr,
+        currentPrayer: isha,
+        isBetweenAdhanAndIqama: false,
+        remainingToIqama: Duration.zero,
+      ),
+      isTrue,
+    );
   });
 }

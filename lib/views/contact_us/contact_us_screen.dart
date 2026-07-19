@@ -21,7 +21,7 @@ class ContactUsScreen extends StatefulWidget {
 }
 
 class _ContactUsScreenState extends State<ContactUsScreen> {
-  static const String _supportEmail = 'sajdh1447@gmail.com';
+  static const String _supportEmail = 'rawayie1448@gmail.com';
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
